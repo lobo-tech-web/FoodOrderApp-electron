@@ -1,0 +1,55 @@
+name: Release Windows
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, for example 1.1.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure production API routes
+        shell: pwsh
+        run: Copy-Item .env.example .env
+
+      - name: Set release version from tag
+        if: github.event_name == 'push'
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          npm version $version --no-git-tag-version
+
+      - name: Set manual release version
+        if: github.event_name == 'workflow_dispatch'
+        run: npm version ${{ inputs.version }} --no-git-tag-version
+
+      - name: Build and publish GitHub Release
+        run: npm run release:github
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPDATE_REPOSITORY: ${{ vars.UPDATE_REPOSITORY || github.repository }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}

@@ -1,0 +1,103 @@
+{
+  "name": "foodorderapp-admin-electron",
+  "version": "1.0.0",
+  "description": "FoodOrderApp desktop administration and local ordering application",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "build": "vite build",
+    "start": "npm run build && electron .",
+    "package:win": "npm run dist:win",
+    "dist:win": "npm run build && electron-builder --win nsis",
+    "dist:win:portable": "npm run build && electron-builder --win portable",
+    "release:github": "npm run build && node scripts/release-github.js"
+  },
+  "keywords": [
+    "electron",
+    "react",
+    "admin",
+    "foodorderapp"
+  ],
+  "author": "LoboTech",
+  "license": "ISC",
+  "build": {
+    "appId": "com.lobotech.foodorderapp.admin",
+    "productName": "FoodOrderApp Admin",
+    "artifactName": "FoodOrderApp-Admin-Setup-${version}.${ext}",
+    "electronDist": "node_modules/electron/dist",
+    "asar": true,
+    "npmRebuild": false,
+    "directories": {
+      "output": "release/installer",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "main.js",
+      "preload.js",
+      "menu.js",
+      "updater.js",
+      "build/icon.ico",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "FoodOrderApp Admin",
+      "uninstallDisplayName": "FoodOrderApp Admin",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+      "artifactName": "FoodOrderApp-Admin-Portable-${version}.${ext}"
+    }
+  },
+  "dependencies": {
+    "electron-updater": "^6.6.2"
+  },
+  "devDependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@fontsource/roboto": "^5.1.0",
+    "@fortawesome/fontawesome-free": "^6.5.2",
+    "@fortawesome/fontawesome-svg-core": "^6.6.0",
+    "@fortawesome/free-brands-svg-icons": "^6.6.0",
+    "@fortawesome/free-regular-svg-icons": "^6.6.0",
+    "@fortawesome/free-solid-svg-icons": "^6.6.0",
+    "@fortawesome/react-fontawesome": "^0.2.2",
+    "@mui/icons-material": "^6.1.7",
+    "@mui/material": "^6.1.7",
+    "axios": "^1.4.0",
+    "dayjs": "^1.11.13",
+    "decimal.js": "^10.6.0",
+    "html-to-image": "^1.11.13",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
+    "jwt-decode": "^4.0.0",
+    "lodash": "^4.17.21",
+    "qrcode.react": "^4.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.4.0",
+    "@vitejs/plugin-react": "^4.3.3",
+    "electron": "^41.2.0",
+    "electron-builder": "^26.0.12",
+    "vite": "^5.4.10"
+  }
+}

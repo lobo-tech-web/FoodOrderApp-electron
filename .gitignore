@@ -1,0 +1,14 @@
+node_modules
+dist
+release
+build/*
+!build/icon.ico
+.env
+.env.local
+.env.example
+.env.*.local
+*.p12
+*.pfx
+*.pem
+*.key
+secure-session.json

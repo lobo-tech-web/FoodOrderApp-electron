@@ -1,0 +1,31 @@
+export const initialUpdateUserState = {
+    id: '',
+    userNumber: '',
+    email: '',
+    name: '',
+    cuit: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    businessName: '',
+    workingHours: '',
+    whatsappNumber: '',
+    mercadoPagoLink: '',
+    transferPaymentAlias: '',
+    status: '',
+    role: '',
+};
+
+export const initialCreateUserState = {
+    email: '',
+    password: '',
+    name: '',
+    cuit: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    postalCode: '',
+};
