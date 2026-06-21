@@ -44,7 +44,7 @@ jobs:
 
       - name: Set manual release version
         if: github.event_name == 'workflow_dispatch'
-        run: npm version ${{ inputs.version }} --no-git-tag-version
+        run: npm version ${{ inputs.version }} --no-git-tag-version --allow-same-version
 
       - name: Build and publish GitHub Release
         run: npm run release:github
