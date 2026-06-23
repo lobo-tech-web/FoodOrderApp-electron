@@ -6,8 +6,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('navigate', listener);
     return () => ipcRenderer.removeListener('navigate', listener);
   },
-  printOrderTicket: (ticketHtml) =>
-    ipcRenderer.invoke('print-order-ticket', ticketHtml),
+  listPrinters: () => ipcRenderer.invoke('printers:list'),
+  getPrinterConfig: () => ipcRenderer.invoke('printers:get-config'),
+  savePrinterConfig: (type, deviceName) =>
+    ipcRenderer.invoke('printers:save-config', { type, deviceName }),
+  resetPrinterConfig: () => ipcRenderer.invoke('printers:reset-config'),
+  printHtml: (type, html) =>
+    ipcRenderer.invoke('printers:print-html', { type, html }),
 });
 
 contextBridge.exposeInMainWorld('secureStorage', {

@@ -10,11 +10,13 @@ const path = require('path');
 const { pathToFileURL } = require('url');
 const { setMainMenu } = require('./menu.js');
 const { setupAutoUpdater, checkForUpdates } = require('./updater.js');
+const { createPrinterManager } = require('./printer-manager.js');
 
 const devServerUrl = process.env.ELECTRON_RENDERER_URL;
 const isDevelopment = Boolean(devServerUrl);
 const SECURE_STORAGE_KEYS = new Set(['token', 'user']);
 let mainWindow;
+const printerManager = createPrinterManager(app, BrowserWindow);
 
 app.setAppUserModelId('com.lobotech.foodorderapp.admin');
 
@@ -101,68 +103,41 @@ ipcMain.on('secure-storage:remove', (event, key) => {
     : false;
 });
 
-ipcMain.handle('print-order-ticket', async (event, ticketHtml) => {
-  if (
-    !isAuthorizedRenderer(event.sender) ||
-    typeof ticketHtml !== 'string' ||
-    ticketHtml.length > 500000
-  ) {
-    return { printed: false, reason: 'invalid-request' };
+ipcMain.handle('printers:list', async (event) => {
+  if (!isAuthorizedRenderer(event.sender)) return [];
+  return printerManager.listPrinters(event.sender);
+});
+
+ipcMain.handle('printers:get-config', (event) => {
+  if (!isAuthorizedRenderer(event.sender)) {
+    return { ticket: '', kitchen: '' };
   }
+  return printerManager.readConfig();
+});
 
-  if (
-    process.env.ELECTRON_DISABLE_PRINT === '1' ||
-    process.argv.includes('--disable-print-test')
-  ) {
-    return { printed: false, reason: 'no-printer' };
+ipcMain.handle('printers:save-config', async (event, payload) => {
+  if (!isAuthorizedRenderer(event.sender)) {
+    return { saved: false, reason: 'unauthorized' };
   }
+  return printerManager.savePrinter(
+    event.sender,
+    payload?.type,
+    payload?.deviceName
+  );
+});
 
-  const printWindow = new BrowserWindow({
-    show: false,
-    webPreferences: {
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-    },
-  });
-
-  try {
-    await printWindow.loadURL(
-      `data:text/html;charset=utf-8,${encodeURIComponent(ticketHtml)}`
-    );
-
-    const printers = await printWindow.webContents.getPrintersAsync();
-    if (!printers.length) {
-      return { printed: false, reason: 'no-printer' };
-    }
-
-    const printer = printers.find((item) => item.isDefault) || printers[0];
-
-    await new Promise((resolve, reject) => {
-      printWindow.webContents.print(
-        {
-          silent: true,
-          printBackground: true,
-          deviceName: printer.name,
-          margins: { marginType: 'none' },
-        },
-        (success, failureReason) => {
-          if (success) resolve();
-          else reject(new Error(failureReason || 'No se pudo imprimir'));
-        }
-      );
-    });
-
-    return { printed: true, printerName: printer.displayName || printer.name };
-  } catch (error) {
-    return {
-      printed: false,
-      reason: 'print-error',
-      message: error.message,
-    };
-  } finally {
-    if (!printWindow.isDestroyed()) printWindow.close();
+ipcMain.handle('printers:reset-config', (event) => {
+  if (!isAuthorizedRenderer(event.sender)) {
+    return { reset: false, reason: 'unauthorized' };
   }
+  return printerManager.resetPrinters();
+});
+
+ipcMain.handle('printers:print-html', async (event, payload) => {
+  if (!isAuthorizedRenderer(event.sender)) {
+    return { printed: false, reason: 'unauthorized' };
+  }
+  return printerManager.printHtml(payload || {});
 });
 
 const createWindow = async () => {

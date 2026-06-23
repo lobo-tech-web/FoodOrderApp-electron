@@ -1,415 +1,313 @@
-import { useState, useEffect } from 'react';
-// ---- MATERIAL UI ----
+import { useEffect, useState } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Divider,
-  Button,
-  Box,
-  Typography,
-  IconButton,
-  Chip,
   Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
   Snackbar,
-} from '@mui/material';
-// ICONS
+  Stack,
+  Typography,
+} from "@mui/material";
 import {
   Close as CloseIcon,
   Print as PrintIcon,
+  Refresh as RefreshIcon,
   Restaurant as RestaurantIcon,
   Settings as SettingsIcon,
-} from '@mui/icons-material';
-// ---------------------
+} from "@mui/icons-material";
+import { useThermalPrinter } from "./useThermalPrinter.js";
 
-// ---- HOOKS ----
-import { useThermalPrinter } from './useThermalPrinter.js';
-// ---------------
+const EMPTY_SELECTION = { ticket: "", kitchen: "" };
 
-// ---- STYLES ----
-const textFieldStyles = {
-  '& .MuiInputBase-root': {
-    fontFamily: 'fontFamily.primary',
-    fontSize: { xs: '14px', sm: '16px', md: '16px' },
-    minHeight: { xs: '48px', sm: '56px', md: '56px' },
-    color: 'text.primary',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: { xs: '8px', sm: '12px' },
-  },
-  '& .MuiOutlinedInput-root': {
-    '& fieldset': {
-      borderColor: 'rgba(184, 182, 186, 0.3)',
-      borderWidth: '1px',
-    },
-    '&:hover fieldset': {
-      borderColor: 'primary.main',
-      borderWidth: '1px',
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: 'primary.main',
-      borderWidth: '2px',
-      boxShadow: '0 0 0 3px rgba(245, 166, 35, 0.2)',
-    },
-  },
-  width: '100%',
-  marginBottom: { xs: '16px', sm: '20px', md: '20px' },
+const getPrintResultMessage = (result) => {
+  if (result?.printed) {
+    return `Impresion enviada a ${result.printerName}.`;
+  }
+  if (result?.reason === "printer-not-found") {
+    return "La impresora guardada ya no esta disponible en Windows.";
+  }
+  if (result?.reason === "printer-not-configured") {
+    return "Primero selecciona y guarda una impresora.";
+  }
+  return result?.message || "No se pudo realizar la impresion de prueba.";
 };
 
-const labelStyle = {
-  fontFamily: 'fontFamily.primary',
-  color: 'primary.main',
-  fontWeight: 'bold',
-  fontSize: { xs: '14px', sm: '16px', md: '16px' },
-  lineHeight: 1,
-  margin: 0,
-};
+const buildTestHtml = (type) => `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Prueba de impresora</title>
+    <style>
+      @page { size: 80mm auto; margin: 3mm; }
+      body { width: 72mm; margin: 0; color: #000; font: 14px/1.4 Arial, sans-serif; }
+      h1, p { margin: 0 0 8px; }
+      .center { text-align: center; }
+      .line { border-top: 1px dashed #000; margin: 10px 0; }
+    </style>
+  </head>
+  <body>
+    <div class="center">
+      <h1>PRUEBA DE IMPRESION</h1>
+      <p>${type === "ticket" ? "TICKET DE CLIENTE" : "COMANDA DE COCINA"}</p>
+      <div class="line"></div>
+      <p>FoodOrderApp Admin</p>
+      <p>${new Date().toLocaleString("es-AR")}</p>
+    </div>
+  </body>
+</html>`;
 
-const labelContainerStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: { xs: 1, sm: 1.5, md: 1.5 },
-  mb: { xs: 1, sm: 1.5, md: 1 },
-};
-// ----------------
+const PrinterField = ({
+  icon,
+  label,
+  type,
+  value,
+  printers,
+  disabled,
+  onChange,
+  onSave,
+  onTest,
+}) => (
+  <Box>
+    <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+      {icon}
+      <Typography sx={{ fontFamily: "fontFamily.primary" }}>{label}</Typography>
+    </Stack>
+    <FormControl fullWidth>
+      <InputLabel
+        id={`${type}-printer-label`}
+        sx={{ fontFamily: "fontFamily.secondary" }}
+      >
+        Impresora de Windows
+      </InputLabel>
+      <Select
+        labelId={`${type}-printer-label`}
+        value={value}
+        label="Impresora de Windows"
+        onChange={(event) => onChange(event.target.value)}
+        disabled={disabled}
+      >
+        {printers.map((printer) => (
+          <MenuItem
+            key={printer.name}
+            value={printer.name}
+            sx={{ fontFamily: "fontFamily.secondary" }}
+          >
+            {printer.displayName}
+            {printer.isDefault ? " (Predeterminada)" : ""}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+    <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mt: 1.5 }}>
+      <Button
+        variant="contained"
+        disabled={disabled || !value}
+        onClick={onSave}
+        sx={{ fontFamily: "fontFamily.primary" }}
+      >
+        Guardar
+      </Button>
+      <Button
+        variant="outlined"
+        startIcon={<PrintIcon />}
+        disabled={disabled || !value}
+        onClick={onTest}
+        sx={{ fontFamily: "fontFamily.primary" }}
+      >
+        Probar impresion
+      </Button>
+    </Stack>
+  </Box>
+);
 
 export const PrinterConfigModal = ({ open, onClose }) => {
   const {
+    availablePrinters,
     savedPrinters,
+    isLoadingPrinters,
     isPrinting,
-    printToThermal,
+    printHtml,
+    refreshPrinters,
     savePrinterConfig,
     resetSavedPrinters,
   } = useThermalPrinter();
-
-  const [ticket, setTicket] = useState({
-    type: 'network',
-    ip: '',
-    port: 9100,
-    name: 'Comanda Tickets',
-  });
-
-  const [kitchen, setKitchen] = useState({
-    type: 'network',
-    ip: '',
-    port: 9100,
-    name: 'Comanda Cocina',
-  });
-
+  const [selection, setSelection] = useState(EMPTY_SELECTION);
   const [snackbar, setSnackbar] = useState({
     open: false,
-    message: '',
-    severity: 'success',
+    message: "",
+    severity: "success",
   });
 
-  const isValidIP = (ip) => {
-    const pattern =
-      /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-    return pattern.test(ip);
+  useEffect(() => {
+    if (!open) return;
+    setSelection({
+      ticket: savedPrinters.ticket?.deviceName || "",
+      kitchen: savedPrinters.kitchen?.deviceName || "",
+    });
+  }, [open, savedPrinters]);
+
+  const showMessage = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
   };
 
-  const handleReset = () => {
-    resetSavedPrinters();
-
-    setTicket({
-      type: 'network',
-      ip: '',
-      port: 9100,
-      name: 'Comanda Tickets',
-    });
-
-    setKitchen({
-      type: 'network',
-      ip: '',
-      port: 9100,
-      name: 'Comanda Cocina',
-    });
-
-    // Feedback visual
-    setSnackbar({
-      open: true,
-      message: '🗑️ Configuraciones de impresoras eliminadas.',
-      severity: 'info',
-    });
+  const handleSave = async (type) => {
+    const result = await savePrinterConfig(type, selection[type]);
+    if (result?.saved) {
+      showMessage("Configuracion de impresora guardada.");
+    } else {
+      showMessage("No se pudo guardar la impresora seleccionada.", "error");
+    }
   };
 
-  const handleSave = (type, printer) => {
-    if (!isValidIP(printer.ip)) {
-      setSnackbar({
-        open: true,
-        message: `Debes ingresar una IP válida para la impresora ${type}`,
-        severity: 'error',
-      });
+  const handleTest = async (type) => {
+    const saveResult = await savePrinterConfig(type, selection[type]);
+    if (!saveResult?.saved) {
+      showMessage("No se pudo guardar la impresora seleccionada.", "error");
       return;
     }
-    savePrinterConfig(type, printer);
-    setSnackbar({
-      open: true,
-      message: `✅ Configuración guardada para impresora ${type}`,
-      severity: 'success',
-    });
+
+    const result = await printHtml(type, buildTestHtml(type));
+    showMessage(
+      getPrintResultMessage(result),
+      result?.printed ? "success" : "error",
+    );
   };
 
-  const handleTestPrinter = async (type) => {
-    const testData = {
-      orderIndex: 'TEST-001',
-      clientName: 'Cliente de Prueba',
-      deliveryAddress: 'Av. Colon 123456',
-      orderType: 'Retiro en Local',
-      cleanedTotalAmount: '25.50',
-      items: [
-        {
-          quantity: 2,
-          name: 'Hamburguesa Clásica',
-          price: 12.0,
-          notes: 'Sin cebolla',
-        },
-        { quantity: 1, name: 'Papas Fritas', price: 3.5 },
-      ],
-    };
-
-    const success = await printToThermal(type, testData);
-    setSnackbar({
-      open: true,
-      message: success
-        ? `✅ Impresión de prueba exitosa en ${type}`
-        : `❌ Error al imprimir en ${type}`,
-      severity: success ? 'success' : 'error',
-    });
-  };
-
-  useEffect(() => {
-    if (open) {
-      if (savedPrinters.ticket) {
-        const { ip, port = 9100, name } = savedPrinters.ticket;
-        setTicket({
-          type: 'network',
-          ip,
-          port,
-          name,
-        });
-      }
-      if (savedPrinters.kitchen) {
-        const { ip, port = 9100, name } = savedPrinters.kitchen;
-        setKitchen({
-          type: 'network',
-          ip,
-          port,
-          name,
-        });
-      }
+  const handleReset = async () => {
+    const result = await resetSavedPrinters();
+    if (result?.reset) {
+      setSelection(EMPTY_SELECTION);
+      showMessage("Configuraciones de impresoras eliminadas.", "info");
     }
-  }, [open, savedPrinters]);
+  };
+
+  const disabled = isLoadingPrinters || isPrinting;
 
   return (
     <>
-      <Dialog
-        open={open}
-        onClose={onClose}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: { borderRadius: 3 },
-        }}
-      >
+      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
         <DialogTitle
           sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            bgcolor: 'background.main',
-            color: 'white',
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            bgcolor: "background.main",
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Stack direction="row" spacing={1} alignItems="center">
             <SettingsIcon color="primary" />
-            <Typography
-              variant="h6"
-              sx={{ fontFamily: 'fontFamily.primary', color: 'primary.main' }}
-            >
-              CONFIGURACIÓN DE IMPRESORAS
+            <Typography sx={{ fontFamily: "fontFamily.primary" }}>
+              CONFIGURACION DE IMPRESORAS
             </Typography>
-          </Box>
-          <IconButton onClick={onClose} sx={{ color: 'white' }}>
+          </Stack>
+          <IconButton onClick={onClose} aria-label="Cerrar">
             <CloseIcon />
           </IconButton>
         </DialogTitle>
 
         <DialogContent sx={{ p: 3 }}>
-          {/* CONFIGURACIÓN PARA TICKETS */}
-          <Box sx={{ mt: 2, mb: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <PrintIcon color="primary" />
+          <Stack spacing={3} sx={{ mt: 1 }}>
+            <Alert severity="info">
               <Typography
-                variant="h6"
-                sx={{ fontFamily: 'fontFamily.primary' }}
+                variant="body2"
+                sx={{ fontFamily: "fontFamily.secondary" }}
               >
-                IMPRESORA PARA TICKETS
+                Selecciona impresoras instaladas en Windows.
               </Typography>
-              {savedPrinters.ticket && (
-                <Chip label="Guardada" color="success" size="small" />
-              )}
-            </Box>
-
-            <Box>
-              <Box sx={labelContainerStyle}>
-                <Typography sx={labelStyle}>IP DE LA IMPRESORA</Typography>
-              </Box>
-              <TextField
-                fullWidth
-                placeholder="IP"
-                value={ticket.ip}
-                onChange={(e) => {
-                  setTicket((prev) => ({
-                    ...prev,
-                    ip: e.target.value,
-                  }));
-                }}
-                sx={textFieldStyles}
-              />
-            </Box>
-
-            <Box>
-              <Box sx={labelContainerStyle}>
-                <Typography sx={labelStyle}>PUERTO DE LA IMPRESORA</Typography>
-              </Box>
-              <TextField
-                fullWidth
-                placeholder="PUERTO"
-                type="number"
-                value={ticket.port}
-                onChange={(e) => {
-                  setTicket((prev) => ({
-                    ...prev,
-                    port: e.target.value,
-                  }));
-                }}
-                sx={textFieldStyles}
-              />
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
-                disabled={isPrinting}
-                variant="contained"
-                onClick={() => handleSave('ticket', ticket)}
-                sx={{ fontFamily: 'fontFamily.terciary' }}
-              >
-                Guardar
-              </Button>
-              <Button
-                disabled={isPrinting}
-                variant="outlined"
-                startIcon={<PrintIcon />}
-                onClick={() => handleTestPrinter('ticket')}
-                sx={{ fontFamily: 'fontFamily.terciary' }}
-              >
-                Probar impresión
-              </Button>
-            </Box>
-          </Box>
-
-          <Divider sx={{ bgcolor: 'primary.main', mb: 2 }} />
-
-          {/* CONFIGURACIÓN PARA COCINA */}
-          <Box sx={{ mb: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <RestaurantIcon color="primary" />
               <Typography
-                variant="h6"
-                sx={{ fontFamily: 'fontFamily.primary' }}
+                variant="body2"
+                sx={{ fontFamily: "fontFamily.secondary" }}
               >
-                IMPRESORA PARA COCINA
+                La configuracion se guarda solamente en esta computadora.
               </Typography>
-              {savedPrinters.kitchen && (
-                <Chip label="Guardada" color="success" size="small" />
-              )}
-            </Box>
+            </Alert>
 
-            <Box>
-              <Box sx={labelContainerStyle}>
-                <Typography sx={labelStyle}>IP DE LA IMPRESORA</Typography>
-              </Box>
-              <TextField
-                fullWidth
-                placeholder="IP"
-                value={kitchen.ip}
-                onChange={(e) => {
-                  setKitchen((prev) => ({
-                    ...prev,
-                    ip: e.target.value,
-                  }));
-                }}
-                sx={textFieldStyles}
-              />
-            </Box>
-
-            <Box>
-              <Box sx={labelContainerStyle}>
-                <Typography sx={labelStyle}>PUERTO DE LA IMPRESORA</Typography>
-              </Box>
-
-              <TextField
-                fullWidth
-                placeholder="PUERTO"
-                type="number"
-                value={kitchen.port}
-                onChange={(e) => {
-                  setKitchen((prev) => ({
-                    ...prev,
-                    port: e.target.value,
-                  }));
-                }}
-                sx={textFieldStyles}
-              />
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
               <Button
-                disabled={isPrinting}
                 variant="contained"
-                onClick={() => handleSave('kitchen', kitchen)}
-                sx={{ fontFamily: 'fontFamily.terciary' }}
+                startIcon={
+                  isLoadingPrinters ? (
+                    <CircularProgress size={18} />
+                  ) : (
+                    <RefreshIcon />
+                  )
+                }
+                onClick={refreshPrinters}
+                disabled={disabled}
+                sx={{ fontFamily: "fontFamily.primary" }}
               >
-                Guardar
-              </Button>
-              <Button
-                disabled={isPrinting}
-                variant="outlined"
-                startIcon={<PrintIcon />}
-                onClick={() => handleTestPrinter('kitchen')}
-                sx={{ fontFamily: 'fontFamily.terciary' }}
-              >
-                Probar impresión
+                Actualizar impresoras
               </Button>
             </Box>
-          </Box>
 
-          <Alert color="primary">
-            NOTA: Se debe ingresar manualmente la **IP** y el **puerto**.
-          </Alert>
+            {!isLoadingPrinters && availablePrinters.length === 0 && (
+              <Alert severity="warning">
+                <Typography
+                  variant="body2"
+                  sx={{ fontFamily: "fontFamily.secondary" }}
+                >
+                  Windows no informo impresoras instaladas. Instala la impresora
+                  y vuelve a actualizar la lista.
+                </Typography>
+              </Alert>
+            )}
+
+            <PrinterField
+              icon={<PrintIcon color="primary" />}
+              label="IMPRESORA PARA TICKETS"
+              type="ticket"
+              value={selection.ticket}
+              printers={availablePrinters}
+              disabled={disabled}
+              onChange={(value) =>
+                setSelection((current) => ({ ...current, ticket: value }))
+              }
+              onSave={() => handleSave("ticket")}
+              onTest={() => handleTest("ticket")}
+            />
+
+            <PrinterField
+              icon={<RestaurantIcon color="primary" />}
+              label="IMPRESORA PARA COCINA"
+              type="kitchen"
+              value={selection.kitchen}
+              printers={availablePrinters}
+              disabled={disabled}
+              onChange={(value) =>
+                setSelection((current) => ({ ...current, kitchen: value }))
+              }
+              onSave={() => handleSave("kitchen")}
+              onTest={() => handleTest("kitchen")}
+            />
+          </Stack>
         </DialogContent>
 
-        <DialogActions sx={{ p: 3, bgcolor: 'background.default' }}>
+        <DialogActions sx={{ p: 2 }}>
           <Button
-            disabled={isPrinting}
-            onClick={onClose}
+            color="error"
             variant="contained"
-            color="secondary"
-            sx={{ fontFamily: 'fontFamily.terciary' }}
+            onClick={handleReset}
+            disabled={disabled}
+            sx={{ fontFamily: "fontFamily.primary" }}
+          >
+            Restablecer impresoras
+          </Button>
+          <Button
+            variant="contained"
+            onClick={onClose}
+            disabled={disabled}
+            sx={{ fontFamily: "fontFamily.primary" }}
           >
             Cerrar
-          </Button>
-
-          <Button
-            disabled={isPrinting}
-            onClick={handleReset}
-            variant="contained"
-            color="primary"
-            sx={{ fontFamily: 'fontFamily.terciary' }}
-          >
-            Reestablecer impresoras
           </Button>
         </DialogActions>
       </Dialog>
@@ -417,9 +315,17 @@ export const PrinterConfigModal = ({ open, onClose }) => {
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        message={snackbar.message}
-      />
+        onClose={() => setSnackbar((current) => ({ ...current, open: false }))}
+      >
+        <Alert
+          severity={snackbar.severity}
+          onClose={() =>
+            setSnackbar((current) => ({ ...current, open: false }))
+          }
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 };

@@ -33,7 +33,7 @@ export const PrintTicket = ({
 }) => {
   const printRef = useRef();
   const { showAlert } = useAlert();
-  const { savedPrinters, isPrinting, printToThermal } = useThermalPrinter();
+  const { savedPrinters, isPrinting, printHtml } = useThermalPrinter();
 
   const [loading, setLoading] = useState(false);
   // const [showStatusConfirmDialog, setShowStatusConfirmDialog] = useState(false);
@@ -68,54 +68,9 @@ export const PrintTicket = ({
   //   setShowStatusConfirmDialog(true);
   // };
 
-  const handleThermalPrint = async () => {
-    // Si no hay impresora conectada, conectar primero
-    if (!savedPrinters.ticket) {
-      showAlert(
-        'No hay impresora térmica configurada para los tickets',
-        'error'
-      );
-      return;
-    }
-
-    // Preparar datos para impresión térmica
-    const printData = {
-      restaurantName: order.restaurantName,
-      orderIndex,
-      date: formatDate(order.orderDate),
-      time: formatTime(order.orderDate),
-      clientName: order.clientName,
-      contactPhone: order.contactPhone,
-      deliveryAddress: order.deliveryAddress,
-      orderType: order.orderType,
-      paymentMethod: order.paymentMethod,
-      cartItems: order.cartItems,
-      totalRewardPoints: order.totalRewardPoints,
-      totalRedeemPoints: order.totalRedeemPoints,
-      cleanedTotalAmount: order.totalAmount,
-      subtotal: formatCurrency(calculatedProductTotals),
-      deliverycost: cleanMoneyValue(order.deliverycost),
-      servicetax: cleanMoneyValue(order.servicetax),
-      discountamount: cleanMoneyValue(order.discountamount),
-    };
-
-    // Imprimir directamente a impresora térmica
-    const success = await printToThermal('ticket', printData);
-
-    if (success) {
-      showAlert('Comanda enviada a impresora térmica', 'success');
-    } else {
-      showAlert('Error al imprimir en impresora térmica', 'error');
-    }
-  };
-
-  const handleManualPrint = () => {
+  const buildPrintDocument = () => {
     const printContent = printRef.current;
-    // Crear una nueva ventana para la impresión
-    const printWindow = window.open('', '_blank', 'width=300,height=600');
-
-    if (printWindow) {
-      printWindow.document.write(`
+    return `
       <!DOCTYPE html>
       <html>
         <head>
@@ -292,8 +247,14 @@ export const PrintTicket = ({
           ${printContent.innerHTML}
         </body>
       </html>
-    `);
+    `;
+  };
 
+  const handleManualPrint = () => {
+    const printWindow = window.open('', '_blank', 'width=300,height=600');
+
+    if (printWindow) {
+      printWindow.document.write(buildPrintDocument());
       printWindow.document.close();
       printWindow.focus();
 
@@ -302,6 +263,22 @@ export const PrintTicket = ({
         printWindow.print();
         printWindow.close();
       }, 250);
+    }
+  };
+
+  const handleElectronPrint = async () => {
+    const result = await printHtml('ticket', buildPrintDocument());
+
+    if (result?.printed) {
+      const message =
+        result.mode === 'manual'
+          ? 'Ticket enviado desde la impresora seleccionada'
+          : `Ticket enviado a ${result.printerName}`;
+      showAlert(message, 'success');
+    } else if (result?.reason === 'no-printer') {
+      showAlert('Windows no encontro impresoras disponibles', 'error');
+    } else {
+      showAlert(result?.message || 'Error al imprimir el ticket', 'error');
     }
   };
 
@@ -319,9 +296,8 @@ export const PrintTicket = ({
         );
       }
 
-      // Si hay impresora térmica conectada, usar impresión directa
-      if (savedPrinters.ticket) {
-        await handleThermalPrint();
+      if (window.electronAPI?.printHtml) {
+        await handleElectronPrint();
       } else {
         handleManualPrint();
       }

@@ -18,6 +18,16 @@ por HTTPS a la API configurada durante el build.
 
 ## Desarrollo
 
+Usar Node.js 24:
+
+```powershell
+nvm install 24
+nvm use 24
+node --version
+```
+
+La version mostrada debe comenzar con `v24`.
+
 ```powershell
 npm install
 npm run dev
@@ -80,6 +90,25 @@ el instalador y los metadatos utilizados por `electron-updater`.
 
 `npm version patch` cambia, por ejemplo, `1.0.0` a `1.0.1`, crea el commit de
 version y crea el tag `v1.0.1`. No crear otro tag manualmente.
+
+Usar `patch` para correcciones y mejoras pequenas:
+
+```text
+1.0.2 -> 1.0.3
+```
+
+Usar `minor` para una funcionalidad importante compatible:
+
+```powershell
+npm version minor
+```
+
+```text
+1.0.3 -> 1.1.0
+```
+
+No volver a publicar un numero que ya exista. Cada actualizacion para clientes
+debe tener una version nueva.
 
 Un `git push` normal actualiza el codigo fuente, pero no modifica las
 aplicaciones instaladas. Los clientes reciben cambios solamente cuando se

@@ -25,7 +25,7 @@ import { useThermalPrinter } from '../PrinterConfig/useThermalPrinter.js';
 export const PrintCookOrder = ({ order, orderIndex, onChangeOrderStatus }) => {
   const printRef = useRef();
   const { showAlert } = useAlert();
-  const { savedPrinters, isPrinting, printToThermal } = useThermalPrinter();
+  const { savedPrinters, isPrinting, printHtml } = useThermalPrinter();
 
   const [loading, setLoading] = useState(false);
   // const [showStatusConfirmDialog, setShowStatusConfirmDialog] = useState(false);
@@ -34,43 +34,9 @@ export const PrintCookOrder = ({ order, orderIndex, onChangeOrderStatus }) => {
   //   setShowStatusConfirmDialog(true);
   // };
 
-  const handleThermalPrint = async () => {
-    // Si no hay impresora conectada, conectar primero
-    if (!savedPrinters.kitchen) {
-      showAlert('No hay impresora térmica configurada para la cocina', 'error');
-      return;
-    }
-
-    // Preparar datos para impresión térmica
-    const printData = {
-      orderIndex,
-      date: formatDate(order.orderDate),
-      time: formatTime(order.orderDate),
-      clientName: order.clientName,
-      deliveryAddress: order.deliveryAddress,
-      orderType: order.orderType,
-      // tableNumber: order.tableNumber || 'N/A',
-      cartItems: order.cartItems,
-      comentary: order.comentary !== 'SIN COMENTARIOS' ? order.comentary : '',
-    };
-
-    // Imprimir directamente a impresora térmica
-    const success = await printToThermal('kitchen', printData);
-
-    if (success) {
-      showAlert('Comanda enviada a impresora térmica de cocina', 'success');
-    } else {
-      showAlert('Error al imprimir en impresora térmica de cocina', 'error');
-    }
-  };
-
-  const handleManualPrint = () => {
+  const buildPrintDocument = () => {
     const printContent = printRef.current;
-    // Crear una nueva ventana para la impresión
-    const printWindow = window.open('', '_blank', 'width=300,height=600');
-
-    if (printWindow) {
-      printWindow.document.write(`
+    return `
       <!DOCTYPE html>
       <html>
         <head>
@@ -264,8 +230,14 @@ export const PrintCookOrder = ({ order, orderIndex, onChangeOrderStatus }) => {
           ${printContent.innerHTML}
         </body>
       </html>
-    `);
+    `;
+  };
 
+  const handleManualPrint = () => {
+    const printWindow = window.open('', '_blank', 'width=300,height=600');
+
+    if (printWindow) {
+      printWindow.document.write(buildPrintDocument());
       printWindow.document.close();
       printWindow.focus();
 
@@ -274,6 +246,22 @@ export const PrintCookOrder = ({ order, orderIndex, onChangeOrderStatus }) => {
         printWindow.print();
         printWindow.close();
       }, 250);
+    }
+  };
+
+  const handleElectronPrint = async () => {
+    const result = await printHtml('kitchen', buildPrintDocument());
+
+    if (result?.printed) {
+      const message =
+        result.mode === 'manual'
+          ? 'Comanda enviada desde la impresora seleccionada'
+          : `Comanda enviada a ${result.printerName}`;
+      showAlert(message, 'success');
+    } else if (result?.reason === 'no-printer') {
+      showAlert('Windows no encontro impresoras disponibles', 'error');
+    } else {
+      showAlert(result?.message || 'Error al imprimir la comanda', 'error');
     }
   };
 
@@ -288,9 +276,8 @@ export const PrintCookOrder = ({ order, orderIndex, onChangeOrderStatus }) => {
         );
       }
 
-      // Si hay impresora térmica conectada, usar impresión directa
-      if (savedPrinters.kitchen) {
-        await handleThermalPrint();
+      if (window.electronAPI?.printHtml) {
+        await handleElectronPrint();
       } else {
         handleManualPrint();
       }

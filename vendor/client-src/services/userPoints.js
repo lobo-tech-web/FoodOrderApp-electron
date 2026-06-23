@@ -7,12 +7,36 @@ const apiURLRemoveUserPoints = import.meta.env.VITE_API_POINTS_USER_REMOVE_ROUTE
 // --------------
 
 // OBTENER TODOS LOS PUNTOS DADOS CON USER POINTS
-export const getAllUserPointsService = async (userId, restaurantId) => {
+export const getAllUserPointsService = async (params = {}) => {
     try {
-        let response;
-        if (userId) response = await apiWithToken.get(`${apiURLMainUserPoints}?userId=${userId}`);
-        else if (restaurantId) response = await apiWithToken.get(`${apiURLMainUserPoints}?restaurantId=${restaurantId}`);
-        else response = await apiWithToken.get(apiURLMainUserPoints);
+        const {
+            userId,
+            restaurantId,
+            userNumber,
+            search,
+        } = params;
+
+        const response = await apiWithToken.get(apiURLMainUserPoints, {
+            params: {
+                ...(userId !== undefined && userId !== null && userId !== ""
+                    ? { userId }
+                    : {}),
+                ...(restaurantId !== undefined &&
+                restaurantId !== null &&
+                restaurantId !== ""
+                    ? { restaurantId }
+                    : {}),
+                ...(userNumber !== undefined &&
+                userNumber !== null &&
+                userNumber !== ""
+                    ? { userNumber }
+                    : {}),
+                ...(typeof search === "string" && search.trim()
+                    ? { search: search.trim() }
+                    : {}),
+            },
+        });
+
         return response.data;
     } catch (error) {
         if (error.response) {

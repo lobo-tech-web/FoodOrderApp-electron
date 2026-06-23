@@ -4,10 +4,10 @@ import {
   createContext,
   useContext,
   useReducer,
-} from 'react';
+} from "react";
 
 // ---- DECODIFICADOR DE TOKEN JWT ----
-import { jwtDecode } from 'jwt-decode';
+import { jwtDecode } from "jwt-decode";
 // ------------------------------------
 
 // ---- SERVICES ----
@@ -16,8 +16,8 @@ import {
   getUserByID,
   userLoginService,
   updateUserService,
-} from '../services/users.js';
-import { getAllUserPointsService } from '../services/userPoints.js';
+} from "../services/users.js";
+import { getAllUserPointsService } from "../services/userPoints.js";
 // <-----------------
 
 // CREACIÓN DEL CONTEXTO ------>
@@ -26,7 +26,7 @@ export const UserContext = createContext();
 
 // ESTADO INICIAL -------->
 const initialState = {
-  user: JSON.parse(window.localStorage.getItem('user')) || {},
+  user: JSON.parse(window.localStorage.getItem("user")) || {},
   allUsers: [],
   showUsers: [],
   userInfo: [],
@@ -38,26 +38,26 @@ const initialState = {
 
 // TIPOS DE ACCIÓN ------>
 const ACTION_TYPES = {
-  GET_ALL_USERS: 'GET_ALL_USERS',
-  GET_USER_BY_NAME: 'GET_USER_BY_NAME',
-  GET_CLIENT_INFO: 'GET_CLIENT_INFO',
-  GET_USER_INFO_BY_DEV: 'GET_USER_INFO_BY_DEV',
-  GET_ALL_USER_POINTS: 'GET_ALL_USER_POINTS',
-  REFRESH_USER_POINTS: 'REFRESH_USER_POINTS',
-  PUT_USER: 'PUT_USER',
-  UPDATE_USER_POINTS: 'UPDATE_USER_POINTS',
-  LOGIN_USER: 'LOGIN_USER',
-  LOGOUT_USER: 'LOGOUT_USER',
-  FILTER_BY_STATUS: 'FILTER_BY_STATUS',
-  FILTER_BY_ROLE: 'FILTER_BY_ROLE',
-  FILTER_USERPOINTS_BY_NAME: 'FILTER_USERPOINTS_BY_NAME',
-  FILTER_USERPOINTS_BY_PHONE: 'FILTER_USERPOINTS_BY_PHONE',
-  CLEAR_ALL_USER_INFO: 'CLEAR_ALL_USER_INFO',
+  GET_ALL_USERS: "GET_ALL_USERS",
+  GET_USER_BY_NAME: "GET_USER_BY_NAME",
+  GET_CLIENT_INFO: "GET_CLIENT_INFO",
+  GET_USER_INFO_BY_DEV: "GET_USER_INFO_BY_DEV",
+  GET_ALL_USER_POINTS: "GET_ALL_USER_POINTS",
+  REFRESH_USER_POINTS: "REFRESH_USER_POINTS",
+  PUT_USER: "PUT_USER",
+  UPDATE_USER_POINTS: "UPDATE_USER_POINTS",
+  LOGIN_USER: "LOGIN_USER",
+  LOGOUT_USER: "LOGOUT_USER",
+  FILTER_BY_STATUS: "FILTER_BY_STATUS",
+  FILTER_BY_ROLE: "FILTER_BY_ROLE",
+  FILTER_USERPOINTS_BY_NAME: "FILTER_USERPOINTS_BY_NAME",
+  FILTER_USERPOINTS_BY_PHONE: "FILTER_USERPOINTS_BY_PHONE",
+  CLEAR_ALL_USER_INFO: "CLEAR_ALL_USER_INFO",
 };
 // <----------------------
 
 const updateUserLocalStorage = (user) =>
-  window.localStorage.setItem('user', JSON.stringify(user));
+  window.localStorage.setItem("user", JSON.stringify(user));
 
 // ---- REDUCER ----
 const userReducer = (state, action) => {
@@ -115,10 +115,10 @@ const userReducer = (state, action) => {
         ...state,
         user: state.user.id === updatedUser.id ? updatedUser : state.user,
         allUsers: state.allUsers.map((user) =>
-          user.id === updatedUser.id ? updatedUser : user
+          user.id === updatedUser.id ? updatedUser : user,
         ),
         showUsers: state.allUsers.map((user) =>
-          user.id === updatedUser.id ? updatedUser : user
+          user.id === updatedUser.id ? updatedUser : user,
         ),
       };
     }
@@ -132,7 +132,7 @@ const userReducer = (state, action) => {
           points: state.user?.points.map((elem) =>
             elem.restaurantId === restaurantId
               ? { ...elem, points: Math.max(elem.points - redeemPoints, 0) }
-              : elem
+              : elem,
           ),
         },
       };
@@ -154,7 +154,7 @@ const userReducer = (state, action) => {
 
     case ACTION_TYPES.FILTER_BY_STATUS: {
       let filteredSource =
-        action.payload === 'all'
+        action.payload === "all"
           ? state.allUsers
           : state.allUsers.filter((user) => user.status === action.payload);
 
@@ -167,12 +167,12 @@ const userReducer = (state, action) => {
     case ACTION_TYPES.FILTER_BY_ROLE: {
       let filteredSource;
 
-      if (action.payload === 'user')
-        filteredSource = state.allUsers.filter((user) => user.role === 'user');
-      else if (action.payload === 'admin')
-        filteredSource = state.allUsers.filter((user) => user.role === 'admin');
-      else if (action.payload === 'dev')
-        filteredSource = state.allUsers.filter((user) => user.role === 'dev');
+      if (action.payload === "user")
+        filteredSource = state.allUsers.filter((user) => user.role === "user");
+      else if (action.payload === "admin")
+        filteredSource = state.allUsers.filter((user) => user.role === "admin");
+      else if (action.payload === "dev")
+        filteredSource = state.allUsers.filter((user) => user.role === "dev");
       else filteredSource = state.allUsers;
 
       return {
@@ -185,7 +185,7 @@ const userReducer = (state, action) => {
       let filtered = state.allUserPoints.filter((userPoints) =>
         userPoints?.user?.name
           ?.toLowerCase()
-          .includes(action.payload.toLowerCase())
+          .includes(action.payload.toLowerCase()),
       );
       return {
         ...state,
@@ -195,7 +195,7 @@ const userReducer = (state, action) => {
 
     case ACTION_TYPES.FILTER_USERPOINTS_BY_PHONE: {
       let filtered = state.allUserPoints.filter((userPoints) =>
-        userPoints?.user?.phone?.includes(action.payload)
+        userPoints?.user?.phone?.includes(action.payload),
       );
       return {
         ...state,
@@ -221,20 +221,20 @@ export const UserProvider = ({ children }) => {
 
   // ✅ FUNCIÓN PARA VERIFICAR SI EL TOKEN HA EXPIRADO
   const checkTokenExpiration = () => {
-    const token = window.localStorage.getItem('token');
+    const token = window.localStorage.getItem("token");
     if (token) {
       try {
         const decoded = jwtDecode(token);
         const currentTime = Date.now() / 1000;
 
         if (decoded.exp < currentTime) {
-          console.log('El token ha expirado, cerrando sesión...');
-          console.warn('El token ha expirado, cerrando sesión...');
+          console.log("El token ha expirado, cerrando sesión...");
+          console.warn("El token ha expirado, cerrando sesión...");
           userLogOut();
         }
       } catch (error) {
-        console.log('Error al decodificar el token:', error);
-        console.error('Error al decodificar el token:', error);
+        console.log("Error al decodificar el token:", error);
+        console.error("Error al decodificar el token:", error);
         userLogOut();
       }
     }
@@ -308,7 +308,7 @@ export const UserProvider = ({ children }) => {
     }
   }, []);
 
-  const getAllUserPoints = async () => {
+  const getAllUserPoints = useCallback(async () => {
     try {
       const response = await getAllUserPointsService();
       dispatch({
@@ -318,12 +318,14 @@ export const UserProvider = ({ children }) => {
     } catch (error) {
       throw error.response?.data?.message || error?.message;
     }
-  };
+  }, []);
 
-  const getUserPointsByUser = async () => {
+  const getUserPointsByUser = useCallback(async () => {
     try {
       if (userState.user && userState.user.id) {
-        const response = await getAllUserPointsService(userState.user.id, null);
+        const response = await getAllUserPointsService({
+          userId: userState.user.id,
+        });
         dispatch({
           type: ACTION_TYPES.REFRESH_USER_POINTS,
           payload: response,
@@ -332,19 +334,44 @@ export const UserProvider = ({ children }) => {
     } catch (error) {
       throw error.response?.data?.message || error?.message;
     }
-  };
+  }, [userState.user]);
 
-  const getUserPointsByRestaurant = async (restaurantId) => {
-    try {
-      const response = await getAllUserPointsService(null, restaurantId);
-      dispatch({
-        type: ACTION_TYPES.GET_ALL_USER_POINTS,
-        payload: response,
-      });
-    } catch (error) {
-      throw error.response?.data?.message || error?.message;
-    }
-  };
+  const getUserPointsByRestaurant = useCallback(
+    async (restaurantId, filters = {}) => {
+      try {
+        const response = await getAllUserPointsService({
+          restaurantId,
+          ...filters,
+        });
+
+        dispatch({
+          type: ACTION_TYPES.GET_ALL_USER_POINTS,
+          payload: response,
+        });
+        return response;
+      } catch (error) {
+        throw error.response?.data?.message || error?.message;
+      }
+    },
+    [],
+  );
+
+  const getClientByUserNumber = useCallback(
+    async (restaurantId, userNumber) => {
+      try {
+        const response = await getAllUserPointsService({
+          restaurantId,
+          userNumber,
+        });
+
+        const userPointsRecord = Array.isArray(response) ? response[0] : null;
+        return userPointsRecord?.user || null;
+      } catch (error) {
+        throw error.response?.data?.message || error?.message || error;
+      }
+    },
+    [],
+  );
 
   const userModifier = async (user) => {
     try {
@@ -372,7 +399,7 @@ export const UserProvider = ({ children }) => {
   const userLogin = async (user) => {
     try {
       const { user: loggedInUser, token } = await userLoginService(user);
-      window.localStorage.setItem('token', token);
+      window.localStorage.setItem("token", token);
       dispatch({
         type: ACTION_TYPES.LOGIN_USER,
         payload: loggedInUser,
@@ -384,8 +411,8 @@ export const UserProvider = ({ children }) => {
 
   // CERRAR SESIÓN DEL USUARIO
   const userLogOut = () => {
-    window.localStorage.removeItem('user');
-    window.localStorage.removeItem('token');
+    window.localStorage.removeItem("user");
+    window.localStorage.removeItem("token");
     dispatch({ type: ACTION_TYPES.LOGOUT_USER });
   };
 
@@ -430,6 +457,7 @@ export const UserProvider = ({ children }) => {
         getAllUserPoints,
         getUserPointsByUser,
         getUserPointsByRestaurant,
+        getClientByUserNumber,
         userModifier,
         updateUserPoints,
         userLogin,

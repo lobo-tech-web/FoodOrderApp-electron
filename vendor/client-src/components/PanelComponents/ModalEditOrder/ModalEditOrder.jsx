@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import _ from 'lodash';
+import { useState, useEffect, useCallback, useMemo } from "react";
+import _ from "lodash";
 
 // ---- MATERIAL UI ----
 import {
@@ -12,48 +12,48 @@ import {
   Typography,
   IconButton,
   Divider,
-} from '@mui/material';
+} from "@mui/material";
 // ICONS
 import {
   Close as CloseIcon,
   Edit as EditIcon,
   Save as SaveIcon,
   AccessTime as AccessTimeIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 // ---------------------
 
 // ---- CONTEXT ----
-import { useOrders } from '@/context/Orders.jsx';
-import { useProducts } from '@/context/Products.jsx';
-import { useUser } from '@/context/Users.jsx';
+import { useOrders } from "@/context/Orders.jsx";
+import { useProducts } from "@/context/Products.jsx";
+import { useUser } from "@/context/Users.jsx";
 // -----------------
 
 // ---- SERVICES ----
-import { deleteOrderService } from '@/services/orders.js';
+import { deleteOrderService } from "@/services/orders.js";
 // ------------------
 
 // ---- COMPONENTS ----
-import { LoadingInModal } from '@/components/LoadingInModal/LoadingInModal.jsx';
-import { SavingOverlay } from '@/components/LoadingInModal/SavingOverlay.jsx';
-import { ConfirmDialogClose } from '@/components/ConfirmDialogClose/ConfirmDialogClose.jsx';
-import { PrinterConfigModal } from './PrinterConfig/PrinterConfigModal.jsx';
-import { ModalSelectProducts } from './ModalSelectProducts/ModalSelectProducts.jsx';
-import { QuickEditOrder } from './QuickEditOrder/QuickEditOrder.jsx';
-import { OrderManagementPanel } from './OrderDetails/OrderManagementPanel.jsx';
-import { OrderSummaryPanel } from './OrderDetails/OrderSummaryPanel.jsx';
+import { LoadingInModal } from "@/components/LoadingInModal/LoadingInModal.jsx";
+import { SavingOverlay } from "@/components/LoadingInModal/SavingOverlay.jsx";
+import { ConfirmDialogClose } from "@/components/ConfirmDialogClose/ConfirmDialogClose.jsx";
+import { PrinterConfigModal } from "./PrinterConfig/PrinterConfigModal.jsx";
+import { ModalSelectProducts } from "./ModalSelectProducts/ModalSelectProducts.jsx";
+import { QuickEditOrder } from "./QuickEditOrder/QuickEditOrder.jsx";
+import { OrderManagementPanel } from "./OrderDetails/OrderManagementPanel.jsx";
+import { OrderSummaryPanel } from "./OrderDetails/OrderSummaryPanel.jsx";
 // --------------------
 
 // ---- UTILS ----
-import { initialUpdateOrderState } from '@/utils/orderUtils.js';
+import { initialUpdateOrderState } from "@/utils/orderUtils.js";
 import {
   cleanMoneyValue,
   calculateFinalProductPrice,
   calculateProductTotals,
   calculateDiscount,
   calculateFinalTotal,
-} from '@/utils/orderCalculations.js';
-import { getProductOptionsForUI } from '@/utils/migrateCustomOptions.js';
-import { normalizeOrderForCompare } from '@/utils/orderUtils.js';
+} from "@/utils/orderCalculations.js";
+import { getProductOptionsForUI } from "@/utils/migrateCustomOptions.js";
+import { normalizeOrderForCompare } from "@/utils/orderUtils.js";
 // ---------------
 
 export const ModalEditOrder = ({
@@ -111,7 +111,7 @@ export const ModalEditOrder = ({
 
   const availableRiders = useMemo(
     () => orderState?.riders || [],
-    [orderState?.riders]
+    [orderState?.riders],
   );
 
   const selectedRider = useMemo(() => {
@@ -123,21 +123,21 @@ export const ModalEditOrder = ({
   // ✅ ESTADOS PARA QUICK EDIT POPOVERS
   const [quickEditState, setQuickEditState] = useState({
     anchorEl: null,
-    target: 'order',
+    target: "order",
     field: null,
-    value: '',
+    value: "",
     itemIndex: null,
   });
 
   // ✅ QUICK EDIT HANDLERS
   const handleQuickEditOpen = (event, config) => {
-    const { target = 'order', field, value = '', itemIndex = null } = config;
+    const { target = "order", field, value = "", itemIndex = null } = config;
 
     setQuickEditState({
       anchorEl: event.currentTarget,
       target,
       field,
-      value: value?.toString() || '',
+      value: value?.toString() || "",
       itemIndex,
     });
   };
@@ -145,9 +145,9 @@ export const ModalEditOrder = ({
   const handleQuickEditClose = () => {
     setQuickEditState({
       anchorEl: null,
-      target: 'order',
+      target: "order",
       field: null,
-      value: '',
+      value: "",
       itemIndex: null,
     });
   };
@@ -158,7 +158,7 @@ export const ModalEditOrder = ({
 
       if (!field) return;
 
-      if (target === 'cartItem') {
+      if (target === "cartItem") {
         setOrder((prev) => ({
           ...prev,
           cartItems: prev.cartItems.map((item, index) =>
@@ -167,7 +167,7 @@ export const ModalEditOrder = ({
                   ...item,
                   [field]: newValue,
                 }
-              : item
+              : item,
           ),
         }));
 
@@ -182,8 +182,8 @@ export const ModalEditOrder = ({
 
       handleQuickEditClose();
     } catch (error) {
-      console.error('Error al actualizar el campo:', error);
-      showAlert('Error al actualizar el campo', 'error');
+      console.error("Error al actualizar el campo:", error);
+      showAlert("Error al actualizar el campo", "error");
     }
   };
 
@@ -198,7 +198,7 @@ export const ModalEditOrder = ({
     setEditingProduct(null);
   };
 
-  const [isDiscount, setIsDiscount] = useState('');
+  const [isDiscount, setIsDiscount] = useState("");
 
   // ✅ CALCULAR TOTALES AUTOMÁTICAMENTE
   const calculatedProductTotals = useMemo(() => {
@@ -207,12 +207,12 @@ export const ModalEditOrder = ({
 
   // ✅ CALCULAR EL DESCUENTO
   const calculatedDiscount = useMemo(() => {
-    if (isDiscount === 'MONTO') {
+    if (isDiscount === "MONTO") {
       return {
         discountamount: cleanMoneyValue(order.discountamount).toNumber(),
         discountPercentage: 0,
       };
-    } else if (isDiscount === 'SIN DESCUENTO') {
+    } else if (isDiscount === "SIN DESCUENTO") {
       return {
         discountamount: 0,
         discountPercentage: 0,
@@ -220,7 +220,7 @@ export const ModalEditOrder = ({
     } else {
       return calculateDiscount(
         calculatedProductTotals.subtotalProducts,
-        order.discount
+        order.discount,
       );
     }
   }, [
@@ -236,7 +236,7 @@ export const ModalEditOrder = ({
       calculatedProductTotals.subtotalProducts,
       calculatedDiscount.discountamount,
       order.servicetax,
-      order.deliverycost
+      order.deliverycost,
     );
   }, [
     calculatedProductTotals.subtotalProducts,
@@ -265,10 +265,10 @@ export const ModalEditOrder = ({
 
   // Formatear fecha para mostrar
   const formatDate = (orderDate) => {
-    if (!orderDate?.day || !orderDate?.month || !orderDate?.year) return '-';
+    if (!orderDate?.day || !orderDate?.month || !orderDate?.year) return "-";
 
-    const hour = orderDate.hour ?? '00';
-    const minute = orderDate.minute ?? '00';
+    const hour = orderDate.hour ?? "00";
+    const minute = orderDate.minute ?? "00";
 
     return `${orderDate.day}/${orderDate.month}/${orderDate.year} ${hour}:${minute}`;
   };
@@ -277,33 +277,33 @@ export const ModalEditOrder = ({
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === 'orderType') {
+    if (name === "orderType") {
       setOrder((prev) => ({
         ...prev,
         orderType: value,
-        riderId: value === 'DELIVERY' ? prev.riderId : null,
-        rider: value === 'DELIVERY' ? prev.rider : null,
-        deliverycost: value === 'DELIVERY' ? prev.deliverycost : 0,
+        riderId: value === "DELIVERY" ? prev.riderId : null,
+        rider: value === "DELIVERY" ? prev.rider : null,
+        deliverycost: value === "DELIVERY" ? prev.deliverycost : 0,
       }));
       return;
     }
 
     if (
-      name === 'extraPoints' ||
-      name === 'deliverycost' ||
-      name === 'discountamount'
+      name === "extraPoints" ||
+      name === "deliverycost" ||
+      name === "discountamount"
     ) {
-      if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      if (value === "" || /^\d*\.?\d*$/.test(value)) {
         setOrder((prev) => ({
           ...prev,
-          [name]: value === '' ? '' : Number(value),
+          [name]: value === "" ? "" : Number(value),
         }));
       }
       return;
     }
 
-    if (name === 'discount') {
-      if (value === '' || /^\d*\.?\d*$/.test(value)) {
+    if (name === "discount") {
+      if (value === "" || /^\d*\.?\d*$/.test(value)) {
         const parsedValue = parseFloat(value);
         if (!isNaN(parsedValue) && parsedValue >= 0 && parsedValue <= 100) {
           setOrder((prev) => ({
@@ -320,7 +320,7 @@ export const ModalEditOrder = ({
 
   const handleDiscountChange = (discountType) => {
     setIsDiscount(discountType);
-    if (discountType === 'SIN DESCUENTO') {
+    if (discountType === "SIN DESCUENTO") {
       setOrder((prev) => ({
         ...prev,
         discount: 0,
@@ -347,7 +347,7 @@ export const ModalEditOrder = ({
     }));
 
     setShowProductSelector(false);
-    showAlert('Producto agregado al pedido', 'success');
+    showAlert("Producto agregado al pedido", "success");
   };
 
   const handleProductModified = (modifiedProduct) => {
@@ -380,7 +380,7 @@ export const ModalEditOrder = ({
       setEditingProduct(null);
       setShowProductSelector(false);
 
-      showAlert('Producto modificado en el pedido', 'success');
+      showAlert("Producto modificado en el pedido", "success");
     }
   };
 
@@ -388,13 +388,14 @@ export const ModalEditOrder = ({
   const handleEditProduct = (item, index) => {
     // Find the original product from productState to get full product data including customOptions
     const originalProduct = productState.allProducts.find(
-      (p) => p.id === item.productId || p.id === item.id || p.name === item.name
+      (p) =>
+        p.id === item.productId || p.id === item.id || p.name === item.name,
     );
 
     if (!originalProduct) {
       showAlert(
-        'No se encontró el producto original para modificar',
-        'warning'
+        "No se encontró el producto original para modificar",
+        "warning",
       );
       return;
     }
@@ -402,7 +403,7 @@ export const ModalEditOrder = ({
     const productOptions = getProductOptionsForUI(originalProduct);
 
     if (productOptions.length === 0) {
-      showAlert('Este producto no tiene opciones personalizadas', 'info');
+      showAlert("Este producto no tiene opciones personalizadas", "info");
       return;
     }
 
@@ -420,7 +421,7 @@ export const ModalEditOrder = ({
     setOrder((prev) => ({
       ...prev,
       cartItems: prev.cartItems.map((item, i) =>
-        i === index ? { ...item, quantity: newQuantity } : item
+        i === index ? { ...item, quantity: newQuantity } : item,
       ),
     }));
   };
@@ -431,13 +432,13 @@ export const ModalEditOrder = ({
       ...prev,
       cartItems: prev.cartItems.filter((_, i) => i !== index),
     }));
-    showAlert('Producto eliminado del pedido', 'info');
+    showAlert("Producto eliminado del pedido", "info");
   };
 
   const buildOrderUpdateData = useCallback(
     (statusOverride = null) => {
       return {
-        tableid: order.tableid || '',
+        tableid: order.tableid || "",
         cartItems: order.cartItems,
         totalRewardPoints: calculatedProductTotals.totalRewardPoints,
         totalRedeemPoints: calculatedProductTotals.totalRedeemPoints,
@@ -445,7 +446,7 @@ export const ModalEditOrder = ({
         servicetax: cleanMoneyValue(order.servicetax).toNumber(),
         discount: Number(order.discount) || 0,
         discountamount: cleanMoneyValue(
-          calculatedDiscount.discountamount
+          calculatedDiscount.discountamount,
         ).toNumber(),
         totalAmount: cleanMoneyValue(finalOrderTotal).toNumber(),
         paymentMethod: order.paymentMethod,
@@ -466,7 +467,7 @@ export const ModalEditOrder = ({
       calculatedProductTotals.totalRedeemPoints,
       calculatedDiscount.discountamount,
       finalOrderTotal,
-    ]
+    ],
   );
 
   const handleChangeOrderStatusFromPrint = useCallback(
@@ -495,33 +496,33 @@ export const ModalEditOrder = ({
 
       return response;
     },
-    [order, updateOrder, buildOrderUpdateData]
+    [order, updateOrder, buildOrderUpdateData],
   );
 
   // ✅ GUARDAR CAMBIOS
   const handleSaveChanges = useCallback(async () => {
     if (!order.status) {
-      showAlert('Debe seleccionar un estado para el pedido', 'warning');
+      showAlert("Debe seleccionar un estado para el pedido", "warning");
       return;
     }
 
     if (order.cartItems.length === 0) {
-      showAlert('El pedido debe tener al menos un producto', 'warning');
+      showAlert("El pedido debe tener al menos un producto", "warning");
       return;
     }
 
     if (!order.clientName.trim()) {
-      showAlert('El nombre del cliente es requerido', 'warning');
+      showAlert("El nombre del cliente es requerido", "warning");
       return;
     }
 
     if (!order.clientEmail.trim()) {
-      showAlert('El email del cliente es requerido', 'warning');
+      showAlert("El email del cliente es requerido", "warning");
       return;
     }
 
     if (!order.contactPhone.trim()) {
-      showAlert('El teléfono de contacto es requerido', 'warning');
+      showAlert("El teléfono de contacto es requerido", "warning");
       return;
     }
 
@@ -542,11 +543,11 @@ export const ModalEditOrder = ({
       setOrder(savedOrder);
       setOrderCopy(_.cloneDeep(savedOrder));
 
-      showAlert('Pedido actualizado correctamente!', 'success');
+      showAlert("Pedido actualizado correctamente!", "success");
       onClose();
     } catch (error) {
-      const errorMessage = error.message || 'Error desconocido';
-      showAlert(errorMessage, 'error');
+      const errorMessage = error.message || "Error desconocido";
+      showAlert(errorMessage, "error");
     } finally {
       setLoading(false);
     }
@@ -554,7 +555,7 @@ export const ModalEditOrder = ({
 
   const handleDeleteOrder = async (orderData) => {
     const isConfirmed = window.confirm(
-      '¿Estás seguro de que quieres eliminar este pedido?'
+      "¿Estás seguro de que quieres eliminar este pedido?",
     );
     if (!isConfirmed) return;
     setLoading(true);
@@ -564,10 +565,10 @@ export const ModalEditOrder = ({
         restaurantId: orderData.restaurantId,
       };
       await deleteOrderService(deletedOrder);
-      showAlert('Pedido eliminado correctamente', 'success');
+      showAlert("Pedido eliminado correctamente", "success");
       onClose();
     } catch (error) {
-      showAlert('Error al eliminar el pedido', error);
+      showAlert("Error al eliminar el pedido", error);
     } finally {
       setLoading(false);
     }
@@ -582,7 +583,7 @@ export const ModalEditOrder = ({
 
       setOrder(initialUpdateOrderState);
       setOrderCopy(null);
-      setIsDiscount('');
+      setIsDiscount("");
       setLoadingOrderDetail(true);
 
       try {
@@ -592,10 +593,10 @@ export const ModalEditOrder = ({
 
         const initialOrder = {
           ...initialUpdateOrderState,
-          id: fullOrder.id || '',
-          restaurantId: fullOrder.restaurantId || '',
-          restaurantName: fullOrder.restaurantName || '',
-          tableid: fullOrder.tableid || '',
+          id: fullOrder.id || "",
+          restaurantId: fullOrder.restaurantId || "",
+          restaurantName: fullOrder.restaurantName || "",
+          tableid: fullOrder.tableid || "",
           cartItems: Array.isArray(fullOrder.cartItems)
             ? fullOrder.cartItems
             : [],
@@ -606,14 +607,14 @@ export const ModalEditOrder = ({
           discount: Number(fullOrder.discount) || 0,
           discountamount: cleanMoneyValue(fullOrder.discountamount).toNumber(),
           totalAmount: cleanMoneyValue(fullOrder.totalAmount).toNumber(),
-          paymentMethod: fullOrder.paymentMethod || '',
-          clientEmail: fullOrder.clientEmail || '',
-          clientName: fullOrder.clientName || '',
-          deliveryAddress: fullOrder.deliveryAddress || '',
-          contactPhone: fullOrder.contactPhone || '',
-          orderType: fullOrder.orderType || '',
-          comentary: fullOrder.comentary || '',
-          status: fullOrder.status || '',
+          paymentMethod: fullOrder.paymentMethod || "",
+          clientEmail: fullOrder.clientEmail || "",
+          clientName: fullOrder.clientName || "",
+          deliveryAddress: fullOrder.deliveryAddress || "",
+          contactPhone: fullOrder.contactPhone || "",
+          orderType: fullOrder.orderType || "",
+          comentary: fullOrder.comentary || "",
+          status: fullOrder.status || "",
           orderDate: fullOrder.orderDate || {},
           extraPoints: Number(fullOrder.extraPoints) || 0,
           riderId: fullOrder.riderId || null,
@@ -627,19 +628,19 @@ export const ModalEditOrder = ({
           Number(initialOrder.discount) === 0 &&
           Number(initialOrder.discountamount) > 0
         ) {
-          setIsDiscount('MONTO');
+          setIsDiscount("MONTO");
         } else if (Number(initialOrder.discount) > 0) {
-          setIsDiscount('PORCENTAJE');
+          setIsDiscount("PORCENTAJE");
         } else {
-          setIsDiscount('SIN DESCUENTO');
+          setIsDiscount("SIN DESCUENTO");
         }
       } catch (error) {
         const errorMessage =
-          typeof error === 'string'
+          typeof error === "string"
             ? error
-            : error?.message || 'Error al obtener el detalle del pedido';
+            : error?.message || "Error al obtener el detalle del pedido";
 
-        showAlert(errorMessage, 'error');
+        showAlert(errorMessage, "error");
         onClose();
       } finally {
         if (isMounted) {
@@ -661,7 +662,7 @@ export const ModalEditOrder = ({
         if (show && userState?.user?.id)
           await getRidersByRestaurant(userState.user.id);
       } catch (error) {
-        console.error('Error al obtener los riders:', error);
+        console.error("Error al obtener los riders:", error);
       }
     };
     fetchRiders();
@@ -677,31 +678,31 @@ export const ModalEditOrder = ({
         PaperProps={{
           elevation: 0,
           sx: {
-            position: 'relative',
+            position: "relative",
             width: {
-              xs: '100%',
-              sm: '96vw',
-              lg: '92vw',
-              xl: '1380px',
+              xs: "100%",
+              sm: "96vw",
+              lg: "92vw",
+              xl: "1380px",
             },
-            maxWidth: '1380px',
+            maxWidth: "1380px",
             height: {
-              xs: '100dvh',
-              md: '92vh',
+              xs: "100dvh",
+              md: "92vh",
             },
             maxHeight: {
-              xs: '100dvh',
-              md: '92vh',
+              xs: "100dvh",
+              md: "92vh",
             },
             m: { xs: 0, md: 2 },
-            borderRadius: { xs: 0, md: '18px' },
-            overflow: 'hidden',
-            bgcolor: 'background.default',
+            borderRadius: { xs: 0, md: "18px" },
+            overflow: "hidden",
+            bgcolor: "background.default",
             border: {
-              xs: 'none',
-              md: '1px solid',
+              xs: "none",
+              md: "1px solid",
             },
-            borderColor: 'background.main',
+            borderColor: "background.main",
           },
         }}
       >
@@ -711,19 +712,19 @@ export const ModalEditOrder = ({
             minHeight: 82,
             px: { xs: 2, sm: 3 },
             py: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
             gap: 2,
-            borderBottom: '1px solid',
-            borderColor: 'primary.main',
-            bgcolor: 'background.main',
+            borderBottom: "1px solid",
+            borderColor: "primary.main",
+            bgcolor: "background.main",
           }}
         >
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
+              display: "flex",
+              alignItems: "center",
               gap: 1.5,
               minWidth: 0,
             }}
@@ -732,34 +733,34 @@ export const ModalEditOrder = ({
               sx={{
                 width: 36,
                 height: 36,
-                display: { xs: 'none', sm: 'grid' },
-                placeItems: 'center',
-                borderRadius: '12px',
-                bgcolor: 'rgba(245, 158, 11, 0.12)',
-                border: '1px solid',
-                borderColor: 'primary.main',
+                display: { xs: "none", sm: "grid" },
+                placeItems: "center",
+                borderRadius: "12px",
+                bgcolor: "rgba(245, 158, 11, 0.12)",
+                border: "1px solid",
+                borderColor: "primary.main",
               }}
             >
-              <EditIcon fontSize="small" sx={{ color: 'primary.main' }} />
+              <EditIcon fontSize="small" sx={{ color: "primary.main" }} />
             </Box>
 
             <Typography
               sx={{
-                color: 'text.primary',
-                fontFamily: 'fontFamily.primary',
+                color: "text.primary",
+                fontFamily: "fontFamily.primary",
                 fontWeight: 900,
-                fontSize: { xs: '14px', sm: '18px', md: '22px' },
+                fontSize: { xs: "14px", sm: "18px", md: "22px" },
                 lineHeight: 1,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
               }}
             >
               EDITAR PEDIDO N° {showOrderIndex}
             </Typography>
 
             {/* Botón para eliminar pedido (Dev) */}
-            {userState?.user?.role === 'dev' && (
+            {userState?.user?.role === "dev" && (
               <Button
                 color="error"
                 variant="contained"
@@ -767,8 +768,8 @@ export const ModalEditOrder = ({
                 onClick={() => handleDeleteOrder(order)}
                 sx={{
                   ml: 1,
-                  display: { xs: 'none', md: 'inline-flex' },
-                  fontFamily: 'fontFamily.terciary',
+                  display: { xs: "none", md: "inline-flex" },
+                  fontFamily: "fontFamily.terciary",
                   borderRadius: 2,
                 }}
               >
@@ -779,28 +780,28 @@ export const ModalEditOrder = ({
 
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
+              display: "flex",
+              alignItems: "center",
               gap: { xs: 1, sm: 2 },
             }}
           >
             {showOrder?.orderDate && (
               <Box
                 sx={{
-                  display: { xs: 'none', sm: 'flex' },
-                  alignItems: 'center',
+                  display: { xs: "none", sm: "flex" },
+                  alignItems: "center",
                   gap: 1,
                 }}
               >
                 <AccessTimeIcon
                   fontSize="small"
-                  sx={{ color: 'text.primary' }}
+                  sx={{ color: "text.primary" }}
                 />
                 <Typography
                   sx={{
-                    fontFamily: 'fontFamily.terciary',
+                    fontFamily: "fontFamily.terciary",
                     fontWeight: 700,
-                    color: 'text.primary',
+                    color: "text.primary",
                   }}
                 >
                   {formatDate(showOrder.orderDate)}
@@ -815,9 +816,9 @@ export const ModalEditOrder = ({
               sx={{
                 width: 36,
                 height: 36,
-                color: 'primary.main',
-                '&:hover': {
-                  color: 'text.primary',
+                color: "primary.main",
+                "&:hover": {
+                  color: "text.primary",
                 },
               }}
             >
@@ -830,25 +831,25 @@ export const ModalEditOrder = ({
           sx={{
             p: { xs: 1, sm: 1.2, md: 1.5 },
             mt: 1,
-            bgcolor: 'transparent',
-            overflow: 'auto',
+            bgcolor: "transparent",
+            overflow: "auto",
           }}
         >
           {loadingOrderDetail ? (
             <LoadingInModal
               message="Cargando pedido..."
-              minHeight={{ xs: 'calc(100dvh - 170px)', md: 480 }}
+              minHeight={{ xs: "calc(100dvh - 170px)", md: 480 }}
             />
           ) : (
             <Box
               sx={{
-                display: 'grid',
+                display: "grid",
                 gridTemplateColumns: {
-                  xs: '1fr',
-                  lg: 'minmax(0, 1fr) 330px',
+                  xs: "1fr",
+                  lg: "minmax(0, 1fr) 330px",
                 },
                 gap: { xs: 2, lg: 3 },
-                alignItems: 'start',
+                alignItems: "start",
               }}
             >
               <Box sx={{ minWidth: 0 }}>
@@ -885,14 +886,14 @@ export const ModalEditOrder = ({
 
         <Divider />
 
-        <DialogActions sx={{ justifyContent: 'flex-end', p: 2 }}>
+        <DialogActions sx={{ justifyContent: "flex-end", p: 2 }}>
           <Button
             onClick={handleClose}
             disabled={loading || loadingOrderDetail}
             variant="contained"
             color="error"
             startIcon={<CloseIcon />}
-            sx={{ fontFamily: 'fontFamily.primary' }}
+            sx={{ fontFamily: "fontFamily.primary" }}
           >
             Cancelar
           </Button>
@@ -904,7 +905,7 @@ export const ModalEditOrder = ({
             variant="contained"
             color="primary"
             startIcon={<SaveIcon />}
-            sx={{ fontFamily: 'fontFamily.primary' }}
+            sx={{ fontFamily: "fontFamily.primary" }}
           >
             Guardar Cambios
           </Button>
