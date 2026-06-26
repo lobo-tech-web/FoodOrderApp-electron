@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
-import { AdminLogin } from './components/AdminLogin.jsx';
-import { LocalOrders } from './components/LocalOrders.jsx';
-import { AdminPanel } from '@/views/ControlPanel/AdminPanel/AdminPanel.jsx';
-import { useUser } from '@/context/Users.jsx';
+import { useEffect } from "react";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { AdminLogin } from "./components/AdminLogin/AdminLogin.jsx";
+import { LocalOrders } from "./components/LocalOrders/LocalOrders.jsx";
+import { AdminPanel } from "@/views/ControlPanel/AdminPanel/AdminPanel.jsx";
+import { useUser } from "@/context/Users.jsx";
 
 const ElectronNavigationBridge = () => {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ const ElectronNavigationBridge = () => {
 
     return window.electronAPI.onNavigate((path) => {
       const user = userState.user || {};
-      navigate(user.id && user.role === 'admin' ? path : '/');
+      navigate(user.id && user.role === "admin" ? path : "/");
     });
   }, [navigate, userState.user]);
 

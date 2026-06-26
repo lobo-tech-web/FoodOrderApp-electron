@@ -1,9 +1,9 @@
 import {
+  Handshake as MercadoPagoIcon,
   AccountBalance as TransferIcon,
   CreditCard as CardIcon,
   LocalDining as DineInIcon,
   Payments as CashIcon,
-  PointOfSale as MercadoPagoIcon,
   Storefront as TakeAwayIcon,
 } from "@mui/icons-material";
 

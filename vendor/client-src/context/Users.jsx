@@ -365,7 +365,13 @@ export const UserProvider = ({ children }) => {
         });
 
         const userPointsRecord = Array.isArray(response) ? response[0] : null;
-        return userPointsRecord?.user || null;
+        if (!userPointsRecord?.user) return null;
+
+        return {
+          ...userPointsRecord.user,
+          restaurantPoints: Number(userPointsRecord.points || 0),
+          userPointsRecordId: userPointsRecord.id,
+        };
       } catch (error) {
         throw error.response?.data?.message || error?.message || error;
       }

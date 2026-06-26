@@ -1,6 +1,14 @@
+// ---- Material UI ----
 import { Box, Typography } from "@mui/material";
-import { ORDER_TYPES } from "./constants.jsx";
-import { TouchOption } from "./TouchOption.jsx";
+// ---------------------
+
+// ---- Utils ----
+import { ORDER_TYPES } from "../constants.jsx";
+// ---------------
+
+// ---- Shared ----
+import { TouchOption } from "../shared/TouchOption.jsx";
+// ----------------
 
 export const OrderTypeStep = ({ orderType, onSelect }) => (
   <Box

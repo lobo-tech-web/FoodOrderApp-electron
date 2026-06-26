@@ -1,3 +1,4 @@
+// ---- Material UI ----
 import {
   Alert,
   Box,
@@ -9,12 +10,22 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+// Icons
 import {
   CheckCircle as SuccessIcon,
   Person as PersonIcon,
+  CardGiftcard as CardGiftcardIcon,
 } from "@mui/icons-material";
+// ---------------------
+
+// ---- Helpers ----
 import { formatCurrency } from "@/utils/orderCalculations.js";
-import { TouchOption } from "./TouchOption.jsx";
+import { TouchOption } from "../shared/TouchOption.jsx";
+// -----------------
+
+// ---- Styles ----
+import { buttonStyle1 } from "../../styles/buttonStyle.js";
+// ----------------
 
 export const CheckoutStep = ({
   checkout,
@@ -57,16 +68,22 @@ export const CheckoutStep = ({
 
       <Paper
         variant="outlined"
-        sx={{ bgcolor: "background.paper", p: { xs: 2, md: 3 }, mb: 2 }}
+        sx={{
+          bgcolor: "background.paper",
+          p: { xs: 2, md: 3 },
+          mb: 2,
+          borderRadius: 4,
+        }}
       >
         <Typography
           sx={{
-            fontFamily: "fontFamily.secondary",
+            fontFamily: "fontFamily.primary",
             fontSize: "1.15rem",
+            color: "primary.main",
             mb: 2,
           }}
         >
-          Seleccioná como queres pagar
+          MÉTODO DE PAGO
         </Typography>
         {paymentMethods.length === 0 ? (
           <Alert severity="warning">
@@ -102,51 +119,71 @@ export const CheckoutStep = ({
         )}
       </Paper>
 
-      <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, mb: 2 }}>
+      <Paper
+        variant="outlined"
+        sx={{ p: { xs: 2, md: 3 }, mb: 2, borderRadius: 4 }}
+      >
         <Typography
           sx={{
             fontFamily: "fontFamily.primary",
             fontSize: "1.15rem",
+            color: "primary.main",
             mb: 2,
           }}
         >
           DATOS DEL CLIENTE
         </Typography>
         <Stack spacing={2}>
-          <TextField
-            fullWidth
-            required
-            label="Nombre del cliente"
-            value={checkout.clientName}
-            onChange={(event) =>
-              onCheckoutChange({
-                ...checkout,
-                clientName: event.target.value,
-              })
-            }
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PersonIcon />
-                </InputAdornment>
-              ),
-            }}
-            inputProps={{ style: { fontSize: 18 } }}
-          />
-          <TextField
-            fullWidth
-            label="Numero de usuario LoboTech (opcional)"
-            value={checkout.userNumber}
-            onChange={(event) => {
-              const value = event.target.value;
-              if (value === "" || /^\d+$/.test(value)) {
-                onCheckoutChange({ ...checkout, userNumber: value });
+          <Box>
+            <Box sx={{ display: "flex", gap: 1, mb: 0.5 }}>
+              <PersonIcon color="primary" />
+              <Typography sx={{ fontFamily: "fontFamily.secondary" }}>
+                Nombre del cliente
+              </Typography>
+            </Box>
+            <TextField
+              fullWidth
+              required
+              value={checkout.clientName}
+              onChange={(event) =>
+                onCheckoutChange({
+                  ...checkout,
+                  clientName: event.target.value,
+                })
               }
-            }}
-            helperText="Solo es necesario si queres sumar los puntos de este pedido."
-            inputMode="numeric"
-            inputProps={{ style: { fontSize: 18 } }}
-          />
+              inputProps={{ style: { fontSize: 18 } }}
+              sx={{ fontFamily: "fontFamily.secondary" }}
+            />
+          </Box>
+
+          <Box>
+            <Box sx={{ display: "flex", gap: 1, mb: 0.5 }}>
+              <CardGiftcardIcon color="primary" />
+              <Typography sx={{ fontFamily: "fontFamily.secondary" }}>
+                Número de usuario (opcional)
+              </Typography>
+            </Box>
+            <TextField
+              fullWidth
+              placeholder="Sólo usuarios registrados."
+              value={checkout.userNumber}
+              onChange={(event) => {
+                const value = event.target.value;
+                if (value === "" || /^\d+$/.test(value)) {
+                  onCheckoutChange({ ...checkout, userNumber: value });
+                }
+              }}
+              inputMode="numeric"
+              sx={{ fontFamily: "fontFamily.secondary", color: "text.primary" }}
+            />
+            <Typography
+              variant="body2"
+              sx={{ fontFamily: "fontFamily.secondary", mt: 1 }}
+            >
+              Solo es necesario si queres sumar los puntos de este pedido y
+              estás registrado en la página.
+            </Typography>
+          </Box>
         </Stack>
       </Paper>
 
@@ -158,25 +195,28 @@ export const CheckoutStep = ({
 
       <Paper
         sx={{
+          bgcolor: "background.main",
           p: 2,
           display: "flex",
           alignItems: { xs: "stretch", sm: "center" },
           justifyContent: "space-between",
           flexDirection: { xs: "column", sm: "row" },
           gap: 2,
+          borderRadius: 4,
+          border: "1px solid",
+          borderColor: "primary.main",
         }}
       >
         <Box>
           <Typography
-            color="text.secondary"
-            sx={{ fontFamily: "fontFamily.primary", color: "text.primary" }}
+            sx={{ fontFamily: "fontFamily.primary", color: "primary.main" }}
           >
             TOTAL DEL PEDIDO
           </Typography>
           <Typography
             sx={{
               fontFamily: "fontFamily.primary",
-              color: "primary.main",
+              color: "text.primary",
               fontSize: "2rem",
             }}
           >
@@ -188,20 +228,8 @@ export const CheckoutStep = ({
           variant="contained"
           onClick={onCreateOrder}
           disabled={loading || paymentMethods.length === 0}
-          startIcon={
-            loading ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              <SuccessIcon />
-            )
-          }
-          sx={{
-            fontFamily: "fontFamily.primary",
-            minHeight: 58,
-            px: 4,
-            color: "text.terciary",
-            fontSize: "1rem",
-          }}
+          startIcon={loading ? <CircularProgress size={20} /> : <SuccessIcon />}
+          sx={buttonStyle1}
         >
           {loading ? "Creando pedido..." : "Crear pedido"}
         </Button>

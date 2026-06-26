@@ -1,3 +1,4 @@
+// ---- Material UI ----
 import {
   Alert,
   Box,
@@ -12,6 +13,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+// Icons
 import {
   Add as AddIcon,
   DeleteOutline as DeleteIcon,
@@ -19,10 +21,20 @@ import {
   Search as SearchIcon,
   ShoppingCart as CartIcon,
 } from "@mui/icons-material";
+// ---------------------
+
+// ---- Logo ----
 import mainLogo from "@/assets/main/logo-white.png";
+// --------------
+
+// ---- Utils ----
 import { formatCurrency } from "@/utils/orderCalculations.js";
-import { getProductOptionsForUI } from "@/utils/migrateCustomOptions.js";
-import { getProductPrice } from "./orderUtils.js";
+import { getProductPrice } from "../orderUtils.js";
+// ---------------
+
+// ---- Styles ----
+import { buttonStyle1 } from "../../styles/buttonStyle.js";
+// ----------------
 
 export const ProductSelectionStep = ({
   search,
@@ -62,7 +74,7 @@ export const ProductSelectionStep = ({
             </InputAdornment>
           ),
         }}
-        sx={{ mb: 1.5 }}
+        sx={{ fontFamily: "fontFamily.secondary", mb: 1.5 }}
       />
 
       <Box sx={{ display: "flex", gap: 1, overflowX: "auto", pb: 1.5 }}>
@@ -100,11 +112,12 @@ export const ProductSelectionStep = ({
         sx={{
           display: "grid",
           gridTemplateColumns: {
-            xs: "repeat(2, minmax(0, 1fr))",
-            sm: "repeat(3, minmax(0, 1fr))",
-            xl: "repeat(4, minmax(0, 1fr))",
+            xs: "repeat(3, minmax(0, 1fr))",
+            sm: "repeat(4, minmax(0, 1fr))",
+            md: "repeat(5, minmax(0, 1fr))",
+            xl: "repeat(6, minmax(0, 1fr))",
           },
-          gap: { xs: 1.2, md: 2 },
+          gap: { xs: 1, md: 1.25 },
         }}
       >
         {visibleProducts.map((product) => (
@@ -121,7 +134,7 @@ export const ProductSelectionStep = ({
               border: "1px solid",
               borderColor: "divider",
               borderRadius: 2,
-              bgcolor: "background.paper",
+              bgcolor: "background.main",
               color: "text.primary",
               textAlign: "left",
               cursor: "pointer",
@@ -139,42 +152,47 @@ export const ProductSelectionStep = ({
               alt={product.name}
               sx={{
                 width: "100%",
-                aspectRatio: "4 / 3",
+                height: { xs: 86, sm: 92, md: 96 },
                 display: "block",
-                objectFit: "cover",
+                objectFit: "contain",
                 bgcolor: "background.default",
               }}
             />
-            <Box sx={{ p: { xs: 1.1, sm: 1.5 } }}>
+            <Box sx={{ p: { xs: 0.85, sm: 1 } }}>
               <Typography
                 sx={{
                   fontFamily: "fontFamily.secondary",
-                  fontSize: { xs: "0.92rem", sm: "1rem" },
-                  lineHeight: 1.2,
-                  minHeight: { xs: 36, sm: 39 },
+                  color: "text.primary",
+                  fontSize: { xs: "0.82rem", sm: "1rem" },
+                  lineHeight: 1.15,
+                  minHeight: { xs: 30, sm: 32 },
                   overflowWrap: "anywhere",
+                  textAlign: "center",
                 }}
               >
-                {product.name}
+                {product.name.toUpperCase()}
               </Typography>
               <Typography
                 sx={{
                   fontFamily: "fontFamily.primary",
                   color: "primary.main",
-                  fontSize: { xs: "1rem", sm: "1.2rem" },
-                  mt: 1,
+                  fontSize: { xs: "0.9rem", sm: "1.2rem" },
+                  mt: 0.6,
+                  textAlign: "center",
                 }}
               >
                 {formatCurrency(getProductPrice(product))}
               </Typography>
-              {getProductOptionsForUI(product).length > 0 && (
+              {Number(product.redeemPoints || 0) > 0 && (
                 <Chip
                   size="small"
-                  label="Personalizable"
+                  label={`Canje ${product.redeemPoints} pts.`}
+                  color="primary"
                   sx={{
+                    mt: 0.75,
+                    width: "100%",
                     fontFamily: "fontFamily.secondary",
-                    mt: 1,
-                    maxWidth: "100%",
+                    fontWeight: 800,
                   }}
                 />
               )}
@@ -268,9 +286,17 @@ export const ProductSelectionStep = ({
                       + {option.name}
                       {Number(option.quantity || 1) > 1
                         ? ` x${option.quantity}`
-                        : ""}
+                      : ""}
                     </Typography>
                   ))}
+                  {Number(item.redeemPoints || 0) > 0 && (
+                    <Chip
+                      size="small"
+                      label={`-${Number(item.redeemPoints) * Number(item.quantity || 1)} pts.`}
+                      color="primary"
+                      sx={{ mt: 0.75, fontFamily: "fontFamily.secondary" }}
+                    />
+                  )}
                 </Box>
                 <Tooltip title="Quitar producto">
                   <IconButton
@@ -358,18 +384,32 @@ export const ProductSelectionStep = ({
             {formatCurrency(totals.subtotalProducts)}
           </Typography>
         </Box>
+        {Number(totals.totalRedeemPoints || 0) > 0 && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 1.5,
+            }}
+          >
+            <Typography sx={{ fontFamily: "fontFamily.secondary" }}>
+              Puntos a canjear
+            </Typography>
+            <Chip
+              label={`-${totals.totalRedeemPoints} pts.`}
+              color="primary"
+              sx={{ fontFamily: "fontFamily.secondary", fontWeight: 800 }}
+            />
+          </Box>
+        )}
         <Button
           fullWidth
           size="large"
           variant="contained"
           disabled={!cartItems.length}
           onClick={onContinue}
-          sx={{
-            fontFamily: "fontFamily.primary",
-            minHeight: 56,
-            color: "text.terciary",
-            fontSize: "1rem",
-          }}
+          sx={buttonStyle1}
         >
           Continuar
         </Button>

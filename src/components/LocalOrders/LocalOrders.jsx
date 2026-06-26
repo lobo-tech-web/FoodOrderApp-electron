@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+// ---- Material UI ----
 import {
   AppBar,
   Avatar,
@@ -13,31 +15,54 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
+// Icons
 import { ArrowBack as BackIcon, Close as CloseIcon } from "@mui/icons-material";
+// --------------------
+
+// ---- Logos ----
 import logo from "@/assets/main/logo-lobotech-oj.png";
 import mainLogo from "@/assets/main/logo-white.png";
+// ---------------
+
+// ---- Theme ----
+import { lobotechAppFoodDetailTheme } from "@/theme/main-theme.js";
+// ---------------
+
+// ---- Components ----
 import { FoodDetailModal } from "@/components/FoodDetailModal/FoodDetailModal.jsx";
+import { useThermalPrinter } from "@/components/PanelComponents/ModalEditOrder/PrinterConfig/useThermalPrinter.js";
+// --------------------
+
+// ---- Hooks ----
+import { useAlert } from "@/hooks/Alert.jsx";
+// ---------------
+
+// ---- Context ----
 import { useLobotechThemeContext } from "@/context/ThemeContext.jsx";
 import { useProducts } from "@/context/Products.jsx";
 import { useUser } from "@/context/Users.jsx";
+// -----------------
+
+// ---- Services ----
 import { addNewOrderServices } from "@/services/orders.js";
-import { getAllUsersService } from "@/services/users.js";
+// ------------------
+
+// ---- Utils ----
 import {
   calculateFinalProductPrice,
   calculateProductTotals,
 } from "@/utils/orderCalculations.js";
 import { getProductOptionsForUI } from "@/utils/migrateCustomOptions.js";
-import { lobotechAppFoodDetailTheme } from "@/theme/main-theme.js";
-import { useThermalPrinter } from "@/components/PanelComponents/ModalEditOrder/PrinterConfig/useThermalPrinter.js";
-import {
-  getPaymentMethods,
-  INITIAL_CHECKOUT,
-} from "./local-orders/constants.jsx";
-import { buildTicketHtml, getProductPrice } from "./local-orders/orderUtils.js";
-import { OrderTypeStep } from "./local-orders/OrderTypeStep.jsx";
-import { ProductSelectionStep } from "./local-orders/ProductSelectionStep.jsx";
-import { CheckoutStep } from "./local-orders/CheckoutStep.jsx";
-import { SuccessStep } from "./local-orders/SuccessStep.jsx";
+import { buildTicketHtml, getProductPrice } from "./orderUtils.js";
+import { getPaymentMethods, INITIAL_CHECKOUT } from "./constants.jsx";
+// ---------------
+
+// ---- Steps ----
+import { OrderTypeStep } from "./steps/OrderTypeStep.jsx";
+import { ProductSelectionStep } from "./steps/ProductSelectionStep.jsx";
+import { CheckoutStep } from "./steps/CheckoutStep.jsx";
+import { SuccessStep } from "./steps/SuccessStep.jsx";
+// ---------------
 
 export const LocalOrders = () => {
   const navigate = useNavigate();
@@ -45,6 +70,7 @@ export const LocalOrders = () => {
   const { userState, getClientByUserNumber } = useUser();
   const { productState, getAllProducts } = useProducts();
   const { printHtml } = useThermalPrinter();
+  const { AlertComponent, showAlert } = useAlert();
   const user = userState.user || {};
 
   const [step, setStep] = useState("type");
@@ -89,8 +115,7 @@ export const LocalOrders = () => {
   const availableProducts = useMemo(
     () =>
       (productState.allProducts || []).filter(
-        (product) =>
-          product.status !== false && Number(product.redeemPoints || 0) === 0,
+        (product) => product.status !== false,
       ),
     [productState.allProducts],
   );
@@ -194,21 +219,45 @@ export const LocalOrders = () => {
     setSubmitError("");
     if (!checkout.paymentMethod) {
       setSubmitError("Selecciona como se pagara el pedido.");
+      showAlert(
+        "Selecciona como se pagara el pedido.",
+        "warning",
+        lobotechTheme,
+      );
       return;
     }
     if (!checkout.clientName.trim()) {
       setSubmitError("Ingresa el nombre del cliente.");
+      showAlert("Ingresa el nombre del cliente.", "warning", lobotechTheme);
       return;
     }
 
     setLoading(true);
     try {
       let customer = null;
-      if (checkout.userNumber.trim()) {
-        customer = await findCustomer(checkout.userNumber.trim());
+      const userNumber = checkout.userNumber.trim();
+      const redeemPoints = Number(totals.totalRedeemPoints || 0);
+
+      if (userNumber) {
+        customer = await findCustomer(userNumber);
         if (!customer) {
           throw new Error(
             "No encontramos una cuenta con ese numero de usuario LoboTech.",
+          );
+        }
+      }
+
+      if (redeemPoints > 0) {
+        if (!customer) {
+          throw new Error(
+            "No se puede proceder con esta compra si no existe un usuario para canjear puntos.",
+          );
+        }
+
+        const availablePoints = Number(customer.restaurantPoints || 0);
+        if (availablePoints < redeemPoints) {
+          throw new Error(
+            `El usuario no posee puntos suficientes para esta compra. Tiene ${availablePoints} pts. y necesita ${redeemPoints} pts.`,
           );
         }
       }
@@ -220,7 +269,7 @@ export const LocalOrders = () => {
         tableid: "",
         cartItems,
         totalRewardPoints: customer ? totals.totalRewardPoints : 0,
-        totalRedeemPoints: 0,
+        totalRedeemPoints: customer ? totals.totalRedeemPoints : 0,
         deliverycost: 0,
         servicetax: 0,
         discount: 0,
@@ -229,10 +278,10 @@ export const LocalOrders = () => {
         paymentMethod: checkout.paymentMethod,
         clientEmail: customer?.email || user.email || "",
         clientName: checkout.clientName.trim(),
-        deliveryAddress: "",
-        contactPhone: customer?.phone || "",
+        deliveryAddress: "PEDIDO CREADO EN LOCAL",
+        contactPhone: customer?.phone || "-",
         orderType,
-        comentary: "PEDIDO CREADO EN LOCAL",
+        comentary: "",
         status: "PENDIENTE A CONFIRMAR",
       };
 
@@ -242,7 +291,9 @@ export const LocalOrders = () => {
       setStep("success");
       await printCreatedOrder(order);
     } catch (error) {
-      setSubmitError(error?.message || String(error));
+      const message = error?.message || String(error);
+      setSubmitError(message);
+      showAlert(message, "warning", lobotechTheme);
     } finally {
       setLoading(false);
     }
@@ -296,7 +347,11 @@ export const LocalOrders = () => {
                 <Typography
                   variant="caption"
                   color="text.secondary"
-                  sx={{ display: { xs: "none", sm: "block" } }}
+                  sx={{
+                    display: { xs: "none", sm: "block" },
+                    fontFamily: "fontFamily.secondary",
+                    color: "primary.main",
+                  }}
                 >
                   {orderType}
                 </Typography>
@@ -305,10 +360,10 @@ export const LocalOrders = () => {
             {step !== "type" && step !== "success" && (
               <Button
                 color="error"
-                variant="outlined"
+                variant="contained"
                 startIcon={<CloseIcon />}
                 onClick={resetOrder}
-                sx={{ minHeight: 44 }}
+                sx={{ fontFamily: "fontFamily.primary", minHeight: 38 }}
               >
                 Cancelar
               </Button>
@@ -388,6 +443,7 @@ export const LocalOrders = () => {
             customTheme={lobotechAppFoodDetailTheme}
           />
         )}
+        {AlertComponent}
       </Box>
     </ThemeProvider>
   );

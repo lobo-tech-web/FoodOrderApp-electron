@@ -3,7 +3,7 @@ const { app, Menu } = require('electron');
 const setMainMenu = (
   mainWindow,
   isDevelopment = false,
-  onCheckForUpdates = () => {}
+  onCheckForUpdates = () => { }
 ) => {
   const template = [
     {
@@ -35,11 +35,11 @@ const setMainMenu = (
         { role: 'togglefullscreen', label: 'Pantalla completa' },
         ...(isDevelopment
           ? [
-              {
-                role: 'toggleDevTools',
-                label: 'Herramientas de desarrollo',
-              },
-            ]
+            {
+              role: 'toggleDevTools',
+              label: 'Herramientas de desarrollo',
+            },
+          ]
           : []),
       ],
     },
