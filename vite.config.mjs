@@ -47,6 +47,9 @@ const secureSessionPlugin = {
 
 export default {
   base: './',
+  build: {
+    chunkSizeWarningLimit: 2000,
+  },
   plugins: [secureSessionPlugin, react()],
   resolve: {
     alias: {
