@@ -7,8 +7,20 @@ import {
 } from "@mui/icons-material";
 // ---------------------
 
+// ---- Styles ----
+import { buttonStyle1 } from "../../styles/buttonStyle.js";
+// ----------------
+
 export const SuccessStep = ({ createdOrder, printStatus, onCreateNext }) => (
-  <Box sx={{ flex: 1, display: "grid", placeItems: "center", p: 3 }}>
+  <Box
+    sx={{
+      flex: 1,
+      display: "grid",
+      placeItems: "center",
+      p: 3,
+      bgcolor: "background.main",
+    }}
+  >
     <Paper
       elevation={0}
       sx={{
@@ -28,16 +40,22 @@ export const SuccessStep = ({ createdOrder, printStatus, onCreateNext }) => (
           mt: 2,
         }}
       >
-        Pedido creado exitosamente
+        PEDIDO CREADO EXITOSAMENTE !
       </Typography>
-      <Typography sx={{ color: "text.secondary", mt: 1 }}>
+      <Typography
+        sx={{
+          fontFamily: "fontFamily.secondary",
+          color: "text.secondary",
+          mt: 1,
+        }}
+      >
         Numero de pedido
       </Typography>
       <Typography
         sx={{
+          fontFamily: "fontFamily.primary",
           color: "primary.main",
           fontSize: { xs: "2.5rem", md: "3.5rem" },
-          fontWeight: 900,
           lineHeight: 1.1,
           overflowWrap: "anywhere",
         }}
@@ -48,7 +66,7 @@ export const SuccessStep = ({ createdOrder, printStatus, onCreateNext }) => (
         <Alert
           severity={printStatus.includes("impreso en") ? "success" : "info"}
           icon={<PrintIcon />}
-          sx={{ mt: 3, textAlign: "left" }}
+          sx={{ fontFamily: "fontFamily.secondary", mt: 3, textAlign: "left" }}
         >
           {printStatus}
         </Alert>
@@ -59,11 +77,10 @@ export const SuccessStep = ({ createdOrder, printStatus, onCreateNext }) => (
         variant="contained"
         onClick={onCreateNext}
         sx={{
+          ...buttonStyle1,
           minHeight: 60,
           mt: 3,
-          color: "text.terciary",
-          fontWeight: 900,
-          fontSize: "1.05rem",
+          fontSize: "1.2rem",
         }}
       >
         Crear siguiente pedido

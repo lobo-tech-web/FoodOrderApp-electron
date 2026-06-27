@@ -171,7 +171,10 @@ export const LocalOrders = () => {
 
   const handleProductClick = (product) => {
     const preparedProduct = { ...product, price: getProductPrice(product) };
-    if (getProductOptionsForUI(preparedProduct).length > 0) {
+    if (
+      getProductOptionsForUI(preparedProduct).length > 0 ||
+      preparedProduct.allowComment
+    ) {
       setSelectedProduct(preparedProduct);
       return;
     }
@@ -209,9 +212,13 @@ export const LocalOrders = () => {
           : `Ticket impreso en ${result.printerName}.`,
       );
     } else if (result?.reason === "no-printer") {
-      setPrintStatus("Pedido creado. Windows no encontro impresoras.");
+      setPrintStatus(
+        "Pedido CREADO exitosamente! pero Windows no encontro impresoras.",
+      );
     } else {
-      setPrintStatus("Pedido creado. No se pudo imprimir el ticket.");
+      setPrintStatus(
+        "Pedido CREADO exitosamente! pero no se pudo imprimir el ticket.",
+      );
     }
   };
 

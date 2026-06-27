@@ -16,6 +16,7 @@ import {
 // Icons
 import {
   Add as AddIcon,
+  CardGiftcard as CardGiftcardIcon,
   DeleteOutline as DeleteIcon,
   Remove as RemoveIcon,
   Search as SearchIcon,
@@ -185,14 +186,14 @@ export const ProductSelectionStep = ({
               </Typography>
               {Number(product.redeemPoints || 0) > 0 && (
                 <Chip
+                  icon={<CardGiftcardIcon />}
                   size="small"
                   label={`Canje ${product.redeemPoints} pts.`}
-                  color="primary"
+                  color="error"
                   sx={{
                     mt: 0.75,
                     width: "100%",
                     fontFamily: "fontFamily.secondary",
-                    fontWeight: 800,
                   }}
                 />
               )}
@@ -286,7 +287,7 @@ export const ProductSelectionStep = ({
                       + {option.name}
                       {Number(option.quantity || 1) > 1
                         ? ` x${option.quantity}`
-                      : ""}
+                        : ""}
                     </Typography>
                   ))}
                   {Number(item.redeemPoints || 0) > 0 && (
@@ -398,7 +399,7 @@ export const ProductSelectionStep = ({
             </Typography>
             <Chip
               label={`-${totals.totalRedeemPoints} pts.`}
-              color="primary"
+              color="error"
               sx={{ fontFamily: "fontFamily.secondary", fontWeight: 800 }}
             />
           </Box>
