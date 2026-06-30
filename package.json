@@ -27,14 +27,6 @@
     "appId": "com.lobotech.foodorderapp.admin",
     "productName": "FoodOrderApp Admin",
     "artifactName": "FoodOrderApp-Admin-Setup-${version}.${ext}",
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "lobo-tech-web",
-        "repo": "FoodOrderApp-electron",
-        "releaseType": "release"
-      }
-    ],
     "asar": true,
     "npmRebuild": false,
     "directories": {
