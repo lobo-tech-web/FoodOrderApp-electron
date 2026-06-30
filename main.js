@@ -14,7 +14,7 @@ const { createPrinterManager } = require('./printer-manager.js');
 
 const devServerUrl = process.env.ELECTRON_RENDERER_URL;
 const isDevelopment = Boolean(devServerUrl);
-const SECURE_STORAGE_KEYS = new Set(['token', 'user']);
+const SECURE_STORAGE_KEYS = new Set(['token', 'user', 'loginCredentials']);
 let mainWindow;
 const printerManager = createPrinterManager(app, BrowserWindow);
 

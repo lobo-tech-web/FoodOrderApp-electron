@@ -159,10 +159,10 @@ export const ProductSelectionStep = ({
         sx={{
           display: "grid",
           gridTemplateColumns: {
-            xs: "repeat(2, minmax(0, 1fr))",
-            sm: "repeat(3, minmax(0, 1fr))",
-            md: "repeat(4, minmax(0, 1fr))",
-            xl: "repeat(5, minmax(0, 1fr))",
+            xs: "repeat(3, minmax(0, 1fr))",
+            sm: "repeat(4, minmax(0, 1fr))",
+            md: "repeat(5, minmax(0, 1fr))",
+            xl: "repeat(6, minmax(0, 1fr))",
           },
           gap: { xs: 1, md: 1.25 },
         }}

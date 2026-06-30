@@ -53,7 +53,11 @@ import {
   calculateProductTotals,
 } from "@/utils/orderCalculations.js";
 import { getProductOptionsForUI } from "@/utils/migrateCustomOptions.js";
-import { buildTicketHtml, getProductPrice } from "./orderUtils.js";
+import {
+  buildKitchenHtml,
+  buildTicketHtml,
+  getProductPrice,
+} from "./orderUtils.js";
 import { getPaymentMethods, INITIAL_CHECKOUT } from "./constants.jsx";
 // ---------------
 
@@ -216,23 +220,42 @@ export const LocalOrders = () => {
     return getClientByUserNumber(user.id, userNumber);
   };
 
-  const printCreatedOrder = async (order) => {
-    const result = await printHtml("ticket", buildTicketHtml(order));
+  const getPrintResultMessage = (label, result) => {
     if (result?.printed) {
-      setPrintStatus(
-        result.mode === "manual"
-          ? "Ticket impreso con la impresora seleccionada."
-          : `Ticket impreso en ${result.printerName}.`,
-      );
-    } else if (result?.reason === "no-printer") {
-      setPrintStatus(
-        "Pedido CREADO exitosamente! pero Windows no encontro impresoras.",
-      );
-    } else {
-      setPrintStatus(
-        "Pedido CREADO exitosamente! pero no se pudo imprimir el ticket.",
-      );
+      return result.mode === "manual"
+        ? `${label} impreso con la impresora seleccionada.`
+        : `${label} impreso en ${result.printerName}.`;
     }
+    if (result?.reason === "no-printer") {
+      return `${label}: Windows no encontro impresoras conectadas.`;
+    }
+    return `${label}: no se pudo imprimir o se cancelo la seleccion de impresora.`;
+  };
+
+  const tryPrintOrderDocument = async (label, type, html) => {
+    try {
+      const result = await printHtml(type, html);
+      return getPrintResultMessage(label, result);
+    } catch {
+      return `${label}: no se pudo imprimir.`;
+    }
+  };
+
+  const printCreatedOrder = async (order) => {
+    const printMessages = [];
+
+    printMessages.push(
+      await tryPrintOrderDocument("Ticket", "ticket", buildTicketHtml(order)),
+    );
+    printMessages.push(
+      await tryPrintOrderDocument(
+        "Comanda de cocina",
+        "kitchen",
+        buildKitchenHtml(order),
+      ),
+    );
+
+    setPrintStatus(printMessages.join(" "));
   };
 
   const createOrder = async () => {

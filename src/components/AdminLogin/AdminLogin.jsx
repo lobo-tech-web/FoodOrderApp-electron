@@ -6,8 +6,10 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   CircularProgress,
   Container,
+  FormControlLabel,
   IconButton,
   InputAdornment,
   Paper,
@@ -41,9 +43,30 @@ export const AdminLogin = () => {
   const { lobotechTheme } = useLobotechThemeContext();
   const { userState, userLogin, userLogOut } = useUser();
   const [formLogin, setFormLogin] = useState({ email: "", password: "" });
+  const [rememberLogin, setRememberLogin] = useState(false);
+  const [hasSavedLogin, setHasSavedLogin] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    const savedLogin = window.secureStorage?.getItem("loginCredentials");
+    if (!savedLogin) return;
+
+    try {
+      const parsedLogin = JSON.parse(savedLogin);
+      if (!parsedLogin?.email || !parsedLogin?.password) return;
+
+      setFormLogin({
+        email: parsedLogin.email,
+        password: parsedLogin.password,
+      });
+      setRememberLogin(true);
+      setHasSavedLogin(true);
+    } catch {
+      window.secureStorage?.removeItem("loginCredentials");
+    }
+  }, []);
 
   useEffect(() => {
     const user = userState.user || {};
@@ -67,6 +90,14 @@ export const AdminLogin = () => {
     }));
   };
 
+  const removeSavedLogin = () => {
+    window.secureStorage?.removeItem("loginCredentials");
+    setHasSavedLogin(false);
+    setRememberLogin(false);
+    setFormLogin({ email: "", password: "" });
+    setMessage("Datos guardados eliminados de esta computadora.");
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -78,6 +109,20 @@ export const AdminLogin = () => {
     setLoading(true);
     try {
       await userLogin(formLogin);
+
+      if (rememberLogin) {
+        const saved = window.secureStorage?.setItem(
+          "loginCredentials",
+          JSON.stringify({
+            email: formLogin.email.trim(),
+            password: formLogin.password,
+          }),
+        );
+        if (saved) setHasSavedLogin(true);
+      } else {
+        window.secureStorage?.removeItem("loginCredentials");
+        setHasSavedLogin(false);
+      }
     } catch (error) {
       setMessage(
         error ||
@@ -206,6 +251,42 @@ export const AdminLogin = () => {
                     }}
                     sx={{ fontFamily: "fontFamily.secondary" }}
                   />
+                </Box>
+
+                <Box>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={rememberLogin}
+                        onChange={(event) =>
+                          setRememberLogin(event.target.checked)
+                        }
+                        sx={{
+                          color: "primary.main",
+                          "&.Mui-checked": { color: "primary.main" },
+                        }}
+                      />
+                    }
+                    label="Recordar email y contrasena en esta computadora"
+                    sx={{
+                      m: 0,
+                      color: "text.primary",
+                      "& .MuiFormControlLabel-label": {
+                        fontFamily: "fontFamily.secondary",
+                        fontSize: "0.9rem",
+                      },
+                    }}
+                  />
+                  {hasSavedLogin && (
+                    <Button
+                      size="small"
+                      color="error"
+                      onClick={removeSavedLogin}
+                      sx={{ fontFamily: "fontFamily.secondary", mt: 0.5 }}
+                    >
+                      Eliminar datos guardados
+                    </Button>
+                  )}
                 </Box>
 
                 <Button

@@ -64,7 +64,7 @@ export const SuccessStep = ({ createdOrder, printStatus, onCreateNext }) => (
       </Typography>
       {printStatus && (
         <Alert
-          severity={printStatus.includes("impreso en") ? "success" : "info"}
+          severity={printStatus.includes("impreso") ? "success" : "info"}
           icon={<PrintIcon />}
           sx={{ fontFamily: "fontFamily.secondary", mt: 3, textAlign: "left" }}
         >

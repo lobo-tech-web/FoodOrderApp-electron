@@ -9,7 +9,7 @@ import {
 
 export const ORDER_TYPES = [
   {
-    value: "RETIRO EN LOCAL",
+    value: "ESPERA EN LOCAL",
     title: "Para llevar",
     description: "Retira el pedido en el mostrador",
     icon: <TakeAwayIcon />,
