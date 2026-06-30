@@ -6,6 +6,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('navigate', listener);
     return () => ipcRenderer.removeListener('navigate', listener);
   },
+  onOpenPrinterConfig: (callback) => {
+    const listener = () => callback();
+    ipcRenderer.on('open-printer-config', listener);
+    return () => ipcRenderer.removeListener('open-printer-config', listener);
+  },
   listPrinters: () => ipcRenderer.invoke('printers:list'),
   getPrinterConfig: () => ipcRenderer.invoke('printers:get-config'),
   savePrinterConfig: (type, deviceName) =>

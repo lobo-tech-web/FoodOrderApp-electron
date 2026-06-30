@@ -77,7 +77,7 @@ export const LocalOrders = () => {
   const [orderType, setOrderType] = useState("");
   const [cartItems, setCartItems] = useState([]);
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("TODOS");
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [checkout, setCheckout] = useState(INITIAL_CHECKOUT);
   const [loading, setLoading] = useState(false);
@@ -131,15 +131,28 @@ export const LocalOrders = () => {
     const term = search.trim().toLowerCase();
     return availableProducts.filter((product) => {
       const matchesCategory =
-        selectedCategory === "TODOS" ||
-        product.category?.name === selectedCategory;
+        selectedCategories.length === 0 ||
+        selectedCategories.includes(product.category?.name);
       const matchesSearch =
         !term ||
         product.name?.toLowerCase().includes(term) ||
         product.description?.toLowerCase().includes(term);
       return matchesCategory && matchesSearch;
     });
-  }, [availableProducts, search, selectedCategory]);
+  }, [availableProducts, search, selectedCategories]);
+
+  const toggleCategory = (category) => {
+    if (category === "TODOS") {
+      setSelectedCategories([]);
+      return;
+    }
+
+    setSelectedCategories((current) =>
+      current.includes(category)
+        ? current.filter((selected) => selected !== category)
+        : [...current, category],
+    );
+  };
 
   const totals = useMemo(() => calculateProductTotals(cartItems), [cartItems]);
 
@@ -148,7 +161,7 @@ export const LocalOrders = () => {
     setOrderType("");
     setCartItems([]);
     setSearch("");
-    setSelectedCategory("TODOS");
+    setSelectedCategories([]);
     setSelectedProduct(null);
     setCheckout(INITIAL_CHECKOUT);
     setSubmitError("");
@@ -408,8 +421,8 @@ export const LocalOrders = () => {
             search={search}
             onSearchChange={setSearch}
             categories={categories}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
+            selectedCategories={selectedCategories}
+            onCategoryToggle={toggleCategory}
             loadError={loadError}
             onRetry={fetchProducts}
             visibleProducts={visibleProducts}

@@ -41,8 +41,8 @@ export const ProductSelectionStep = ({
   search,
   onSearchChange,
   categories,
-  selectedCategory,
-  onCategoryChange,
+  selectedCategories,
+  onCategoryToggle,
   loadError,
   onRetry,
   visibleProducts,
@@ -59,9 +59,76 @@ export const ProductSelectionStep = ({
       flex: 1,
       minHeight: 0,
       display: "grid",
-      gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1fr) 360px" },
+      gridTemplateColumns: {
+        xs: "112px minmax(0, 1fr)",
+        sm: "140px minmax(0, 1fr)",
+        md: "170px minmax(0, 1fr)",
+        lg: "180px minmax(0, 1fr) 360px",
+      },
+      gridTemplateRows: { xs: "minmax(0, 1fr) auto", lg: "1fr" },
     }}
   >
+    <Paper
+      square
+      elevation={0}
+      sx={{
+        bgcolor: "background.paper",
+        borderRight: "1px solid",
+        borderColor: "divider",
+        minHeight: 0,
+        gridRow: { xs: "1 / span 2", lg: "auto" },
+        overflowY: "auto",
+        px: { xs: 0.75, sm: 1 },
+        py: 1.25,
+      }}
+    >
+      <Typography
+        sx={{
+          fontFamily: "fontFamily.primary",
+          color: "primary.main",
+          fontSize: "0.82rem",
+          textAlign: "center",
+          mb: 1,
+          overflowWrap: "anywhere",
+        }}
+      >
+        CATEGORIAS
+      </Typography>
+      <Stack spacing={0.75}>
+        {categories.map((category) => {
+          const isAllCategory = category === "TODOS";
+          const isActive = isAllCategory
+            ? selectedCategories.length === 0
+            : selectedCategories.includes(category);
+
+          return (
+            <Button
+              key={category}
+              fullWidth
+              variant={isActive ? "contained" : "outlined"}
+              onClick={() => onCategoryToggle(category)}
+              sx={{
+                minHeight: { xs: 48, sm: 54 },
+                px: { xs: 0.5, sm: 0.8 },
+                py: 0.75,
+                justifyContent: "center",
+                borderRadius: 2,
+                fontFamily: "fontFamily.secondary",
+                fontSize: "0.72rem",
+                lineHeight: 1.1,
+                textAlign: "center",
+                whiteSpace: "normal",
+                overflowWrap: "anywhere",
+                color: isActive ? "text.terciary" : "text.primary",
+              }}
+            >
+              {category}
+            </Button>
+          );
+        })}
+      </Stack>
+    </Paper>
+
     <Box sx={{ minWidth: 0, overflow: "auto", p: { xs: 1.5, md: 2.5 } }}>
       <TextField
         fullWidth
@@ -78,27 +145,6 @@ export const ProductSelectionStep = ({
         sx={{ fontFamily: "fontFamily.secondary", mb: 1.5 }}
       />
 
-      <Box sx={{ display: "flex", gap: 1, overflowX: "auto", pb: 1.5 }}>
-        {categories.map((category) => (
-          <Button
-            key={category}
-            variant={selectedCategory === category ? "contained" : "outlined"}
-            onClick={() => onCategoryChange(category)}
-            sx={{
-              fontFamily: "fontFamily.secondary",
-              flexShrink: 0,
-              minHeight: 44,
-              color:
-                selectedCategory === category
-                  ? "text.terciary"
-                  : "text.primary",
-            }}
-          >
-            {category}
-          </Button>
-        ))}
-      </Box>
-
       {loadError && (
         <Alert
           severity="error"
@@ -113,10 +159,10 @@ export const ProductSelectionStep = ({
         sx={{
           display: "grid",
           gridTemplateColumns: {
-            xs: "repeat(3, minmax(0, 1fr))",
-            sm: "repeat(4, minmax(0, 1fr))",
-            md: "repeat(5, minmax(0, 1fr))",
-            xl: "repeat(6, minmax(0, 1fr))",
+            xs: "repeat(2, minmax(0, 1fr))",
+            sm: "repeat(3, minmax(0, 1fr))",
+            md: "repeat(4, minmax(0, 1fr))",
+            xl: "repeat(5, minmax(0, 1fr))",
           },
           gap: { xs: 1, md: 1.25 },
         }}
@@ -213,6 +259,7 @@ export const ProductSelectionStep = ({
         borderColor: "divider",
         display: "flex",
         flexDirection: "column",
+        gridColumn: { xs: "2", lg: "auto" },
         minHeight: { xs: 300, lg: 0 },
       }}
     >

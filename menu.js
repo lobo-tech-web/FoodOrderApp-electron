@@ -23,6 +23,16 @@ const setMainMenu = (
       ],
     },
     {
+      label: 'Configuracion',
+      submenu: [
+        {
+          label: 'Impresoras',
+          accelerator: 'CmdOrCtrl+Shift+P',
+          click: () => mainWindow.webContents.send('open-printer-config'),
+        },
+      ],
+    },
+    {
       label: 'Vista',
       submenu: [
         { role: 'reload', label: 'Recargar' },
@@ -46,6 +56,11 @@ const setMainMenu = (
     {
       label: 'Aplicacion',
       submenu: [
+        {
+          label: `Version ${app.getVersion()}`,
+          enabled: false,
+        },
+        { type: 'separator' },
         {
           label: 'Buscar actualizaciones',
           click: onCheckForUpdates,

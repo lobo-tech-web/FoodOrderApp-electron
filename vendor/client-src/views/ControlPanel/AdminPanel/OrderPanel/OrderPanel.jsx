@@ -56,6 +56,7 @@ import { getDateNowDayjs, getTimeNowDayjs } from '@/utils/clientWorking.js';
 // ---- STYLES ----
 const tableHeadStyle = {
   fontFamily: 'fontFamily.primary',
+  bgcolor: 'background.paper',
   color: 'primary.main',
   textAlign: 'center',
   fontWeight: 'bold',
@@ -462,9 +463,22 @@ export const OrderPanel = ({ user, externalView }) => {
           </Tabs>
         </Paper>
 
-        <TableContainer>
+        <TableContainer
+          sx={{
+            maxHeight: {
+              xs: 'calc(100vh - 360px)',
+              md: 'calc(100vh - 390px)',
+            },
+            minHeight: 260,
+            overflow: 'auto',
+          }}
+        >
           {filteredOrders.length > 0 ? (
-            <Table aria-label="collapsible table">
+            <Table
+              stickyHeader
+              aria-label="collapsible table"
+              sx={{ minWidth: 1180 }}
+            >
               <TableHead sx={{ bgcolor: 'background.paper' }}>
                 <TableRow>
                   <TableCell padding="checkbox">
