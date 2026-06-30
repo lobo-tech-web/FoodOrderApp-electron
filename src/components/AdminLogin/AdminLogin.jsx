@@ -18,11 +18,13 @@ import {
   Typography,
 } from "@mui/material";
 // Icons
-import AlternateEmailIcon from "@mui/icons-material/AlternateEmail";
-import LockIcon from "@mui/icons-material/Lock";
-import LoginIcon from "@mui/icons-material/Login";
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import {
+  Email as EmailIcon,
+  Lock as LockIcon,
+  Login as LoginIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
+} from "@mui/icons-material";
 // ------------------
 
 // ---- Logo ----
@@ -195,7 +197,7 @@ export const AdminLogin = () => {
               >
                 <Box>
                   <Box sx={{ display: "flex", gap: 1, mb: 0.5 }}>
-                    <AlternateEmailIcon color="primary" />
+                    <EmailIcon color="primary" />
                     <Typography sx={{ fontFamily: "fontFamily.secondary" }}>
                       Email
                     </Typography>
@@ -244,7 +246,11 @@ export const AdminLogin = () => {
                               setShowPassword((current) => !current)
                             }
                           >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                            {showPassword ? (
+                              <VisibilityOffIcon />
+                            ) : (
+                              <VisibilityIcon />
+                            )}
                           </IconButton>
                         </InputAdornment>
                       ),
@@ -267,7 +273,7 @@ export const AdminLogin = () => {
                         }}
                       />
                     }
-                    label="Recordar email y contrasena en esta computadora"
+                    label="Recordar email y contraseña en esta computadora"
                     sx={{
                       m: 0,
                       color: "text.primary",
@@ -281,8 +287,13 @@ export const AdminLogin = () => {
                     <Button
                       size="small"
                       color="error"
+                      variant="outlined"
                       onClick={removeSavedLogin}
-                      sx={{ fontFamily: "fontFamily.secondary", mt: 0.5 }}
+                      sx={{
+                        fontFamily: "fontFamily.secondary",
+                        fontSize: { xs: "0.5rem", sm: "0.7rem" },
+                        mt: 0.5,
+                      }}
                     >
                       Eliminar datos guardados
                     </Button>

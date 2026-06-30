@@ -37,10 +37,9 @@ const getCustomOptionsRows = (item, className = 'option') =>
   (item.customOptions || [])
     .map(
       (option) =>
-        `<div class="${className}">+ ${escapeHtml(option.name)}${
-          Number(option.quantity || 1) > 1
-            ? ` x${Number(option.quantity)}`
-            : ''
+        `<div class="${className}">+ ${escapeHtml(option.name)}${Number(option.quantity || 1) > 1
+          ? ` x${Number(option.quantity)}`
+          : ''
         }</div>`
     )
     .join('');
@@ -54,7 +53,7 @@ export const buildTicketHtml = (order) => {
       return `
         <div class="item">
           <div class="item-line">
-            <strong>${Number(item.quantity)} x ${escapeHtml(item.name)}</strong>
+            <strong>${Number(item.quantity)} x ${escapeHtml(item.name.toUpperCase())}</strong>
             <span>${escapeHtml(formatCurrency(item.price * item.quantity))}</span>
           </div>
           ${options}
@@ -84,13 +83,13 @@ export const buildTicketHtml = (order) => {
     <body>
       <div class="header center">
         <h1>${escapeHtml(
-          (order.restaurantName || 'LOCAL').toUpperCase()
-        )}</h1>
+    (order.restaurantName || 'LOCAL').toUpperCase()
+  )}</h1>
         <h2 class="order">PEDIDO #${escapeHtml(getOrderNumber(order))}</h2>
         <p>${escapeHtml(date)} - ${escapeHtml(time)}</p>
       </div>
       <div class="section">
-        <strong>CLIENTE:</strong> ${escapeHtml(order.clientName)}<br />
+        <strong>CLIENTE:</strong> ${escapeHtml(order.clientName.toUpperCase())}<br />
         <strong>TIPO:</strong> ${escapeHtml(order.orderType)}<br />
         <strong>PAGO:</strong> ${escapeHtml(order.paymentMethod)}
       </div>
@@ -111,8 +110,8 @@ export const buildKitchenHtml = (order) => {
       const options = getCustomOptionsRows(item, 'option-item');
       const productComment = item.productComment
         ? `<div class="product-comment">NOTA: ${escapeHtml(
-            item.productComment,
-          )}</div>`
+          item.productComment,
+        )}</div>`
         : '';
 
       return `
@@ -148,7 +147,6 @@ export const buildKitchenHtml = (order) => {
         .order-number { font-size: 24px; font-weight: 900; margin: 4px 0; }
         .date-time { font-size: 12px; font-weight: 700; }
         .order-type { display: inline-block; margin-top: 6px; padding: 4px 8px; border: 2px solid #000; font-weight: 900; }
-        .customer { margin: 8px 0; padding: 6px; border: 1px solid #000; font-size: 12px; }
         .section-title { text-align: center; font-weight: 900; font-size: 16px; text-decoration: underline; margin: 8px 0 5px; }
         .item-container { padding: 6px 0; border-bottom: 1px dashed #000; }
         .item-header { display: flex; gap: 8px; align-items: flex-start; }
@@ -163,14 +161,10 @@ export const buildKitchenHtml = (order) => {
     </head>
     <body>
       <div class="header">
-        <h1>COMANDA DE COCINA</h1>
         <div class="order-number">PEDIDO #${escapeHtml(getOrderNumber(order))}</div>
+        <h2>${order.clientName.toUpperCase()}</h2>
         <div class="date-time">${escapeHtml(date)} - ${escapeHtml(time)}</div>
         <div class="order-type">${escapeHtml(order.orderType)}</div>
-      </div>
-      <div class="customer">
-        <strong>CLIENTE:</strong> ${escapeHtml(order.clientName)}<br />
-        <strong>PAGO:</strong> ${escapeHtml(order.paymentMethod)}
       </div>
       <div class="section-title">PRODUCTOS</div>
       ${itemRows}

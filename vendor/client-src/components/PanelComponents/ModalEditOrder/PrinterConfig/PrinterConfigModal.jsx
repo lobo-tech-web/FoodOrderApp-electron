@@ -16,6 +16,7 @@ import {
   Snackbar,
   Stack,
   Typography,
+  ThemeProvider,
 } from "@mui/material";
 import {
   Close as CloseIcon,
@@ -25,6 +26,10 @@ import {
   Settings as SettingsIcon,
 } from "@mui/icons-material";
 import { useThermalPrinter } from "./useThermalPrinter.js";
+
+// ---- Context ----
+import { useLobotechThemeContext } from "@/context/ThemeContext.jsx";
+// -----------------
 
 const EMPTY_SELECTION = { ticket: "", kitchen: "" };
 
@@ -130,6 +135,7 @@ const PrinterField = ({
 );
 
 export const PrinterConfigModal = ({ open, onClose }) => {
+  const { lobotechTheme } = useLobotechThemeContext();
   const {
     availablePrinters,
     savedPrinters,
@@ -193,7 +199,7 @@ export const PrinterConfigModal = ({ open, onClose }) => {
   const disabled = isLoadingPrinters || isPrinting;
 
   return (
-    <>
+    <ThemeProvider theme={lobotechTheme}>
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
         <DialogTitle
           sx={{
@@ -326,6 +332,6 @@ export const PrinterConfigModal = ({ open, onClose }) => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </>
+    </ThemeProvider>
   );
 };

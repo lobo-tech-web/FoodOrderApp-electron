@@ -86,7 +86,7 @@ export const ProductSelectionStep = ({
         sx={{
           fontFamily: "fontFamily.primary",
           color: "primary.main",
-          fontSize: "0.82rem",
+          fontSize: "1rem",
           textAlign: "center",
           mb: 1,
           overflowWrap: "anywhere",
@@ -108,13 +108,13 @@ export const ProductSelectionStep = ({
               variant={isActive ? "contained" : "outlined"}
               onClick={() => onCategoryToggle(category)}
               sx={{
-                minHeight: { xs: 48, sm: 54 },
+                minHeight: { xs: 48, sm: 48 },
                 px: { xs: 0.5, sm: 0.8 },
                 py: 0.75,
                 justifyContent: "center",
                 borderRadius: 2,
                 fontFamily: "fontFamily.secondary",
-                fontSize: "0.72rem",
+                fontSize: "0.8rem",
                 lineHeight: 1.1,
                 textAlign: "center",
                 whiteSpace: "normal",
@@ -181,7 +181,7 @@ export const ProductSelectionStep = ({
               border: "1px solid",
               borderColor: "divider",
               borderRadius: 2,
-              bgcolor: "background.main",
+              bgcolor: "background.default",
               color: "text.primary",
               textAlign: "left",
               cursor: "pointer",
@@ -202,7 +202,6 @@ export const ProductSelectionStep = ({
                 height: { xs: 86, sm: 92, md: 96 },
                 display: "block",
                 objectFit: "contain",
-                bgcolor: "background.default",
               }}
             />
             <Box sx={{ p: { xs: 0.85, sm: 1 } }}>
@@ -219,30 +218,33 @@ export const ProductSelectionStep = ({
               >
                 {product.name.toUpperCase()}
               </Typography>
-              <Typography
-                sx={{
-                  fontFamily: "fontFamily.primary",
-                  color: "primary.main",
-                  fontSize: { xs: "0.9rem", sm: "1.2rem" },
-                  mt: 0.6,
-                  textAlign: "center",
-                }}
-              >
-                {formatCurrency(getProductPrice(product))}
-              </Typography>
-              {Number(product.redeemPoints || 0) > 0 && (
-                <Chip
-                  icon={<CardGiftcardIcon />}
-                  size="small"
-                  label={`Canje ${product.redeemPoints} pts.`}
-                  color="error"
+              {Number(product.price) > 0 && (
+                <Typography
                   sx={{
-                    mt: 0.75,
-                    width: "100%",
-                    fontFamily: "fontFamily.secondary",
+                    fontFamily: "fontFamily.primary",
+                    color: "primary.main",
+                    fontSize: { xs: "0.9rem", sm: "1.2rem" },
+                    mt: 0.6,
+                    textAlign: "center",
                   }}
-                />
+                >
+                  {formatCurrency(getProductPrice(product))}
+                </Typography>
               )}
+              <Box sx={{ mt: 0.75 }}>
+                {Number(product.redeemPoints || 0) > 0 && (
+                  <Chip
+                    icon={<CardGiftcardIcon />}
+                    size="small"
+                    label={`Canje ${product.redeemPoints} pts.`}
+                    color="error"
+                    sx={{
+                      width: "100%",
+                      fontFamily: "fontFamily.secondary",
+                    }}
+                  />
+                )}
+              </Box>
             </Box>
           </Paper>
         ))}
