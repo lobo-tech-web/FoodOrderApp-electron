@@ -332,7 +332,7 @@ export const LocalOrders = () => {
         discountamount: 0,
         totalAmount: totals.subtotalProducts,
         paymentMethod: checkout.paymentMethod,
-        clientEmail: customer?.email || "",
+        clientEmail: customer?.email || user.email || "",
         clientName: checkout.clientName.trim(),
         deliveryAddress: customer?.address || "",
         contactPhone: customer?.phone || "",
