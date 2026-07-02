@@ -193,15 +193,6 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
           border-top: 2px solid #000;
           margin: 1.2mm 0;
         }
-        .section-title {
-          margin: 1.2mm 0;
-          padding: 0.7mm;
-          background: #f0f0f0;
-          text-align: center;
-          text-decoration: underline;
-          font-size: 15px;
-          font-weight: 900;
-        }
         .item-container {
           padding: 1.2mm 0;
           border-bottom: 1px dashed #000;
@@ -282,7 +273,6 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
         <div class="divider"></div>
 
         <section>
-          <div class="section-title">PRODUCTOS</div>
           ${getProductsHtml(order)}
         </section>
 

@@ -126,22 +126,22 @@ const getProductsHtml = (order = {}) =>
 const getClientRowsHtml = (order = {}, options = {}) => {
   const hideEmptyClientContact = Boolean(options.hideEmptyClientContact);
   const rows = [
-    ['Nombre', normalizeUpper(order.clientName, 'SIN NOMBRE')],
+    ['NOMBRE', normalizeUpper(order.clientName, 'SIN NOMBRE')],
   ];
 
   if (order.contactPhone || order.clientPhone || !hideEmptyClientContact) {
-    rows.push(['Telefono', order.contactPhone || order.clientPhone || '-']);
+    rows.push(['TELÉFONO', order.contactPhone || order.clientPhone || '-']);
   }
 
   if (order.deliveryAddress) {
-    rows.push(['Direccion', normalizeUpper(order.deliveryAddress)]);
+    rows.push(['DIRECCIÓN', normalizeUpper(order.deliveryAddress)]);
   }
 
-  rows.push(['Entrega', normalizeUpper(order.orderType, '-')]);
-  rows.push(['Pago', normalizeUpper(order.paymentMethod, '-')]);
+  rows.push(['ENTREGA', normalizeUpper(order.orderType, '-')]);
+  rows.push(['PAGO', normalizeUpper(order.paymentMethod, '-')]);
 
   if (order.tableid || order.tableName) {
-    rows.push(['Mesa', order.tableName || order.tableid]);
+    rows.push(['MESA', order.tableName || order.tableid]);
   }
 
   return rows
@@ -305,11 +305,17 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
           gap: 2mm;
           margin-top: 1.1mm;
           font-size: 13px;
+          font-family: "Courier New", Courier, monospace;
+          font-weight: 800;
+          color: #000;
           overflow-wrap: anywhere;
         }
         .ticket-info-row strong {
           flex: 0 0 auto;
           font-weight: 900;
+        }
+        .ticket-info-row span {
+          font-weight: 800;
         }
         .ticket-product {
           padding: 1.5mm 0 1.1mm;
