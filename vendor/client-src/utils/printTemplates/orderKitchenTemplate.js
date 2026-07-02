@@ -133,44 +133,44 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
         body {
           width: 80mm;
           margin: 0;
-          padding: 4mm;
+          padding: 2.5mm;
           color: #000;
           background: #fff;
           font-family: Arial, Helvetica, sans-serif;
-          font-size: 13px;
-          line-height: 1.25;
+          font-size: 12.5px;
+          line-height: 1.18;
         }
         h1, h2, p { margin: 0; }
         .cook-order-container {
-          width: 72mm;
+          width: 75mm;
         }
         .header {
           text-align: center;
-          padding-bottom: 2mm;
+          padding-bottom: 1mm;
         }
         .order-number {
-          padding: 1.5mm;
+          padding: 0.8mm;
           color: #000;
-          font-size: 25px;
+          font-size: 23px;
           font-weight: 900;
         }
         .client-name {
-          margin-top: 1mm;
-          font-size: 18px;
+          margin-top: 0.5mm;
+          font-size: 16px;
           font-weight: 900;
           overflow-wrap: anywhere;
         }
         .date-time {
-          margin-top: 1mm;
-          font-size: 12px;
+          margin-top: 0.5mm;
+          font-size: 11px;
           font-weight: 800;
         }
         .order-type {
           display: inline-block;
-          margin-top: 2mm;
-          padding: 1.5mm 3mm;
+          margin-top: 1mm;
+          padding: 1mm 2.5mm;
           border: 2px solid #000;
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 900;
         }
         .order-type-takeaway {
@@ -182,28 +182,28 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
           border-style: dashed;
         }
         .customer-info {
-          margin: 2mm 0;
-          padding: 2mm;
+          margin: 1.2mm 0;
+          padding: 1.3mm;
           border: 1px solid #000;
-          font-size: 12px;
+          font-size: 11.5px;
           font-weight: 800;
           overflow-wrap: anywhere;
         }
         .divider {
           border-top: 2px solid #000;
-          margin: 2mm 0;
+          margin: 1.2mm 0;
         }
         .section-title {
-          margin: 2mm 0;
-          padding: 1mm;
+          margin: 1.2mm 0;
+          padding: 0.7mm;
           background: #f0f0f0;
           text-align: center;
           text-decoration: underline;
-          font-size: 16px;
+          font-size: 15px;
           font-weight: 900;
         }
         .item-container {
-          padding: 2mm 0;
+          padding: 1.2mm 0;
           border-bottom: 1px dashed #000;
         }
         .item-header {
@@ -212,46 +212,46 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
         }
         .item-name {
           flex: 1;
-          font-size: 17px;
+          font-size: 16px;
           font-weight: 900;
           overflow-wrap: anywhere;
         }
         .item-options {
-          margin-top: 1mm;
-          padding-left: 4mm;
-          font-size: 13px;
+          margin-top: 0.7mm;
+          padding-left: 3mm;
+          font-size: 12px;
           font-weight: 800;
         }
         .option-item {
-          margin-bottom: 1mm;
+          margin-bottom: 0.5mm;
           overflow-wrap: anywhere;
         }
         .product-comment,
         .comments {
-          margin-top: 2mm;
-          padding: 2mm;
+          margin-top: 1.2mm;
+          padding: 1.3mm;
           border: 1px dashed #000;
-          font-size: 13px;
+          font-size: 12px;
           font-weight: 900;
           overflow-wrap: anywhere;
         }
         .comments-title {
-          margin-bottom: 1mm;
+          margin-bottom: 0.6mm;
           text-align: center;
           text-decoration: underline;
-          font-size: 15px;
+          font-size: 14px;
           font-weight: 900;
         }
         .footer {
-          margin-top: 4mm;
-          padding-top: 2mm;
+          margin-top: 2mm;
+          padding-top: 1mm;
           border-top: 2px solid #000;
           text-align: center;
-          font-size: 12px;
+          font-size: 11px;
           font-weight: 900;
         }
         .print-padding-end {
-          padding-top: 10mm;
+          padding-top: 4mm;
         }
       </style>
     </head>
