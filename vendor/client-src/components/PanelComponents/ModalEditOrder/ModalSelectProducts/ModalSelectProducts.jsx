@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from "react";
 // ---- MATERIAL UI ----
 import {
   Dialog,
@@ -17,7 +17,7 @@ import {
   InputAdornment,
   Chip,
   IconButton,
-} from '@mui/material';
+} from "@mui/material";
 // ICONS
 import {
   Search as SearchIcon,
@@ -25,23 +25,23 @@ import {
   Add as AddIcon,
   Star as StarIcon,
   MonetizationOn as MoneyIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 // ---------------------
 
 // ---- LOGO (IMAGEDEFAULT) ----
-import mainLogo from '@/assets/main/logo-white.png';
+import mainLogo from "@/assets/main/logo-white.png";
 // -----------------------------
 
 // ---- THEME ----
-import { lobotechAppFoodDetailTheme } from '@/theme/main-theme.js';
+import { lobotechAppFoodDetailTheme } from "@/theme/main-theme.js";
 // ---------------
 
 // ---- COMPONENTS ----
-import { FoodDetailModal } from '@/components/FoodDetailModal/FoodDetailModal.jsx';
+import { FoodDetailModal } from "@/components/FoodDetailModal/FoodDetailModal.jsx";
 // --------------------
 
 // ---- UTILS ----
-import { getProductOptionsForUI } from '@/utils/migrateCustomOptions.js';
+import { getProductOptionsForUI } from "@/utils/migrateCustomOptions.js";
 // ---------------
 
 export const ModalSelectProducts = ({
@@ -51,7 +51,7 @@ export const ModalSelectProducts = ({
   products = [],
   editingProduct = false,
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   // ✅ Nuevo estado para controlar el FoodDetailModal
   const [foodDetailModalState, setFoodDetailModalState] = useState({
     isOpen: false,
@@ -65,8 +65,8 @@ export const ModalSelectProducts = ({
     const term = searchTerm.toLowerCase();
 
     return products.filter((product) => {
-      const name = product.name?.toLowerCase() || '';
-      const description = product.description?.toLowerCase() || '';
+      const name = product.name?.toLowerCase() || "";
+      const description = product.description?.toLowerCase() || "";
 
       return name.includes(term) || description.includes(term);
     });
@@ -77,14 +77,14 @@ export const ModalSelectProducts = ({
     const newPrice =
       product.discount > 0
         ? Math.round(
-            (product.price - (product.price * product.discount) / 100) / 100
+            (product.price - (product.price * product.discount) / 100) / 100,
           ) * 100
         : Math.round(product.price);
 
     const productOptions = getProductOptionsForUI(product);
     const hasCustomOptions = productOptions.length > 0;
 
-    if (hasCustomOptions) {
+    if (hasCustomOptions || product.allowComment) {
       setFoodDetailModalState({
         isOpen: true,
         product: { ...product, price: newPrice },
@@ -96,7 +96,7 @@ export const ModalSelectProducts = ({
         price: newPrice,
         customOptions: [],
       });
-      setSearchTerm('');
+      setSearchTerm("");
       onClose();
     }
   };
@@ -105,13 +105,13 @@ export const ModalSelectProducts = ({
   const handleProductCustomized = (customizedItem) => {
     onSelectProduct(customizedItem); // Agregamos el producto personalizado al pedido
     setFoodDetailModalState({ isOpen: false, product: null });
-    setSearchTerm('');
+    setSearchTerm("");
     onClose(); // Cerrar ModalSelectProducts
   };
 
   // ✅ CERRAR MODAL DE SELECCIÓN DE PRODUCTOS
   const handleClose = () => {
-    setSearchTerm('');
+    setSearchTerm("");
     onClose();
   };
 
@@ -142,16 +142,16 @@ export const ModalSelectProducts = ({
         <DialogTitle
           id="product-modal-title"
           sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontFamily: 'fontFamily.primary',
-            color: 'primary.main',
-            bgcolor: 'background.paper',
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontFamily: "fontFamily.primary",
+            color: "primary.main",
+            bgcolor: "background.paper",
           }}
         >
           <Typography variant="h6">
-            {editingProduct ? 'MODIFICAR PRODUCTO' : 'SELECCIONAR PRODUCTO'}
+            {editingProduct ? "MODIFICAR PRODUCTO" : "SELECCIONAR PRODUCTO"}
           </Typography>
           <IconButton onClick={handleClose} size="small" color="primary">
             <CloseIcon />
@@ -167,9 +167,9 @@ export const ModalSelectProducts = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               sx={{
-                color: 'text.primary',
-                border: '1px solid',
-                borderColor: 'primary.main',
+                color: "text.primary",
+                border: "1px solid",
+                borderColor: "primary.main",
                 mt: 2,
                 mb: 2,
               }}
@@ -184,19 +184,19 @@ export const ModalSelectProducts = ({
           )}
 
           {/* ✅ LISTA DE PRODUCTOS */}
-          <List sx={{ maxHeight: 400, overflow: 'auto' }}>
+          <List sx={{ maxHeight: 400, overflow: "auto" }}>
             {filteredProducts.length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Box sx={{ textAlign: "center", py: 4 }}>
                 <Typography
                   variant="body1"
                   sx={{
-                    fontFamily: 'fontFamily.primary',
-                    color: 'text.primary',
+                    fontFamily: "fontFamily.primary",
+                    color: "text.primary",
                   }}
                 >
                   {searchTerm
-                    ? 'NO SE ENCONTRARON PRODUCTOS'
-                    : 'NO HAY PRODUCTOS DISPONIBLES'}
+                    ? "NO SE ENCONTRARON PRODUCTOS"
+                    : "NO HAY PRODUCTOS DISPONIBLES"}
                 </Typography>
               </Box>
             ) : (
@@ -204,14 +204,14 @@ export const ModalSelectProducts = ({
                 <ListItem
                   key={product.id}
                   sx={{
-                    bgcolor: 'background.paper',
-                    border: '2px solid',
-                    borderColor: 'primary.main',
+                    bgcolor: "background.paper",
+                    border: "2px solid",
+                    borderColor: "primary.main",
                     borderRadius: 2,
                     mb: 1,
-                    '&:hover': {
-                      bgcolor: 'background.default',
-                      borderColor: 'text.primary',
+                    "&:hover": {
+                      bgcolor: "background.default",
+                      borderColor: "text.primary",
                     },
                   }}
                 >
@@ -219,7 +219,7 @@ export const ModalSelectProducts = ({
                     <Avatar
                       src={product.image || mainLogo}
                       sx={{
-                        bgcolor: 'primary.main',
+                        bgcolor: "primary.main",
                         width: 56,
                         height: 56,
                       }}
@@ -230,8 +230,8 @@ export const ModalSelectProducts = ({
                     primary={
                       <Box
                         sx={{
-                          display: 'flex',
-                          alignItems: 'center',
+                          display: "flex",
+                          alignItems: "center",
                           gap: 1,
                           mb: 0.5,
                         }}
@@ -239,9 +239,9 @@ export const ModalSelectProducts = ({
                         <Typography
                           variant="body1"
                           sx={{
-                            fontFamily: 'fontFamily.primary',
-                            fontWeight: 'bold',
-                            color: 'primary.main',
+                            fontFamily: "fontFamily.primary",
+                            fontWeight: "bold",
+                            color: "primary.main",
                           }}
                         >
                           {product.name.toUpperCase()}
@@ -254,9 +254,9 @@ export const ModalSelectProducts = ({
                             label={`-${product.discount}% OFF`}
                             size="small"
                             sx={{
-                              fontFamily: 'fontFamily.terciary',
-                              color: 'text.terciary',
-                              bgcolor: 'primary.main',
+                              fontFamily: "fontFamily.terciary",
+                              color: "text.terciary",
+                              bgcolor: "primary.main",
                             }}
                           />
                         )}
@@ -266,7 +266,7 @@ export const ModalSelectProducts = ({
                             color="secondary"
                             label="PRODUCTO DESACTIVADO"
                             size="small"
-                            sx={{ fontFamily: 'fontFamily.primary' }}
+                            sx={{ fontFamily: "fontFamily.primary" }}
                           />
                         )}
                       </Box>
@@ -276,13 +276,13 @@ export const ModalSelectProducts = ({
                         <Typography
                           variant="body2"
                           sx={{
-                            fontFamily: 'fontFamily.secondary',
-                            color: 'text.secondary',
+                            fontFamily: "fontFamily.secondary",
+                            color: "text.secondary",
                             mb: 1,
-                            display: '-webkit-box',
+                            display: "-webkit-box",
                             WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
                           }}
                         >
                           {product.description}
@@ -290,48 +290,48 @@ export const ModalSelectProducts = ({
 
                         <Box
                           sx={{
-                            display: 'flex',
-                            alignItems: 'center',
+                            display: "flex",
+                            alignItems: "center",
                             gap: 2,
-                            flexWrap: 'wrap',
+                            flexWrap: "wrap",
                           }}
                         >
                           <Box
                             sx={{
-                              display: 'flex',
-                              alignItems: 'center',
+                              display: "flex",
+                              alignItems: "center",
                               gap: 0.5,
                             }}
                           >
                             {product.discount > 0 ? (
                               <>
                                 <MoneyIcon
-                                  sx={{ fontSize: 16, color: 'gray' }}
+                                  sx={{ fontSize: 16, color: "gray" }}
                                 />
                                 <Typography
                                   variant="body2"
                                   sx={{
-                                    fontFamily: 'fontFamily.terciary',
-                                    fontWeight: 'bold',
-                                    color: 'gray',
-                                    textDecoration: 'line-through',
+                                    fontFamily: "fontFamily.terciary",
+                                    fontWeight: "bold",
+                                    color: "gray",
+                                    textDecoration: "line-through",
                                   }}
                                 >
                                   $
                                   {Math.round(product.price).toLocaleString(
-                                    'es-AR'
+                                    "es-AR",
                                   )}
                                 </Typography>
 
                                 <MoneyIcon
-                                  sx={{ fontSize: 16, color: 'success.main' }}
+                                  sx={{ fontSize: 16, color: "success.main" }}
                                 />
                                 <Typography
                                   variant="body1"
                                   sx={{
-                                    fontFamily: 'fontFamily.terciary',
-                                    fontWeight: 'bold',
-                                    color: 'success.main',
+                                    fontFamily: "fontFamily.terciary",
+                                    fontWeight: "bold",
+                                    color: "success.main",
                                   }}
                                 >
                                   $
@@ -339,27 +339,27 @@ export const ModalSelectProducts = ({
                                     Math.round(
                                       (product.price *
                                         (1 - product.discount / 100)) /
-                                        100
+                                        100,
                                     ) * 100
-                                  ).toLocaleString('es-AR')}
+                                  ).toLocaleString("es-AR")}
                                 </Typography>
                               </>
                             ) : (
                               <>
                                 <MoneyIcon
-                                  sx={{ fontSize: 16, color: 'success.main' }}
+                                  sx={{ fontSize: 16, color: "success.main" }}
                                 />
                                 <Typography
                                   variant="body2"
                                   sx={{
-                                    fontFamily: 'fontFamily.terciary',
-                                    fontWeight: 'bold',
-                                    color: 'success.main',
+                                    fontFamily: "fontFamily.terciary",
+                                    fontWeight: "bold",
+                                    color: "success.main",
                                   }}
                                 >
                                   $
                                   {Math.round(product.price).toLocaleString(
-                                    'es-AR'
+                                    "es-AR",
                                   )}
                                 </Typography>
                               </>
@@ -369,19 +369,19 @@ export const ModalSelectProducts = ({
                           {product.rewardPoints > 0 && (
                             <Box
                               sx={{
-                                display: 'flex',
-                                alignItems: 'center',
+                                display: "flex",
+                                alignItems: "center",
                                 gap: 0.5,
                               }}
                             >
                               <StarIcon
-                                sx={{ fontSize: 16, color: 'warning.main' }}
+                                sx={{ fontSize: 16, color: "warning.main" }}
                               />
                               <Typography
                                 variant="body2"
                                 sx={{
-                                  fontFamily: 'fontFamily.terciary',
-                                  color: 'warning.main',
+                                  fontFamily: "fontFamily.terciary",
+                                  color: "warning.main",
                                 }}
                               >
                                 +{product.rewardPoints} pts
@@ -395,7 +395,7 @@ export const ModalSelectProducts = ({
                               size="small"
                               color="error"
                               variant="contained"
-                              sx={{ fontFamily: 'fontFamily.terciary' }}
+                              sx={{ fontFamily: "fontFamily.terciary" }}
                             />
                           )}
                         </Box>
@@ -411,11 +411,11 @@ export const ModalSelectProducts = ({
                     onClick={() => handleSelectProduct(product)}
                     disabled={!product.status}
                     sx={{
-                      fontFamily: 'fontFamily.terciary',
+                      fontFamily: "fontFamily.terciary",
                       ml: 1,
                     }}
                   >
-                    {editingProduct ? 'MODIFICAR' : 'AGREGAR'}
+                    {editingProduct ? "MODIFICAR" : "AGREGAR"}
                   </Button>
                 </ListItem>
               ))
@@ -428,7 +428,7 @@ export const ModalSelectProducts = ({
             onClick={handleClose}
             variant="contained"
             color="error"
-            sx={{ fontFamily: 'fontFamily.terciary' }}
+            sx={{ fontFamily: "fontFamily.terciary" }}
           >
             Cancelar
           </Button>

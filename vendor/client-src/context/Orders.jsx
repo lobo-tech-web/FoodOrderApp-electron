@@ -4,7 +4,7 @@ import {
   useReducer,
   useMemo,
   useCallback,
-} from 'react';
+} from "react";
 
 // ---- ORDERS SERVICE ----
 import {
@@ -17,7 +17,7 @@ import {
   getMonthlyOrdersServices,
   getAllMonthlyOrdersServices,
   getDailyOrdersStatsServices,
-} from '@/services/orders.js';
+} from "@/services/orders.js";
 // ------------------------
 
 // ---- RIDERS SERVICE ----
@@ -28,7 +28,7 @@ import {
   addOrderToRiderServices,
   getDailyRidersStatsServices,
   getAllRidersStatsServices,
-} from '@/services/riders.js';
+} from "@/services/riders.js";
 // ------------------------
 
 // ---- CREACIÓN DEL CONTEXTO ----
@@ -53,20 +53,20 @@ const initialState = {
 
 // ---- TIPOS DE ACCION ----
 const ACTION_TYPES = {
-  GET_ALL_ORDERS: 'GET_ALL_ORDERS',
-  ADD_ORDER: 'ADD_ORDER',
-  UPDATE_ORDER: 'UPDATE_ORDER',
-  FILTER_BY_STATUS: 'FILTER_BY_STATUS',
-  FILTER_BY_DATE: 'FILTER_BY_DATE',
-  FILTER_ORDERS_BY_NAME_PHONE: 'FILTER_ORDERS_BY_NAME_PHONE',
-  GET_MONTHLY_ORDERS_STATS: 'GET_MONTHLY_ORDERS_STATS',
-  GET_DAILY_ORDERS_STATS: 'GET_DAILY_ORDERS_STATS',
-  GET_RIDERS_BY_RESTAURANT: 'GET_RIDERS_BY_RESTAURANT',
-  ADD_NEW_RIDER: 'ADD_NEW_RIDER',
-  UPDATE_RIDER: 'UPDATE_RIDER',
-  ADD_ORDER_TO_RIDER: 'ADD_ORDER_TO_RIDER',
-  GET_DAILY_RIDERS_STATS: 'GET_DAILY_RIDERS_STATS',
-  GET_ALL_RIDERS_STATS: 'GET_ALL_RIDERS_STATS',
+  GET_ALL_ORDERS: "GET_ALL_ORDERS",
+  ADD_ORDER: "ADD_ORDER",
+  UPDATE_ORDER: "UPDATE_ORDER",
+  FILTER_BY_STATUS: "FILTER_BY_STATUS",
+  FILTER_BY_DATE: "FILTER_BY_DATE",
+  FILTER_ORDERS_BY_NAME_PHONE: "FILTER_ORDERS_BY_NAME_PHONE",
+  GET_MONTHLY_ORDERS_STATS: "GET_MONTHLY_ORDERS_STATS",
+  GET_DAILY_ORDERS_STATS: "GET_DAILY_ORDERS_STATS",
+  GET_RIDERS_BY_RESTAURANT: "GET_RIDERS_BY_RESTAURANT",
+  ADD_NEW_RIDER: "ADD_NEW_RIDER",
+  UPDATE_RIDER: "UPDATE_RIDER",
+  ADD_ORDER_TO_RIDER: "ADD_ORDER_TO_RIDER",
+  GET_DAILY_RIDERS_STATS: "GET_DAILY_RIDERS_STATS",
+  GET_ALL_RIDERS_STATS: "GET_ALL_RIDERS_STATS",
 };
 
 // REDUCER
@@ -92,10 +92,10 @@ const orderReducer = (state, action) => {
       const updatedOrder = action.payload.order;
 
       const updatedAllOrders = state.allOrders.map((order) =>
-        order.id === updatedOrder.id ? updatedOrder : order
+        order.id === updatedOrder.id ? updatedOrder : order,
       );
       const updatedOrders = state.orders.map((order) =>
-        order.id === updatedOrder.id ? updatedOrder : order
+        order.id === updatedOrder.id ? updatedOrder : order,
       );
 
       return {
@@ -107,7 +107,7 @@ const orderReducer = (state, action) => {
 
     case ACTION_TYPES.FILTER_BY_STATUS: {
       let filteredSource =
-        action.payload === 'all'
+        action.payload === "all"
           ? state.allOrders
           : state.allOrders.filter((elem) => elem.status === action.payload);
 
@@ -164,7 +164,7 @@ const orderReducer = (state, action) => {
       const updatedRider = action.payload;
 
       const updateAllRiders = state.riders.map((rider) =>
-        rider.id === updatedRider.id ? updatedRider : rider
+        rider.id === updatedRider.id ? updatedRider : rider,
       );
 
       return {
@@ -177,13 +177,13 @@ const orderReducer = (state, action) => {
       const { rider, order } = action.payload;
 
       const updatedRiders = state.riders.map((r) =>
-        r.id === rider.id ? rider : r
+        r.id === rider.id ? rider : r,
       );
       const updatedOrders = state.orders.map((o) =>
-        o.id === order.id ? { ...o, riderId: rider.id } : o
+        o.id === order.id ? { ...o, riderId: rider.id } : o,
       );
       const updatedAllOrders = state.allOrders.map((o) =>
-        o.id === order.id ? { ...o, riderId: rider.id } : o
+        o.id === order.id ? { ...o, riderId: rider.id } : o,
       );
 
       return {
@@ -229,7 +229,7 @@ export const OrderProvider = ({ children }) => {
         throw error.response?.data?.message || error.message;
       }
     },
-    []
+    [],
   );
 
   const getOrderById = useCallback(async (orderId) => {
@@ -244,10 +244,12 @@ export const OrderProvider = ({ children }) => {
   const addOrder = useCallback(async (data) => {
     try {
       const response = await addNewOrderServices(data);
+      const createdOrder = response?.order || response;
       dispatch({
         type: ACTION_TYPES.ADD_ORDER,
-        payload: response,
+        payload: createdOrder,
       });
+      return createdOrder;
     } catch (error) {
       throw error.response?.data?.message || error.message;
     }
@@ -279,12 +281,13 @@ export const OrderProvider = ({ children }) => {
         day,
         month,
         year,
-        userId
+        userId,
       );
       dispatch({
         type: ACTION_TYPES.FILTER_BY_DATE,
         payload: response,
       });
+      return response;
     } catch (error) {
       throw error.response?.data?.message || error.message;
     }
@@ -296,7 +299,7 @@ export const OrderProvider = ({ children }) => {
         const response = await filterOrdersByNamePhoneServices(
           clientName,
           contactPhone,
-          restaurantId
+          restaurantId,
         );
         dispatch({
           type: ACTION_TYPES.FILTER_ORDERS_BY_NAME_PHONE,
@@ -306,7 +309,7 @@ export const OrderProvider = ({ children }) => {
         throw error.response?.data?.message || error.message;
       }
     },
-    []
+    [],
   );
 
   const getMonthlyOrderStats = useCallback(async (restaurantId = null) => {
@@ -443,7 +446,7 @@ export const OrderProvider = ({ children }) => {
       addOrderToRider,
       getDailyRidersStats,
       getAllRidersStats,
-    ]
+    ],
   );
 
   return (

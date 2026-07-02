@@ -60,7 +60,7 @@ export const SuccessStep = ({ createdOrder, printStatus, onCreateNext }) => (
           overflowWrap: "anywhere",
         }}
       >
-        #{createdOrder?.id}
+        #{createdOrder?.orderIndex || createdOrder?.id}
       </Typography>
       {printStatus && (
         <Alert

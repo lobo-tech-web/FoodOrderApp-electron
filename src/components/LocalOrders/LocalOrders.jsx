@@ -41,11 +41,8 @@ import { useAlert } from "@/hooks/Alert.jsx";
 import { useLobotechThemeContext } from "@/context/ThemeContext.jsx";
 import { useProducts } from "@/context/Products.jsx";
 import { useUser } from "@/context/Users.jsx";
+import { useOrders } from "@/context/Orders.jsx";
 // -----------------
-
-// ---- Services ----
-import { addNewOrderServices } from "@/services/orders.js";
-// ------------------
 
 // ---- Utils ----
 import {
@@ -53,11 +50,10 @@ import {
   calculateProductTotals,
 } from "@/utils/orderCalculations.js";
 import { getProductOptionsForUI } from "@/utils/migrateCustomOptions.js";
-import {
-  buildKitchenHtml,
-  buildTicketHtml,
-  getProductPrice,
-} from "./orderUtils.js";
+import { getDateNowDayjs } from "@/utils/clientWorking.js";
+import { buildOrderKitchenPrinterHtml } from "@/utils/printTemplates/orderKitchenTemplate.js";
+import { buildOrderTicketPrinterHtml } from "@/utils/printTemplates/orderTicketTemplate.js";
+import { getProductPrice } from "./orderUtils.js";
 import { getPaymentMethods, INITIAL_CHECKOUT } from "./constants.jsx";
 // ---------------
 
@@ -73,6 +69,7 @@ export const LocalOrders = () => {
   const { lobotechTheme } = useLobotechThemeContext();
   const { userState, getClientByUserNumber } = useUser();
   const { productState, getAllProducts } = useProducts();
+  const { addOrder, filterOrderByDate } = useOrders();
   const { printHtml } = useThermalPrinter();
   const { AlertComponent, showAlert } = useAlert();
   const user = userState.user || {};
@@ -245,13 +242,20 @@ export const LocalOrders = () => {
     const printMessages = [];
 
     printMessages.push(
-      await tryPrintOrderDocument("Ticket", "ticket", buildTicketHtml(order)),
+      await tryPrintOrderDocument(
+        "Ticket",
+        "ticket",
+        buildOrderTicketPrinterHtml(order, {
+          variant: "local-order",
+          hideEmptyClientContact: true,
+        }),
+      ),
     );
     printMessages.push(
       await tryPrintOrderDocument(
         "Comanda de cocina",
         "kitchen",
-        buildKitchenHtml(order),
+        buildOrderKitchenPrinterHtml(order),
       ),
     );
 
@@ -282,10 +286,17 @@ export const LocalOrders = () => {
       const redeemPoints = Number(totals.totalRedeemPoints || 0);
 
       if (userNumber) {
-        customer = await findCustomer(userNumber);
+        try {
+          customer = await findCustomer(userNumber);
+        } catch {
+          customer = null;
+        }
+
         if (!customer) {
-          throw new Error(
-            "No encontramos una cuenta con ese numero de usuario LoboTech.",
+          showAlert(
+            "No encontramos una cuenta con ese numero de usuario LoboTech. El pedido se creara sin puntos.",
+            "warning",
+            lobotechTheme,
           );
         }
       }
@@ -309,6 +320,8 @@ export const LocalOrders = () => {
         userId: customer?.id || user.id,
         restaurantId: user.id,
         restaurantName: user.businessName || user.name || "LOCAL",
+        businessName: user.businessName || user.name || "LOCAL",
+        businessLogoUrl: user.businessLogoUrl || "",
         tableid: "",
         cartItems,
         totalRewardPoints: customer ? totals.totalRewardPoints : 0,
@@ -319,17 +332,38 @@ export const LocalOrders = () => {
         discountamount: 0,
         totalAmount: totals.subtotalProducts,
         paymentMethod: checkout.paymentMethod,
-        clientEmail: customer?.email || user.email || "",
+        clientEmail: customer?.email || "",
         clientName: checkout.clientName.trim(),
-        deliveryAddress: "PEDIDO CREADO EN LOCAL",
-        contactPhone: customer?.phone || "-",
+        deliveryAddress: customer?.address || "",
+        contactPhone: customer?.phone || "",
         orderType,
         comentary: "",
-        status: "PENDIENTE A CONFIRMAR",
+        status: "FINALIZADO",
+        ticketVariant: "local-order",
       };
 
-      const response = await addNewOrderServices(orderData);
-      const order = { ...orderData, ...(response?.order || response) };
+      const response = await addOrder(orderData);
+      const savedOrder = response?.order || response;
+      const today = getDateNowDayjs();
+      const refreshedOrders = await filterOrderByDate(
+        today.day,
+        today.month,
+        today.year,
+        user.id,
+      );
+      const globalIndex = refreshedOrders.findIndex(
+        (order) => order.id === savedOrder?.id,
+      );
+      const orderIndex =
+        globalIndex >= 0
+          ? refreshedOrders.length - globalIndex
+          : refreshedOrders.length || undefined;
+      const order = {
+        ...orderData,
+        ...savedOrder,
+        orderIndex,
+        ticketVariant: "local-order",
+      };
       setCreatedOrder(order);
       setStep("success");
       await printCreatedOrder(order);
