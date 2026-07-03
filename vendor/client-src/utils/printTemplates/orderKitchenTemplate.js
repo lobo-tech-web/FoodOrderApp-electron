@@ -164,12 +164,6 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
           font-size: 21px;
           font-weight: 900;
         }
-        .client-name {
-          margin-top: 0.5mm;
-          font-size: 13.5px;
-          font-weight: 900;
-          overflow-wrap: anywhere;
-        }
         .date-time {
           margin-top: 0.5mm;
           font-size: 10px;
@@ -270,9 +264,6 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
       <main class="cook-order-container">
         <header class="header">
           <h1 class="order-number">PEDIDO #${escapeHtml(orderNumber)}</h1>
-          <div class="client-name">${escapeHtml(
-    normalizeUpper(order.clientName, 'SIN NOMBRE'),
-  )}</div>
           <div class="date-time">${escapeHtml(date)} - ${escapeHtml(time)}</div>
           <div class="${escapeHtml(orderTypeClass)}">${escapeHtml(orderType)}</div>
         </header>
