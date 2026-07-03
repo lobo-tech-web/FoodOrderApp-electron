@@ -223,20 +223,30 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
       <style>
         @page { size: 80mm auto; margin: 0; }
         * { box-sizing: border-box; }
+        html {
+          width: 80mm;
+          margin: 0;
+          padding: 0;
+          background: #fff;
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
+        }
         body {
           width: 80mm;
           margin: 0;
-          padding: 2.5mm;
+          padding: 1.5mm;
           color: #000;
           background: #fff;
           font-family: "Courier New", Courier, monospace;
           font-size: 11.5px;
           line-height: 1.24;
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
         }
         h1, h2, p { margin: 0; }
         .ticket {
           position: relative;
-          width: 75mm;
+          width: 77mm;
           min-height: 24mm;
           overflow: hidden;
         }
@@ -257,12 +267,13 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
         }
         .ticket-header {
           text-align: center;
-          padding: 2mm 0 1.8mm;
+          padding: 1.4mm 0 1.4mm;
         }
         .ticket-business {
-          font-size: 22px;
+          font-size: 23px;
           font-weight: 900;
           letter-spacing: 0;
+          color: #000;
           overflow-wrap: anywhere;
         }
         .ticket-order-badge {
@@ -270,22 +281,32 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
           margin: 1.6mm 0;
           padding: 1mm 3mm;
           border-radius: 2px;
-          color: #fff;
-          background: #000;
-          font-size: 17px;
+          border: 2px solid #000;
+          color: #000 !important;
+          background: #fff !important;
+          font-size: 18px;
           font-weight: 900;
+          line-height: 1.1;
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
         }
         .ticket-date {
-          font-size: 13px;
+          font-size: 13.5px;
+          font-weight: 900;
+          color: #000;
         }
         .ticket-tax-label {
-          margin: 2mm 0 0.8mm;
+          margin: 1.6mm 0 0.6mm;
           padding: 1.3mm;
-          color: #fff;
-          background: #000;
+          border: 2px solid #000;
+          color: #000 !important;
+          background: #fff !important;
           text-align: center;
-          font-size: 13px;
+          font-size: 14px;
           font-weight: 900;
+          line-height: 1.1;
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
         }
         .ticket-dashes {
           border-top: 1px dashed #000;
@@ -301,8 +322,9 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
           font-weight: 900;
         }
         .ticket-info-row {
-          display: flex;
-          gap: 2mm;
+          display: grid;
+          grid-template-columns: 23mm 1fr;
+          column-gap: 2mm;
           margin-top: 1.1mm;
           font-size: 13px;
           font-family: "Courier New", Courier, monospace;
@@ -311,11 +333,12 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
           overflow-wrap: anywhere;
         }
         .ticket-info-row strong {
-          flex: 0 0 auto;
           font-weight: 900;
+          white-space: nowrap;
         }
         .ticket-info-row span {
           font-weight: 800;
+          overflow-wrap: anywhere;
         }
         .ticket-product {
           padding: 1.5mm 0 1.1mm;
@@ -343,13 +366,17 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
         }
         .ticket-points-row,
         .ticket-total-row {
-          display: flex;
-          justify-content: space-between;
+          display: grid;
+          grid-template-columns: 1fr 30mm;
           gap: 3mm;
           margin-top: 1.2mm;
           font-size: 12.5px;
         }
+        .ticket-total-row span:last-child {
+          text-align: right;
+        }
         .ticket-points-row {
+          display: flex;
           justify-content: flex-start;
           gap: 5mm;
           font-weight: 700;
@@ -362,8 +389,8 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
           margin: 1.3mm 0;
         }
         .ticket-grand-total {
-          display: flex;
-          justify-content: space-between;
+          display: grid;
+          grid-template-columns: 1fr 34mm;
           align-items: baseline;
           gap: 3mm;
           padding: 1.6mm 0;
@@ -373,6 +400,7 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
         .ticket-grand-total span:last-child {
           font-size: 20px;
           white-space: nowrap;
+          text-align: right;
         }
         .ticket-comment {
           padding-top: 1mm;
@@ -424,7 +452,6 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
           <div class="ticket-dashes"></div>
 
           ${getPointsHtml(order)}
-          ${getCommentHtml(order)}
 
           <section class="ticket-section">
             ${showSubtotal

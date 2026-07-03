@@ -130,19 +130,29 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
       <style>
         @page { size: 80mm auto; margin: 0; }
         * { box-sizing: border-box; }
+        html {
+          width: 80mm;
+          margin: 0;
+          padding: 0;
+          background: #fff;
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
+        }
         body {
           width: 80mm;
           margin: 0;
-          padding: 2.5mm;
+          padding: 1.5mm;
           color: #000;
           background: #fff;
           font-family: Arial, Helvetica, sans-serif;
           font-size: 12.5px;
           line-height: 1.18;
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
         }
         h1, h2, p { margin: 0; }
         .cook-order-container {
-          width: 75mm;
+          width: 77mm;
         }
         .header {
           text-align: center;
@@ -178,8 +188,10 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
           border-radius: 10px;
         }
         .order-type-waiting {
-          border-width: 0 0 2px;
-          border-style: dashed;
+          border: 3px double #000;
+          border-radius: 2px;
+          padding: 1.2mm 3mm;
+          font-size: 14px;
         }
         .customer-info {
           margin: 1.2mm 0;
@@ -217,7 +229,15 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
           margin-bottom: 0.5mm;
           overflow-wrap: anywhere;
         }
-        .product-comment,
+        .product-comment {
+          margin: 0.6mm 0 0 3mm;
+          padding: 0.3mm 0 0.2mm 2mm;
+          border: 0;
+          border-left: 2px solid #000;
+          font-size: 12px;
+          font-weight: 900;
+          overflow-wrap: anywhere;
+        }
         .comments {
           margin-top: 1.2mm;
           padding: 1.3mm;

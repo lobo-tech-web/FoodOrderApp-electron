@@ -3,8 +3,15 @@ import { useState } from "react";
 // ---- MATERIAL UI ----
 import { Box, Button, Typography } from "@mui/material";
 // ICONS
-import { Print as PrintIcon } from "@mui/icons-material";
+import {
+  Print as PrintIcon,
+  Visibility as PreviewIcon,
+} from "@mui/icons-material";
 // ---------------------
+
+// ---- COMPONENTS ----
+import { PrintPreviewDialog } from "../PrintPreviewDialog.jsx";
+// --------------------
 
 // ---- HOOKS ----
 import { useAlert } from "@/hooks/Alert.jsx";
@@ -28,6 +35,7 @@ export const PrintTicket = ({
   const { savedPrinters, isPrinting, printHtml } = useThermalPrinter();
 
   const [loading, setLoading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const buildPrintOptions = () => ({
     orderIndex,
@@ -101,75 +109,103 @@ export const PrintTicket = ({
   };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        flexWrap: "wrap",
-        gap: 1,
-      }}
-    >
-      <Button
-        variant="contained"
-        startIcon={<PrintIcon />}
-        onClick={handlePrint}
-        disabled={loading || isPrinting}
+    <>
+      <Box
         sx={{
-          fontFamily: "fontFamily.terciary",
-          borderRadius: 2,
-          minWidth: 140,
-          bgcolor: "success.main",
-          color: "white",
-          "&:hover": {
-            bgcolor: "success.dark",
-          },
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 1,
         }}
       >
-        {loading || isPrinting ? "Procesando..." : "Imprimir Ticket"}
-      </Button>
+        <Button
+          variant="contained"
+          startIcon={<PrintIcon />}
+          onClick={handlePrint}
+          disabled={loading || isPrinting}
+          sx={{
+            fontFamily: "fontFamily.terciary",
+            borderRadius: 2,
+            minWidth: 140,
+            bgcolor: "success.main",
+            color: "white",
+            "&:hover": {
+              bgcolor: "success.dark",
+            },
+          }}
+        >
+          {loading || isPrinting ? "Procesando..." : "Imprimir Ticket"}
+        </Button>
 
-      {savedPrinters.ticket && (
-        <Typography
-          variant="caption"
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<PreviewIcon />}
+          onClick={() => setShowPreview(true)}
+          disabled={loading || isPrinting}
           sx={{
-            fontSize: "0.7rem",
-            lineHeight: 1,
-            color: "inherit",
-            opacity: 0.8,
+            fontFamily: "fontFamily.terciary",
+            borderRadius: 2,
+            minWidth: 140,
           }}
         >
-          {savedPrinters.ticket.name
-            ? savedPrinters.ticket.name
-            : "Impresora Termica"}
-        </Typography>
-      )}
-      {!savedPrinters.ticket && (
-        <Typography
-          variant="caption"
-          sx={{
-            fontSize: "0.7rem",
-            lineHeight: 1,
-            color: "text.primary",
-            opacity: 0.8,
-          }}
-        >
-          Impresora sin configurar
-        </Typography>
-      )}
-      {isPrinting && (
-        <Typography
-          variant="caption"
-          sx={{
-            fontSize: "0.7rem",
-            lineHeight: 1,
-            color: "text.primary",
-            opacity: 0.8,
-          }}
-        >
-          Enviando ticket a impresora...
-        </Typography>
-      )}
-    </Box>
+          Vista previa
+        </Button>
+
+        {savedPrinters.ticket && (
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: "0.7rem",
+              lineHeight: 1,
+              color: "inherit",
+              opacity: 0.8,
+            }}
+          >
+            {savedPrinters.ticket.name
+              ? savedPrinters.ticket.name
+              : "Impresora Termica"}
+          </Typography>
+        )}
+        {!savedPrinters.ticket && (
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: "0.7rem",
+              lineHeight: 1,
+              color: "text.primary",
+              opacity: 0.8,
+            }}
+          >
+            Impresora sin configurar
+          </Typography>
+        )}
+        {isPrinting && (
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: "0.7rem",
+              lineHeight: 1,
+              color: "text.primary",
+              opacity: 0.8,
+            }}
+          >
+            Enviando ticket a impresora...
+          </Typography>
+        )}
+      </Box>
+
+      <PrintPreviewDialog
+        open={showPreview}
+        title={`Vista previa - Ticket #${orderIndex || order?.id || ""}`}
+        html={buildManualPrintDocument()}
+        onClose={() => setShowPreview(false)}
+        onPrint={() => {
+          setShowPreview(false);
+          handlePrint();
+        }}
+      />
+    </>
   );
 };

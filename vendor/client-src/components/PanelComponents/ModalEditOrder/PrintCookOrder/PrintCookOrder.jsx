@@ -3,8 +3,15 @@ import { useState } from "react";
 // ---- MATERIAL UI ----
 import { Box, Button, Typography } from "@mui/material";
 // ICONS
-import { Restaurant as RestaurantIcon } from "@mui/icons-material";
+import {
+  Restaurant as RestaurantIcon,
+  Visibility as PreviewIcon,
+} from "@mui/icons-material";
 // ---------------------
+
+// ---- COMPONENTS ----
+import { PrintPreviewDialog } from "../PrintPreviewDialog.jsx";
+// --------------------
 
 // ---- HOOKS ----
 import { useAlert } from "@/hooks/Alert.jsx";
@@ -23,6 +30,7 @@ export const PrintCookOrder = ({ order, orderIndex, onChangeOrderStatus }) => {
   const { savedPrinters, isPrinting, printHtml } = useThermalPrinter();
 
   const [loading, setLoading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const buildPrintOptions = () => ({
     orderIndex,
@@ -90,75 +98,103 @@ export const PrintCookOrder = ({ order, orderIndex, onChangeOrderStatus }) => {
   };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        flexWrap: "wrap",
-        gap: 1,
-      }}
-    >
-      <Button
-        variant="contained"
-        startIcon={<RestaurantIcon />}
-        onClick={handlePrint}
-        disabled={loading || isPrinting}
+    <>
+      <Box
         sx={{
-          fontFamily: "fontFamily.terciary",
-          borderRadius: 2,
-          minWidth: 140,
-          bgcolor: "#2196f3",
-          color: "white",
-          "&:hover": {
-            bgcolor: "info.dark",
-          },
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 1,
         }}
       >
-        {loading || isPrinting ? "Procesando..." : "Imprimir Cocina"}
-      </Button>
+        <Button
+          variant="contained"
+          startIcon={<RestaurantIcon />}
+          onClick={handlePrint}
+          disabled={loading || isPrinting}
+          sx={{
+            fontFamily: "fontFamily.terciary",
+            borderRadius: 2,
+            minWidth: 140,
+            bgcolor: "#2196f3",
+            color: "white",
+            "&:hover": {
+              bgcolor: "info.dark",
+            },
+          }}
+        >
+          {loading || isPrinting ? "Procesando..." : "Imprimir Cocina"}
+        </Button>
 
-      {savedPrinters.kitchen && (
-        <Typography
-          variant="caption"
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<PreviewIcon />}
+          onClick={() => setShowPreview(true)}
+          disabled={loading || isPrinting}
           sx={{
-            fontSize: "0.7rem",
-            lineHeight: 1,
-            color: "inherit",
-            opacity: 0.8,
+            fontFamily: "fontFamily.terciary",
+            borderRadius: 2,
+            minWidth: 140,
           }}
         >
-          {savedPrinters.kitchen.name
-            ? savedPrinters.kitchen.name
-            : "Impresora Termica"}
-        </Typography>
-      )}
-      {!savedPrinters.kitchen && (
-        <Typography
-          variant="caption"
-          sx={{
-            fontSize: "0.7rem",
-            lineHeight: 1,
-            color: "text.primary",
-            opacity: 0.8,
-          }}
-        >
-          Impresora sin configurar
-        </Typography>
-      )}
-      {isPrinting && (
-        <Typography
-          variant="caption"
-          sx={{
-            fontSize: "0.7rem",
-            lineHeight: 1,
-            color: "text.primary",
-            opacity: 0.8,
-          }}
-        >
-          Enviando datos a impresora...
-        </Typography>
-      )}
-    </Box>
+          Vista previa
+        </Button>
+
+        {savedPrinters.kitchen && (
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: "0.7rem",
+              lineHeight: 1,
+              color: "inherit",
+              opacity: 0.8,
+            }}
+          >
+            {savedPrinters.kitchen.name
+              ? savedPrinters.kitchen.name
+              : "Impresora Termica"}
+          </Typography>
+        )}
+        {!savedPrinters.kitchen && (
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: "0.7rem",
+              lineHeight: 1,
+              color: "text.primary",
+              opacity: 0.8,
+            }}
+          >
+            Impresora sin configurar
+          </Typography>
+        )}
+        {isPrinting && (
+          <Typography
+            variant="caption"
+            sx={{
+              fontSize: "0.7rem",
+              lineHeight: 1,
+              color: "text.primary",
+              opacity: 0.8,
+            }}
+          >
+            Enviando datos a impresora...
+          </Typography>
+        )}
+      </Box>
+
+      <PrintPreviewDialog
+        open={showPreview}
+        title={`Vista previa - Cocina #${orderIndex || order?.id || ""}`}
+        html={buildManualPrintDocument()}
+        onClose={() => setShowPreview(false)}
+        onPrint={() => {
+          setShowPreview(false);
+          handlePrint();
+        }}
+      />
+    </>
   );
 };
