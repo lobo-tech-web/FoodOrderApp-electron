@@ -232,21 +232,21 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
           -webkit-print-color-adjust: exact;
         }
         body {
-          width: 80mm;
-          margin: 0;
-          padding: 1.5mm;
+          width: 72mm;
+          margin: 0 auto;
+          padding: 1mm 1mm 1mm 2mm;
           color: #000;
           background: #fff;
           font-family: "Courier New", Courier, monospace;
-          font-size: 11.5px;
-          line-height: 1.24;
+          font-size: 10.8px;
+          line-height: 1.18;
           print-color-adjust: exact;
           -webkit-print-color-adjust: exact;
         }
         h1, h2, p { margin: 0; }
         .ticket {
           position: relative;
-          width: 77mm;
+          width: 69mm;
           min-height: 24mm;
           overflow: hidden;
         }
@@ -270,7 +270,7 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
           padding: 1.4mm 0 1.4mm;
         }
         .ticket-business {
-          font-size: 23px;
+          font-size: 21px;
           font-weight: 900;
           letter-spacing: 0;
           color: #000;
@@ -278,31 +278,31 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
         }
         .ticket-order-badge {
           display: inline-block;
-          margin: 1.6mm 0;
-          padding: 1mm 3mm;
+          margin: 1.2mm 0;
+          padding: 0.8mm 2mm;
           border-radius: 2px;
           border: 2px solid #000;
           color: #000 !important;
           background: #fff !important;
-          font-size: 18px;
+          font-size: 16px;
           font-weight: 900;
           line-height: 1.1;
           print-color-adjust: exact;
           -webkit-print-color-adjust: exact;
         }
         .ticket-date {
-          font-size: 13.5px;
+          font-size: 12px;
           font-weight: 900;
           color: #000;
         }
         .ticket-tax-label {
-          margin: 1.6mm 0 0.6mm;
-          padding: 1.3mm;
+          margin: 1.2mm 0 0.4mm;
+          padding: 0.9mm;
           border: 2px solid #000;
           color: #000 !important;
           background: #fff !important;
           text-align: center;
-          font-size: 14px;
+          font-size: 12px;
           font-weight: 900;
           line-height: 1.1;
           print-color-adjust: exact;
@@ -310,23 +310,23 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
         }
         .ticket-dashes {
           border-top: 1px dashed #000;
-          margin: 1.6mm 0;
+          margin: 1.2mm 0;
         }
         .ticket-section {
-          padding: 0.4mm 0 1.4mm;
+          padding: 0.3mm 0 1mm;
         }
         .ticket-section h2 {
           padding-bottom: 0.7mm;
           border-bottom: 1.5px solid #000;
-          font-size: 17px;
+          font-size: 15px;
           font-weight: 900;
         }
         .ticket-info-row {
           display: grid;
-          grid-template-columns: 23mm 1fr;
-          column-gap: 2mm;
-          margin-top: 1.1mm;
-          font-size: 13px;
+          grid-template-columns: 19mm minmax(0, 1fr);
+          column-gap: 1.2mm;
+          margin-top: 0.8mm;
+          font-size: 11px;
           font-family: "Courier New", Courier, monospace;
           font-weight: 800;
           color: #000;
@@ -341,39 +341,42 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
           overflow-wrap: anywhere;
         }
         .ticket-product {
-          padding: 1.5mm 0 1.1mm;
+          padding: 1.1mm 0 0.9mm;
         }
         .ticket-product-line {
           display: grid;
-          grid-template-columns: 7mm 1fr auto;
-          gap: 1.5mm;
+          grid-template-columns: 5mm minmax(0, 1fr) 22mm;
+          gap: 1mm;
           align-items: start;
-          font-size: 13px;
+          font-size: 11px;
         }
         .ticket-product-qty,
         .ticket-product-name,
         .ticket-product-price {
           font-weight: 700;
+          text-align: right;
+          white-space: nowrap;
         }
         .ticket-product-name {
           overflow-wrap: anywhere;
         }
         .ticket-options {
-          margin: 0.8mm 0 0 9mm;
-          font-size: 11px;
+          margin: 0.6mm 0 0 6mm;
+          font-size: 10px;
           font-weight: 700;
           overflow-wrap: anywhere;
         }
         .ticket-points-row,
         .ticket-total-row {
           display: grid;
-          grid-template-columns: 1fr 30mm;
-          gap: 3mm;
-          margin-top: 1.2mm;
-          font-size: 12.5px;
+          grid-template-columns: minmax(0, 1fr) 24mm;
+          gap: 1.5mm;
+          margin-top: 1mm;
+          font-size: 11px;
         }
         .ticket-total-row span:last-child {
           text-align: right;
+          white-space: nowrap;
         }
         .ticket-points-row {
           display: flex;
@@ -381,24 +384,21 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
           gap: 5mm;
           font-weight: 700;
         }
-        .ticket-total-row span:last-child {
-          white-space: nowrap;
-        }
         .ticket-double-line {
           border-top: 3px double #000;
-          margin: 1.3mm 0;
+          margin: 1mm 0;
         }
         .ticket-grand-total {
           display: grid;
-          grid-template-columns: 1fr 34mm;
+          grid-template-columns: minmax(0, 1fr) 28mm;
           align-items: baseline;
           gap: 3mm;
           padding: 1.6mm 0;
-          font-size: 18px;
+          font-size: 16px;
           font-weight: 900;
         }
         .ticket-grand-total span:last-child {
-          font-size: 20px;
+          font-size: 17px;
           white-space: nowrap;
           text-align: right;
         }
