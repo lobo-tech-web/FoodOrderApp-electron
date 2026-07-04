@@ -585,6 +585,9 @@ export const LocalOrders = () => {
             onCheckoutChange={setCheckout}
             paymentMethods={paymentMethods}
             totals={totals}
+            discountAmount={discountSummary.discountamount}
+            totalAmount={discountSummary.totalAmount}
+            discountPercentage={discountSummary.discount}
             submitError={submitError}
             loading={loading}
             onCreateOrder={createOrder}
