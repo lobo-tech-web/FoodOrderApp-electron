@@ -17,7 +17,9 @@ import {
 import {
   Add as AddIcon,
   CardGiftcard as CardGiftcardIcon,
+  CleaningServices as ClearIcon,
   DeleteOutline as DeleteIcon,
+  LocalOffer as DiscountIcon,
   Remove as RemoveIcon,
   Search as SearchIcon,
   ShoppingCart as CartIcon,
@@ -49,6 +51,10 @@ export const ProductSelectionStep = ({
   onProductClick,
   cartItems,
   totals,
+  discountAmount,
+  totalAmount,
+  onOpenDiscount,
+  onClearCart,
   onRemoveItem,
   onUpdateQuantity,
   onContinue,
@@ -412,21 +418,63 @@ export const ProductSelectionStep = ({
       <Box sx={{ p: 2 }}>
         <Box
           sx={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 1,
+            mb: 1.5,
+          }}
+        >
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<DiscountIcon />}
+            disabled={!cartItems.length}
+            onClick={onOpenDiscount}
+            sx={{
+              minHeight: 44,
+              fontFamily: "fontFamily.primary",
+              borderRadius: 2,
+              color: "primary.main",
+              borderColor: "primary.main",
+            }}
+          >
+            Descuentos
+          </Button>
+          <Button
+            fullWidth
+            variant="outlined"
+            color="error"
+            startIcon={<ClearIcon />}
+            disabled={!cartItems.length}
+            onClick={onClearCart}
+            sx={{
+              minHeight: 44,
+              fontFamily: "fontFamily.primary",
+              borderRadius: 2,
+            }}
+          >
+            Limpiar
+          </Button>
+        </Box>
+
+        <Box
+          sx={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "baseline",
-            mb: 1.5,
+            mb: Number(discountAmount || 0) > 0 ? 0.6 : 1.5,
           }}
         >
           <Typography
             sx={{ fontFamily: "fontFamily.primary", fontSize: "1.1rem" }}
           >
-            TOTAL
+            {Number(discountAmount || 0) > 0 ? "SUBTOTAL" : "TOTAL"}
           </Typography>
           <Typography
             sx={{
               fontFamily: "fontFamily.primary",
-              fontSize: "1.6rem",
+              fontSize:
+                Number(discountAmount || 0) > 0 ? "1.2rem" : "1.6rem",
               color: "primary.main",
               fontWeight: 900,
             }}
@@ -434,6 +482,57 @@ export const ProductSelectionStep = ({
             {formatCurrency(totals.subtotalProducts)}
           </Typography>
         </Box>
+        {Number(discountAmount || 0) > 0 && (
+          <>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                mb: 0.6,
+              }}
+            >
+              <Typography
+                sx={{ fontFamily: "fontFamily.secondary", fontSize: "0.95rem" }}
+              >
+                Descuento
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: "fontFamily.primary",
+                  color: "error.main",
+                  fontWeight: 900,
+                }}
+              >
+                - {formatCurrency(discountAmount)}
+              </Typography>
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                mb: 1.5,
+              }}
+            >
+              <Typography
+                sx={{ fontFamily: "fontFamily.primary", fontSize: "1.1rem" }}
+              >
+                TOTAL
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: "fontFamily.primary",
+                  fontSize: "1.6rem",
+                  color: "primary.main",
+                  fontWeight: 900,
+                }}
+              >
+                {formatCurrency(totalAmount)}
+              </Typography>
+            </Box>
+          </>
+        )}
         {Number(totals.totalRedeemPoints || 0) > 0 && (
           <Box
             sx={{

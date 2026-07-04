@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from "react";
 
 // ---- MATERIAL UI ----
 import {
@@ -16,7 +16,7 @@ import {
   Tabs,
   Tab,
   Chip,
-} from '@mui/material';
+} from "@mui/material";
 // ICONS
 import {
   MoreHoriz as MoreHorizIcon,
@@ -25,65 +25,67 @@ import {
   DeliveryDining as DeliveryDiningIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 // -----------------------
 
 // ---- COMPONENTS ----
-import { LoadingComponent } from '@/components/LoadingComponent/LoadingComponent.jsx';
-import { PanelNavBar } from '@/components/PanelComponents/PanelNavBar/PanelNavBar.jsx';
-import { ModalEditOrder } from '@/components/PanelComponents/ModalEditOrder/ModalEditOrder.jsx';
-import { OrderInfo } from './OrderInfo/OrderInfo.jsx';
-import { AutoRefreshIndicator } from './AutoRefreshIndicator/AutoRefreshIndicator.jsx';
-import { OrderStatusIndicator } from './OrderStatusIndicator/OrderStatusIndicator.jsx';
-import { OrderSummaryIndicator } from './OrderSummaryIndicator/OrderSummaryIndicator.jsx';
-import { RiderCountIndicator } from './RiderCountIndicator/RiderCountIndicator.jsx';
-import { RiderSummaryIndicator } from './RiderSummaryIndicator/RiderSummaryIndicator.jsx';
+import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
+import { PanelNavBar } from "@/components/PanelComponents/PanelNavBar/PanelNavBar.jsx";
+import { ModalEditOrder } from "@/components/PanelComponents/ModalEditOrder/ModalEditOrder.jsx";
+import { OrderInfo } from "./OrderInfo/OrderInfo.jsx";
+import { AutoRefreshIndicator } from "./AutoRefreshIndicator/AutoRefreshIndicator.jsx";
+import { OrderStatusIndicator } from "./OrderStatusIndicator/OrderStatusIndicator.jsx";
+import { OrderSummaryIndicator } from "./OrderSummaryIndicator/OrderSummaryIndicator.jsx";
+import { RiderCountIndicator } from "./RiderCountIndicator/RiderCountIndicator.jsx";
+import { RiderSummaryIndicator } from "./RiderSummaryIndicator/RiderSummaryIndicator.jsx";
 // ---------------------
 
 // ---- CONTEXT ----
-import { useOrders } from '@/context/Orders.jsx';
+import { useOrders } from "@/context/Orders.jsx";
 // -----------------
 
 // ---- HOOKS ----
-import { useAlert } from '@/hooks/Alert.jsx';
-import { useAutoRefresh } from '@/hooks/AutoRefreshOrders.jsx';
+import { useAlert } from "@/hooks/Alert.jsx";
+import { useAutoRefresh } from "@/hooks/AutoRefreshOrders.jsx";
 // ---------------
 
 // ---- UTILS ----
-import { getDateNowDayjs, getTimeNowDayjs } from '@/utils/clientWorking.js';
+import { getDateNowDayjs, getTimeNowDayjs } from "@/utils/clientWorking.js";
 // ---------------
 
 // ---- STYLES ----
 const tableHeadStyle = {
-  fontFamily: 'fontFamily.primary',
-  bgcolor: 'background.paper',
-  color: 'primary.main',
-  textAlign: 'center',
-  fontWeight: 'bold',
-  py: 2,
+  fontFamily: "fontFamily.primary",
+  bgcolor: "background.paper",
+  color: "primary.main",
+  textAlign: "center",
+  fontWeight: "bold",
+  py: 0.5,
 };
 // ----------------
 
 const ORDER_STATUS = {
-  TODOS: { color: '#f59e0b', icon: <MoreHorizIcon fontSize="small" /> },
-  'PENDIENTE A CONFIRMAR': {
-    color: '#ff9800',
+  TODOS: { color: "#f59e0b", icon: <MoreHorizIcon fontSize="small" /> },
+  "PENDIENTE A CONFIRMAR": {
+    color: "#ff9800",
     icon: <PendingIcon fontSize="small" />,
   }, // Rojo
-  'EN PREPARACIÓN': {
-    color: '#2196f3',
+  "EN PREPARACIÓN": {
+    color: "#2196f3",
     icon: <FactCheckIcon fontSize="small" />,
   }, // Ámbar
-  'EN ENVIO': {
-    color: '#9c27b0',
+  "EN ENVIO": {
+    color: "#9c27b0",
     icon: <DeliveryDiningIcon fontSize="small" />,
   }, // Azul
-  FINALIZADO: { color: '#4caf50', icon: <CheckCircleIcon fontSize="small" /> }, // Verde
-  CANCELADO: { color: '#f44336', icon: <CancelIcon fontSize="small" /> }, // Gris
+  FINALIZADO: { color: "#4caf50", icon: <CheckCircleIcon fontSize="small" /> }, // Verde
+  CANCELADO: { color: "#f44336", icon: <CancelIcon fontSize="small" /> }, // Gris
 };
 
 export const OrderPanel = ({ user, externalView }) => {
   const { AlertComponent, showAlert } = useAlert();
+  const isElectronApp =
+    typeof window !== "undefined" && Boolean(window.electronAPI);
   const [loading, setLoading] = useState(false);
 
   // REFRESH AUTOMÁTICO
@@ -117,7 +119,7 @@ export const OrderPanel = ({ user, externalView }) => {
   const allOrders = useMemo(() => orderState.orders || [], [orderState.orders]);
   const availableRiders = useMemo(
     () => orderState?.riders || [],
-    [orderState?.riders]
+    [orderState?.riders],
   );
 
   // ESTADOS PARA EDITAR EL PEDIDO
@@ -131,7 +133,7 @@ export const OrderPanel = ({ user, externalView }) => {
       setSelectedOrdersCheckbox((prev) => [...prev, order]);
     } else {
       setSelectedOrdersCheckbox((prev) =>
-        prev.filter((o) => o.id !== order.id)
+        prev.filter((o) => o.id !== order.id),
       );
     }
   };
@@ -162,7 +164,7 @@ export const OrderPanel = ({ user, externalView }) => {
   }, []);
 
   // FILTRADO DE PEDIDOS
-  const [statusFilter, setStatusFilter] = useState('TODOS');
+  const [statusFilter, setStatusFilter] = useState("TODOS");
 
   const handleStatusChange = (event, newValue) => {
     setStatusFilter(newValue);
@@ -171,7 +173,7 @@ export const OrderPanel = ({ user, externalView }) => {
   };
 
   const filteredOrders = useMemo(() => {
-    if (statusFilter === 'TODOS') return allOrders;
+    if (statusFilter === "TODOS") return allOrders;
     return allOrders.filter((order) => order.status === statusFilter);
   }, [allOrders, statusFilter]);
 
@@ -201,7 +203,7 @@ export const OrderPanel = ({ user, externalView }) => {
           await getRidersByRestaurant(userId);
         } else if (activeTab === 1) {
           const today = getDateNowDayjs();
-          await filterOrderByDate('', today.month, today.year, userId);
+          await filterOrderByDate("", today.month, today.year, userId);
         } else {
           await getAllOrders(null, userId);
         }
@@ -214,7 +216,7 @@ export const OrderPanel = ({ user, externalView }) => {
         const time = getTimeNowDayjs();
         setLastRefresh(time);
       } catch (error) {
-        showAlert(`Error al obtener los pedidos: ${error}`, 'error');
+        showAlert(`Error al obtener los pedidos: ${error}`, "error");
       } finally {
         if (isAutoRefresh) {
           setIsRefreshing(false);
@@ -230,7 +232,7 @@ export const OrderPanel = ({ user, externalView }) => {
       getAllOrders,
       showAlert,
       user?.id,
-    ]
+    ],
   );
 
   // ✅ FUNCIÓN QUE SOLO SE EJECUTA SI ESTAMOS EN LA PESTAÑA DE HOY
@@ -248,9 +250,9 @@ export const OrderPanel = ({ user, externalView }) => {
         enabled: autoRefreshEnabled && activeTab === 0,
         pauseOnHidden: true,
         onRefresh: () => {
-          showAlert('Se actualizaron los pedidos automáticamente', 'success');
+          showAlert("Se actualizaron los pedidos automáticamente", "success");
         },
-      }
+      },
     );
 
   const handleToggleAutoRefresh = () => {
@@ -275,10 +277,19 @@ export const OrderPanel = ({ user, externalView }) => {
 
   const totalOrders = allOrders.length;
 
-  if (loading) return <LoadingComponent message={'Cargando pedidos...'} />;
+  if (loading) return <LoadingComponent message={"Cargando pedidos..."} />;
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box
+      sx={{
+        width: "100%",
+        height: isElectronApp ? "calc(100vh - 112px)" : "auto",
+        overflowY: isElectronApp ? "auto" : "visible",
+        overflowX: isElectronApp ? "auto" : "visible",
+        pr: isElectronApp ? 1 : 0,
+        pb: isElectronApp ? 3 : 0,
+      }}
+    >
       {/* PANELNAVBAR DE LOS PEDIDOS */}
       <PanelNavBar
         showAlert={showAlert}
@@ -290,7 +301,7 @@ export const OrderPanel = ({ user, externalView }) => {
 
       {/* RIDERS */}
       {availableRiders.length > 0 && activeTab === 0 && (
-        <Box sx={{ width: '100%', mb: 2 }}>
+        <Box sx={{ width: "100%", mb: 2 }}>
           <RiderCountIndicator
             totalOrders={allOrders}
             availableRiders={availableRiders}
@@ -301,17 +312,17 @@ export const OrderPanel = ({ user, externalView }) => {
       {/* INDICADORES DE REFRESH/STATUS/TOTALAMOUNT */}
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
           gap: 2,
           mb: 2,
           minHeight: 72,
         }}
       >
         {/* Indicador de Auto-refresh */}
-        <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 200 }}>
+        <Box sx={{ display: "flex", alignItems: "center", minWidth: 200 }}>
           {activeTab === 0 && (
             <AutoRefreshIndicator
               isEnabled={autoRefreshEnabled}
@@ -325,10 +336,10 @@ export const OrderPanel = ({ user, externalView }) => {
 
         <Box
           sx={{
-            display: 'flex',
-            alignItems: 'center',
+            display: "flex",
+            alignItems: "center",
             gap: 2,
-            ml: 'auto',
+            ml: "auto",
           }}
         >
           <OrderStatusIndicator totalOrders={allOrders} />
@@ -341,7 +352,7 @@ export const OrderPanel = ({ user, externalView }) => {
           {(activeTab === 0 || activeTab === 1) && (
             <OrderSummaryIndicator
               totalOrders={allOrders}
-              title={activeTab === 0 ? 'SUBTOTAL DEL DIA' : 'SUBTOTAL DEL MES'}
+              title={activeTab === 0 ? "SUBTOTAL DEL DIA" : "SUBTOTAL DEL MES"}
             />
           )}
         </Box>
@@ -351,39 +362,39 @@ export const OrderPanel = ({ user, externalView }) => {
 
       <Paper
         sx={{
-          bgcolor: 'background.paper',
-          width: '100%',
+          bgcolor: "background.paper",
+          width: "100%",
           mb: 2,
           borderRadius: 2,
-          overflow: 'hidden',
+          overflow: isElectronApp ? "visible" : "hidden",
         }}
       >
         <Typography
           variant="h6"
           sx={{
-            fontFamily: 'fontFamily.primary',
-            display: 'flex',
-            justifyContent: 'center',
-            color: 'text.primary',
-            m: 2,
+            fontFamily: "fontFamily.primary",
+            display: "flex",
+            justifyContent: "center",
+            color: "text.primary",
+            m: 1,
           }}
         >
           {activeTab === 0
-            ? 'PEDIDOS DE HOY'
+            ? "PEDIDOS DE HOY"
             : activeTab === 1
-              ? 'PEDIDOS DEL MES'
-              : 'HISTORIAL DE PEDIDOS'}
+              ? "PEDIDOS DEL MES"
+              : "HISTORIAL DE PEDIDOS"}
         </Typography>
 
         {/* BARRA DE FILTROS POR ESTADO */}
         <Paper
           elevation={0}
           sx={{
-            mb: 2,
-            bgcolor: 'background.paper',
+            mb: 0.5,
+            bgcolor: "background.paper",
             borderRadius: 2,
-            border: '1px solid',
-            borderColor: 'divider',
+            border: "1px solid",
+            borderColor: "divider",
           }}
         >
           <Tabs
@@ -393,10 +404,10 @@ export const OrderPanel = ({ user, externalView }) => {
             scrollButtons="auto"
             sx={{
               px: 1,
-              '& .MuiTabs-indicator': {
+              "& .MuiTabs-indicator": {
                 height: 3,
-                borderRadius: '3px 3px 0 0',
-                bgcolor: ORDER_STATUS[statusFilter]?.color || 'primary.main',
+                borderRadius: "3px 3px 0 0",
+                bgcolor: ORDER_STATUS[statusFilter]?.color || "primary.main",
               },
             }}
           >
@@ -405,15 +416,15 @@ export const OrderPanel = ({ user, externalView }) => {
                 key={status}
                 value={status}
                 label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     {/* ICONO */}
                     <Box
                       sx={{
-                        display: 'flex',
+                        display: "flex",
                         color:
                           statusFilter === status
                             ? ORDER_STATUS[status].color
-                            : 'text.disabled',
+                            : "text.disabled",
                       }}
                     >
                       {ORDER_STATUS[status].icon}
@@ -421,8 +432,8 @@ export const OrderPanel = ({ user, externalView }) => {
                     <Typography
                       variant="body2"
                       sx={{
-                        fontFamily: 'fontFamily.secondary',
-                        fontSize: '0.75rem',
+                        fontFamily: "fontFamily.secondary",
+                        fontSize: "0.75rem",
                       }}
                     >
                       {status}
@@ -434,20 +445,20 @@ export const OrderPanel = ({ user, externalView }) => {
                         size="small"
                         variant="outlined"
                         sx={{
-                          fontFamily: 'fontFamily.secondary',
-                          fontSize: '0.60rem',
+                          fontFamily: "fontFamily.secondary",
+                          fontSize: "0.60rem",
                           px: 0.7,
                           py: 0.1,
                           borderRadius: 5,
-                          transition: 'all 0.3s',
+                          transition: "all 0.3s",
                           color:
                             statusFilter === status
                               ? ORDER_STATUS[status].color
-                              : 'text.primary',
+                              : "text.primary",
                           borderColor:
                             statusFilter === status
                               ? ORDER_STATUS[status].color
-                              : 'text.secondary',
+                              : "text.secondary",
                         }}
                       />
                     )}
@@ -455,8 +466,8 @@ export const OrderPanel = ({ user, externalView }) => {
                 }
                 sx={{
                   minHeight: 60,
-                  textTransform: 'none',
-                  '&.Mui-selected': { color: ORDER_STATUS[status].color },
+                  textTransform: "none",
+                  "&.Mui-selected": { color: ORDER_STATUS[status].color },
                 }}
               />
             ))}
@@ -465,12 +476,14 @@ export const OrderPanel = ({ user, externalView }) => {
 
         <TableContainer
           sx={{
-            maxHeight: {
-              xs: 'calc(100vh - 360px)',
-              md: 'calc(100vh - 390px)',
-            },
-            minHeight: 260,
-            overflow: 'auto',
+            maxHeight: isElectronApp
+              ? "none"
+              : {
+                  xs: "calc(100vh - 360px)",
+                  md: "calc(100vh - 390px)",
+                },
+            minHeight: isElectronApp ? "auto" : 260,
+            overflow: isElectronApp ? "visible" : "auto",
           }}
         >
           {filteredOrders.length > 0 ? (
@@ -479,7 +492,7 @@ export const OrderPanel = ({ user, externalView }) => {
               aria-label="collapsible table"
               sx={{ minWidth: 1180 }}
             >
-              <TableHead sx={{ bgcolor: 'background.paper' }}>
+              <TableHead sx={{ bgcolor: "background.paper" }}>
                 <TableRow>
                   <TableCell padding="checkbox">
                     <Checkbox
@@ -493,9 +506,9 @@ export const OrderPanel = ({ user, externalView }) => {
                       }
                       onChange={handleSelectAll}
                       sx={{
-                        color: 'primary.main',
-                        '&.Mui-checked': {
-                          color: 'primary.main',
+                        color: "primary.main",
+                        "&.Mui-checked": {
+                          color: "primary.main",
                         },
                       }}
                     />
@@ -511,12 +524,12 @@ export const OrderPanel = ({ user, externalView }) => {
                   <TableCell sx={tableHeadStyle}>MOD.</TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody sx={{ bgcolor: 'background.default' }}>
+              <TableBody sx={{ bgcolor: "background.default" }}>
                 {filteredOrders
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((order) => {
                     const globalIndex = allOrders.findIndex(
-                      (o) => o.id === order.id
+                      (o) => o.id === order.id,
                     );
                     return (
                       <OrderInfo
@@ -533,19 +546,19 @@ export const OrderPanel = ({ user, externalView }) => {
               </TableBody>
             </Table>
           ) : (
-            <Box sx={{ p: 5, textAlign: 'center' }}>
+            <Box sx={{ p: 5, textAlign: "center" }}>
               <Typography
                 sx={{
-                  fontFamily: 'fontFamily.secondary',
-                  color: 'text.primary',
+                  fontFamily: "fontFamily.secondary",
+                  color: "text.primary",
                 }}
               >
                 No hay pedidos con estado:
               </Typography>
               <Typography
                 sx={{
-                  fontFamily: 'fontFamily.secondary',
-                  color: ORDER_STATUS[statusFilter].color || 'text.primary',
+                  fontFamily: "fontFamily.secondary",
+                  color: ORDER_STATUS[statusFilter].color || "text.primary",
                 }}
               >
                 {statusFilter}
@@ -567,9 +580,9 @@ export const OrderPanel = ({ user, externalView }) => {
               `${from}–${to} de ${count !== -1 ? count : `más de ${to}`}`
             }
             sx={{
-              fontFamily: 'fontFamily.primary',
-              bgcolor: 'background.paper',
-              color: 'text.primary',
+              fontFamily: "fontFamily.primary",
+              bgcolor: "background.paper",
+              color: "text.primary",
             }}
           />
         )}

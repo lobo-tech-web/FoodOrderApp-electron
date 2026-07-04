@@ -31,6 +31,7 @@ import { lobotechAppFoodDetailTheme } from "@/theme/main-theme.js";
 // ---- Components ----
 import { FoodDetailModal } from "@/components/FoodDetailModal/FoodDetailModal.jsx";
 import { useThermalPrinter } from "@/components/PanelComponents/ModalEditOrder/PrinterConfig/useThermalPrinter.js";
+import { DiscountModal } from "./DiscountModal.jsx";
 // --------------------
 
 // ---- Hooks ----
@@ -48,6 +49,7 @@ import { useOrders } from "@/context/Orders.jsx";
 import {
   calculateFinalProductPrice,
   calculateProductTotals,
+  cleanMoneyValue,
 } from "@/utils/orderCalculations.js";
 import { getProductOptionsForUI } from "@/utils/migrateCustomOptions.js";
 import { getDateNowDayjs } from "@/utils/clientWorking.js";
@@ -63,6 +65,12 @@ import { ProductSelectionStep } from "./steps/ProductSelectionStep.jsx";
 import { CheckoutStep } from "./steps/CheckoutStep.jsx";
 import { SuccessStep } from "./steps/SuccessStep.jsx";
 // ---------------
+
+const INITIAL_DISCOUNT = {
+  type: "SIN DESCUENTO",
+  discount: 0,
+  discountamount: 0,
+};
 
 export const LocalOrders = () => {
   const navigate = useNavigate();
@@ -86,6 +94,8 @@ export const LocalOrders = () => {
   const [submitError, setSubmitError] = useState("");
   const [createdOrder, setCreatedOrder] = useState(null);
   const [printStatus, setPrintStatus] = useState("");
+  const [discountConfig, setDiscountConfig] = useState(INITIAL_DISCOUNT);
+  const [showDiscountModal, setShowDiscountModal] = useState(false);
 
   const paymentMethods = useMemo(
     () => getPaymentMethods(user.paymentMethods),
@@ -157,6 +167,43 @@ export const LocalOrders = () => {
 
   const totals = useMemo(() => calculateProductTotals(cartItems), [cartItems]);
 
+  const discountSummary = useMemo(() => {
+    const subtotal = cleanMoneyValue(totals.subtotalProducts).toNumber();
+
+    if (subtotal <= 0 || discountConfig.type === "SIN DESCUENTO") {
+      return {
+        discount: 0,
+        discountamount: 0,
+        totalAmount: subtotal,
+      };
+    }
+
+    if (discountConfig.type === "PORCENTAJE") {
+      const discount = Math.min(
+        Math.max(Number(discountConfig.discount || 0), 0),
+        100,
+      );
+      const discountamount = Math.min(subtotal * (discount / 100), subtotal);
+
+      return {
+        discount,
+        discountamount,
+        totalAmount: Math.max(subtotal - discountamount, 0),
+      };
+    }
+
+    const discountamount = Math.min(
+      Math.max(cleanMoneyValue(discountConfig.discountamount).toNumber(), 0),
+      subtotal,
+    );
+
+    return {
+      discount: 0,
+      discountamount,
+      totalAmount: Math.max(subtotal - discountamount, 0),
+    };
+  }, [discountConfig, totals.subtotalProducts]);
+
   const resetOrder = () => {
     setStep("type");
     setOrderType("");
@@ -165,6 +212,8 @@ export const LocalOrders = () => {
     setSelectedCategories([]);
     setSelectedProduct(null);
     setCheckout(INITIAL_CHECKOUT);
+    setDiscountConfig(INITIAL_DISCOUNT);
+    setShowDiscountModal(false);
     setSubmitError("");
     setCreatedOrder(null);
     setPrintStatus("");
@@ -211,6 +260,41 @@ export const LocalOrders = () => {
     setCartItems((current) =>
       current.filter((_item, itemIndex) => itemIndex !== index),
     );
+  };
+
+  const clearCart = () => {
+    setCartItems([]);
+    setDiscountConfig(INITIAL_DISCOUNT);
+    setSelectedProduct(null);
+  };
+
+  const handleDiscountTypeChange = (type) => {
+    setDiscountConfig((current) => ({
+      ...current,
+      type,
+      discount: type === "PORCENTAJE" ? current.discount : 0,
+      discountamount: type === "MONTO" ? current.discountamount : 0,
+    }));
+  };
+
+  const handleDiscountValueChange = (value) => {
+    const numericValue = Number(value || 0);
+
+    setDiscountConfig((current) => {
+      if (current.type === "PORCENTAJE") {
+        return {
+          ...current,
+          discount: Math.min(Math.max(numericValue, 0), 100),
+          discountamount: 0,
+        };
+      }
+
+      return {
+        ...current,
+        discount: 0,
+        discountamount: Math.max(numericValue, 0),
+      };
+    });
   };
 
   const findCustomer = async (userNumber) => {
@@ -328,9 +412,9 @@ export const LocalOrders = () => {
         totalRedeemPoints: customer ? totals.totalRedeemPoints : 0,
         deliverycost: 0,
         servicetax: 0,
-        discount: 0,
-        discountamount: 0,
-        totalAmount: totals.subtotalProducts,
+        discount: discountSummary.discount,
+        discountamount: discountSummary.discountamount,
+        totalAmount: discountSummary.totalAmount,
         paymentMethod: checkout.paymentMethod,
         clientEmail: customer?.email || user.email || "",
         clientName: checkout.clientName.trim(),
@@ -486,6 +570,10 @@ export const LocalOrders = () => {
             onProductClick={handleProductClick}
             cartItems={cartItems}
             totals={totals}
+            discountAmount={discountSummary.discountamount}
+            totalAmount={discountSummary.totalAmount}
+            onOpenDiscount={() => setShowDiscountModal(true)}
+            onClearCart={clearCart}
             onRemoveItem={removeItem}
             onUpdateQuantity={updateQuantity}
             onContinue={() => setStep("checkout")}
@@ -520,6 +608,16 @@ export const LocalOrders = () => {
             customTheme={lobotechAppFoodDetailTheme}
           />
         )}
+        <DiscountModal
+          open={showDiscountModal}
+          onClose={() => setShowDiscountModal(false)}
+          subtotal={totals.subtotalProducts}
+          discountConfig={discountConfig}
+          discountAmount={discountSummary.discountamount}
+          totalAmount={discountSummary.totalAmount}
+          onDiscountTypeChange={handleDiscountTypeChange}
+          onDiscountValueChange={handleDiscountValueChange}
+        />
         {AlertComponent}
       </Box>
     </ThemeProvider>
