@@ -149,6 +149,14 @@ export const ModalCreateOrder = ({
     setModalState((prevState) => ({ ...prevState, [modal]: value }));
   };
 
+  const availableProducts = useMemo(
+    () =>
+      (productState.allProducts || []).filter(
+        (product) => product.status !== false,
+      ),
+    [productState.allProducts],
+  );
+
   const currentUser = useMemo(() => userState?.user || {}, [userState?.user]);
 
   const [order, setOrder] = useState({
@@ -501,8 +509,7 @@ export const ModalCreateOrder = ({
 
   // ✅ EDITAR PRODUCTO DEL PEDIDO
   const handleEditProduct = (item, index) => {
-    // Find the original product from productState to get full product data including customOptions
-    const originalProduct = productState.allProducts.find(
+    const originalProduct = availableProducts.find(
       (p) =>
         p.id === item.productId || p.id === item.id || p.name === item.name,
     );
@@ -1115,9 +1122,7 @@ export const ModalCreateOrder = ({
           onSelectProduct={
             editingProduct ? handleProductModified : handleAddProduct
           }
-          products={
-            editingProduct ? [editingProduct] : productState.allProducts
-          }
+          products={editingProduct ? [editingProduct] : availableProducts}
           editingProduct={Boolean(editingProduct)}
           initialSelectionMode={productSelectorFirstStep && !editingProduct}
           cartItems={order.cartItems}
