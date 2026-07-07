@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from "react";
 
 // ---- MATERIAL UI ----
 import {
@@ -21,7 +21,7 @@ import {
   Avatar,
   useMediaQuery,
   useTheme,
-} from '@mui/material';
+} from "@mui/material";
 // ICONS
 import {
   Edit as EditIcon,
@@ -33,45 +33,45 @@ import {
   Person as PersonIcon,
   AttachMoney as AttachMoneyIcon,
   SwapVertOutlined as SwapVertOutlinedIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 // ---------------------
 
 // ---- COMPONENTS ----
-import { LoadingComponent } from '@/components/LoadingComponent/LoadingComponent.jsx';
-import { PanelNavBar } from '@/components/PanelComponents/PanelNavBar/PanelNavBar.jsx';
-import { ModalCreateEditRider } from '@/components/PanelComponents/ModalCreateEditRider/ModalCreateEditRider.jsx';
+import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
+import { PanelNavBar } from "@/components/PanelComponents/PanelNavBar/PanelNavBar.jsx";
+import { ModalCreateEditRider } from "@/components/PanelComponents/ModalCreateEditRider/ModalCreateEditRider.jsx";
 // --------------------
 
 // ---- CONTEXT ----
-import { useOrders } from '@/context/Orders.jsx';
+import { useOrders } from "@/context/Orders.jsx";
 // -----------------
 
 // ---- HOOKS ----
-import { useAlert } from '@/hooks/Alert.jsx';
+import { useAlert } from "@/hooks/Alert.jsx";
 // ---------------
 
 // ---- UTILS ----
-import { getDateNowDayjs } from '@/utils/clientWorking.js';
-import { formatCurrency } from '@/utils/orderCalculations.js';
+import { getDateNowDayjs } from "@/utils/clientWorking.js";
+import { formatCurrency } from "@/utils/orderCalculations.js";
 // ---------------
 
 // ---- STYLES ----
 const tabStyles = {
-  fontFamily: 'fontFamily.primary',
-  color: 'text.secondary',
+  fontFamily: "fontFamily.primary",
+  color: "text.secondary",
   borderRadius: 1,
 };
 
 const tableHeadStyle = {
-  color: 'primary.main',
-  textAlign: 'center',
-  fontFamily: 'fontFamily.primary',
+  color: "primary.main",
+  textAlign: "center",
+  fontFamily: "fontFamily.primary",
 };
 
 const tableBodyStyle = {
-  color: 'text.primary',
-  textAlign: 'center',
-  fontFamily: 'fontFamily.secondary',
+  color: "text.primary",
+  textAlign: "center",
+  fontFamily: "fontFamily.secondary",
 };
 // ----------------
 
@@ -82,11 +82,11 @@ const CollapsibleRow = ({ group, isMobile, sortBy, sortOrder, handleSort }) => {
     const ridersCopy = [...group.riders];
 
     ridersCopy.sort((a, b) => {
-      if (sortBy === 'trips') {
-        return sortOrder === 'desc' ? b.trips - a.trips : a.trips - b.trips;
+      if (sortBy === "trips") {
+        return sortOrder === "desc" ? b.trips - a.trips : a.trips - b.trips;
       }
 
-      return sortOrder === 'desc'
+      return sortOrder === "desc"
         ? b.totalDelivery - a.totalDelivery
         : a.totalDelivery - b.totalDelivery;
     });
@@ -98,9 +98,9 @@ const CollapsibleRow = ({ group, isMobile, sortBy, sortOrder, handleSort }) => {
     <>
       <TableRow
         sx={{
-          '& > *': { borderBottom: 'unset' },
-          bgcolor: open ? 'primary.main' : 'inherit',
-          textAlign: 'center',
+          "& > *": { borderBottom: "unset" },
+          bgcolor: open ? "primary.main" : "inherit",
+          textAlign: "center",
         }}
       >
         <TableCell width="50px">
@@ -111,7 +111,7 @@ const CollapsibleRow = ({ group, isMobile, sortBy, sortOrder, handleSort }) => {
         <TableCell sx={tableBodyStyle}>
           <Typography
             variant="subtitle2"
-            sx={{ fontFamily: 'fontFamily.secondary', color: 'text.primary' }}
+            sx={{ fontFamily: "fontFamily.secondary", color: "text.primary" }}
           >
             {group.date}
           </Typography>
@@ -120,7 +120,7 @@ const CollapsibleRow = ({ group, isMobile, sortBy, sortOrder, handleSort }) => {
           <TableCell sx={tableBodyStyle}>
             <Typography
               variant="body2"
-              sx={{ fontFamily: 'fontFamily.secondary', color: 'text.primary' }}
+              sx={{ fontFamily: "fontFamily.secondary", color: "text.primary" }}
             >
               {group.riders.length} cadetes
             </Typography>
@@ -130,7 +130,7 @@ const CollapsibleRow = ({ group, isMobile, sortBy, sortOrder, handleSort }) => {
           <Typography
             variant="subtitle2"
             color="primary.main"
-            sx={{ fontFamily: 'fontFamily.secondary', color: 'text.primary' }}
+            sx={{ fontFamily: "fontFamily.secondary", color: "text.primary" }}
           >
             {group.totalTrips} viajes
           </Typography>
@@ -138,7 +138,7 @@ const CollapsibleRow = ({ group, isMobile, sortBy, sortOrder, handleSort }) => {
         <TableCell sx={tableBodyStyle}>
           <Typography
             variant="subtitle2"
-            sx={{ fontFamily: 'fontFamily.secondary', color: 'text.primary' }}
+            sx={{ fontFamily: "fontFamily.secondary", color: "text.primary" }}
           >
             {formatCurrency(group.totalAmount)}
           </Typography>
@@ -152,8 +152,8 @@ const CollapsibleRow = ({ group, isMobile, sortBy, sortOrder, handleSort }) => {
               sx={{
                 margin: 1,
                 py: 1,
-                borderLeft: '4px solid',
-                borderColor: 'primary.main',
+                borderLeft: "4px solid",
+                borderColor: "primary.main",
                 pl: 2,
               }}
             >
@@ -161,10 +161,10 @@ const CollapsibleRow = ({ group, isMobile, sortBy, sortOrder, handleSort }) => {
                 variant="subtitle1"
                 gutterBottom
                 sx={{
-                  fontFamily: 'fontFamily.primary',
-                  color: 'text.primary',
-                  borderBottom: '1px solid',
-                  borderColor: 'primary.main',
+                  fontFamily: "fontFamily.primary",
+                  color: "text.primary",
+                  borderBottom: "1px solid",
+                  borderColor: "primary.main",
                 }}
               >
                 DETALLE DE REPARTIDORES
@@ -172,25 +172,25 @@ const CollapsibleRow = ({ group, isMobile, sortBy, sortOrder, handleSort }) => {
               <Table size="small">
                 <TableHead
                   sx={{
-                    bgcolor: 'background.paper',
+                    bgcolor: "background.paper",
                   }}
                 >
                   <TableRow>
                     <TableCell
                       sx={{
-                        fontFamily: 'fontFamily.primary',
-                        color: 'text.primary',
+                        fontFamily: "fontFamily.primary",
+                        color: "text.primary",
                       }}
                     >
                       CADETE
                     </TableCell>
                     <TableCell
-                      onClick={() => handleSort('trips')}
+                      onClick={() => handleSort("trips")}
                       align="center"
                       sx={{
-                        fontFamily: 'fontFamily.primary',
-                        color: 'text.primary',
-                        cursor: 'pointer',
+                        fontFamily: "fontFamily.primary",
+                        color: "text.primary",
+                        cursor: "pointer",
                       }}
                     >
                       <Stack
@@ -204,12 +204,12 @@ const CollapsibleRow = ({ group, isMobile, sortBy, sortOrder, handleSort }) => {
                       </Stack>
                     </TableCell>
                     <TableCell
-                      onClick={() => handleSort('amount')}
+                      onClick={() => handleSort("amount")}
                       align="center"
                       sx={{
-                        fontFamily: 'fontFamily.primary',
-                        color: 'text.primary',
-                        cursor: 'pointer',
+                        fontFamily: "fontFamily.primary",
+                        color: "text.primary",
+                        cursor: "pointer",
                       }}
                     >
                       <Stack
@@ -233,10 +233,10 @@ const CollapsibleRow = ({ group, isMobile, sortBy, sortOrder, handleSort }) => {
                             sx={{
                               width: 24,
                               height: 24,
-                              fontSize: '0.7rem',
-                              bgcolor: 'primary.main',
-                              color: 'text.terciary',
-                              fontFamily: 'fontFamily.secondary',
+                              fontSize: "0.7rem",
+                              bgcolor: "primary.main",
+                              color: "text.terciary",
+                              fontFamily: "fontFamily.secondary",
                             }}
                           >
                             {rider.name.charAt(0)}
@@ -244,8 +244,8 @@ const CollapsibleRow = ({ group, isMobile, sortBy, sortOrder, handleSort }) => {
                           <Typography
                             variant="body2"
                             sx={{
-                              fontFamily: 'fontFamily.secondary',
-                              color: 'text.primary',
+                              fontFamily: "fontFamily.secondary",
+                              color: "text.primary",
                             }}
                           >
                             {rider.name}
@@ -255,8 +255,8 @@ const CollapsibleRow = ({ group, isMobile, sortBy, sortOrder, handleSort }) => {
                       <TableCell
                         align="center"
                         sx={{
-                          fontFamily: 'fontFamily.secondary',
-                          color: 'text.primary',
+                          fontFamily: "fontFamily.secondary",
+                          color: "text.primary",
                         }}
                       >
                         {rider.trips}
@@ -264,8 +264,8 @@ const CollapsibleRow = ({ group, isMobile, sortBy, sortOrder, handleSort }) => {
                       <TableCell
                         align="center"
                         sx={{
-                          fontFamily: 'fontFamily.secondary',
-                          color: 'text.primary',
+                          fontFamily: "fontFamily.secondary",
+                          color: "text.primary",
                         }}
                       >
                         {formatCurrency(rider.totalDelivery)}
@@ -283,20 +283,22 @@ const CollapsibleRow = ({ group, isMobile, sortBy, sortOrder, handleSort }) => {
 };
 
 export const RiderPanel = ({ user }) => {
+  const isElectronApp =
+    typeof window !== "undefined" && Boolean(window.electronAPI);
   const { AlertComponent, showAlert } = useAlert();
   const [loading, setLoading] = useState(false);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const [sortBy, setSortBy] = useState('trips');
-  const [sortOrder, setSortOrder] = useState('desc');
+  const [sortBy, setSortBy] = useState("trips");
+  const [sortOrder, setSortOrder] = useState("desc");
 
   const handleSort = (field) => {
     if (sortBy === field) {
-      setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
+      setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
     } else {
       setSortBy(field);
-      setSortOrder('desc');
+      setSortOrder("desc");
     }
   };
 
@@ -341,7 +343,7 @@ export const RiderPanel = ({ user }) => {
     if (activeTab === 2) return []; // No aplica para la pestaña de lista
 
     const groups = rows.reduce((acc, curr) => {
-      const dateKey = curr.period || 'Sin fecha';
+      const dateKey = curr.period || "Sin fecha";
       if (!acc[dateKey]) {
         acc[dateKey] = {
           date: dateKey,
@@ -372,9 +374,9 @@ export const RiderPanel = ({ user }) => {
       setPage(0);
       const today = getDateNowDayjs();
       setDate(today);
-      showAlert('Riders actualizados correctamente!', 'success');
+      showAlert("Riders actualizados correctamente!", "success");
     } catch (error) {
-      console.error('Error al obtener las estadisticas:', error);
+      console.error("Error al obtener las estadisticas:", error);
     } finally {
       setLoading(false);
     }
@@ -384,9 +386,19 @@ export const RiderPanel = ({ user }) => {
     fetchStats();
   }, [activeTab, user.id]);
 
-  if (loading) return <LoadingComponent message={'Cargando riders...'} />;
+  if (loading) return <LoadingComponent message={"Cargando riders..."} />;
   return (
-    <Box sx={{ width: '100%', pb: 4 }}>
+    <Box
+      sx={{
+        width: "100%",
+        pb: 4,
+        height: isElectronApp ? "calc(100vh - 112px)" : "auto",
+        overflowY: isElectronApp ? "auto" : "visible",
+        overflowX: isElectronApp ? "auto" : "visible",
+        pr: isElectronApp ? 1 : 0,
+        pb: isElectronApp ? 3 : 0,
+      }}
+    >
       {/* PANELNAVBAR DE LOS RIDERS */}
       <PanelNavBar
         isRidersPanel={true}
@@ -394,36 +406,36 @@ export const RiderPanel = ({ user }) => {
         showAlert={showAlert}
       />
 
-      <Card sx={{ mb: 2, borderRadius: 2, overflow: 'hidden' }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <Card sx={{ mb: 2, borderRadius: 2, overflow: "hidden" }}>
+        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Tabs
             value={activeTab}
             onChange={handleTabChange}
-            variant={'standard'}
+            variant={"standard"}
             sx={{
               px: 2,
               pt: 1,
-              '& .MuiTabs-indicator': {
-                bgcolor: 'primary.main',
+              "& .MuiTabs-indicator": {
+                bgcolor: "primary.main",
               },
             }}
           >
             <Tab
-              icon={<CalendarTodayIcon sx={{ color: 'primary.main' }} />}
+              icon={<CalendarTodayIcon sx={{ color: "primary.main" }} />}
               iconPosition="start"
               label={
                 <Box
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: 'primary.main',
+                    display: "flex",
+                    alignItems: "center",
+                    color: "primary.main",
                     gap: 1,
                   }}
                 >
                   ENVIOS DEL MES
                   <Typography
                     variant="body2"
-                    sx={{ color: 'text.primary' }}
+                    sx={{ color: "text.primary" }}
                   >{`${date.month}/${date.year}`}</Typography>
                 </Box>
               }
@@ -431,14 +443,14 @@ export const RiderPanel = ({ user }) => {
             />
 
             <Tab
-              icon={<QueryStatsIcon sx={{ color: 'primary.main' }} />}
+              icon={<QueryStatsIcon sx={{ color: "primary.main" }} />}
               iconPosition="start"
               label={
                 <Box
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: 'primary.main',
+                    display: "flex",
+                    alignItems: "center",
+                    color: "primary.main",
                   }}
                 >
                   ESTADISTICAS TOTALES
@@ -448,14 +460,14 @@ export const RiderPanel = ({ user }) => {
             />
 
             <Tab
-              icon={<MopedIcon sx={{ color: 'primary.main' }} />}
+              icon={<MopedIcon sx={{ color: "primary.main" }} />}
               iconPosition="start"
               label={
                 <Box
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: 'primary.main',
+                    display: "flex",
+                    alignItems: "center",
+                    color: "primary.main",
                   }}
                 >
                   RIDERS (CADETES)
@@ -469,22 +481,22 @@ export const RiderPanel = ({ user }) => {
 
       {/* CARDS DE RESUMEN - RESPONSIVE */}
       {activeTab !== 2 && (
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={3}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={3}>
           {[
             {
-              label: 'CADETES',
+              label: "CADETES",
               val: orderState.ridersStats.summary?.totalRiders,
               icon: <PersonIcon />,
             },
             {
-              label: 'VIAJES',
+              label: "VIAJES",
               val: orderState.ridersStats.summary?.totalTrips,
               icon: <MopedIcon />,
             },
             {
-              label: 'RECAUDACIÓN',
+              label: "RECAUDACIÓN",
               val: formatCurrency(
-                orderState.ridersStats.summary?.totalDelivery || 0
+                orderState.ridersStats.summary?.totalDelivery || 0,
               ),
               icon: <AttachMoneyIcon />,
             },
@@ -494,8 +506,8 @@ export const RiderPanel = ({ user }) => {
               sx={{
                 flex: 1,
                 p: 2,
-                bgcolor: 'primary.main',
-                color: 'text.terciary',
+                bgcolor: "primary.main",
+                color: "text.terciary",
               }}
             >
               <Stack
@@ -507,8 +519,8 @@ export const RiderPanel = ({ user }) => {
                   <Typography
                     variant="caption"
                     sx={{
-                      fontFamily: 'fontFamily.primary',
-                      color: 'text.terciary',
+                      fontFamily: "fontFamily.primary",
+                      color: "text.terciary",
                       opacity: 0.8,
                     }}
                   >
@@ -517,8 +529,8 @@ export const RiderPanel = ({ user }) => {
                   <Typography
                     variant="h6"
                     sx={{
-                      fontFamily: 'fontFamily.secondary',
-                      color: 'text.terciary',
+                      fontFamily: "fontFamily.secondary",
+                      color: "text.terciary",
                     }}
                   >
                     {item.val}
@@ -533,9 +545,9 @@ export const RiderPanel = ({ user }) => {
 
       <TableContainer component={Paper}>
         <Table aria-label="collapsible table">
-          <TableHead sx={{ bgcolor: 'background.paper' }}>
+          <TableHead sx={{ bgcolor: "background.paper" }}>
             {activeTab !== 2 ? (
-              <TableRow sx={{ textAlign: 'center' }}>
+              <TableRow sx={{ textAlign: "center" }}>
                 <TableCell />
                 <TableCell sx={tableHeadStyle}>FECHA / PERIODO</TableCell>
                 {!isMobile && (
@@ -545,7 +557,7 @@ export const RiderPanel = ({ user }) => {
                 <TableCell sx={tableHeadStyle}>TOTAL RECAUDACIÓN</TableCell>
               </TableRow>
             ) : (
-              <TableRow sx={{ textAlign: 'center' }}>
+              <TableRow sx={{ textAlign: "center" }}>
                 <TableCell sx={tableHeadStyle}>CADETE</TableCell>
                 <TableCell sx={tableHeadStyle}>CONTACTO</TableCell>
                 <TableCell sx={tableHeadStyle}>ACCIONES</TableCell>
@@ -567,21 +579,21 @@ export const RiderPanel = ({ user }) => {
                     />
                   ))
               : orderState.riders.map((r) => (
-                  <TableRow key={r.id} sx={{ textAlign: 'center' }}>
+                  <TableRow key={r.id} sx={{ textAlign: "center" }}>
                     <TableCell sx={tableBodyStyle}>
                       <Box
                         sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                           gap: 2,
                         }}
                       >
                         <Avatar
                           sx={{
-                            bgcolor: 'primary.main',
-                            color: 'text.terciary',
-                            fontFamily: 'fontFamily.secondary',
+                            bgcolor: "primary.main",
+                            color: "text.terciary",
+                            fontFamily: "fontFamily.secondary",
                           }}
                         >
                           {r.name.charAt(0)}
@@ -589,12 +601,12 @@ export const RiderPanel = ({ user }) => {
                         <Typography
                           variant="subtitle2"
                           sx={{
-                            fontFamily: 'fontFamily.secondary',
+                            fontFamily: "fontFamily.secondary",
                             width: 140,
-                            textAlign: 'left',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
+                            textAlign: "left",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
                           }}
                         >
                           {r.name}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from "react";
 
 // ---- MATERIAL UI ----
 import {
@@ -16,7 +16,7 @@ import {
   TableHead,
   TableRow,
   Typography,
-} from '@mui/material';
+} from "@mui/material";
 // ICONS
 import {
   Category as CategoryIcon,
@@ -24,11 +24,11 @@ import {
   RestaurantMenu as RestaurantMenuIcon,
   Sell as SellIcon,
   Fastfood as FastfoodIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 // ---------------------
 
 // ---- UTILS ----
-import { formatCurrency } from '@/utils/orderCalculations.js';
+import { formatCurrency } from "@/utils/orderCalculations.js";
 import {
   buildCategoryRows,
   buildCustomOptionCategoryRows,
@@ -36,42 +36,42 @@ import {
   buildCustomOptionGroupsForTables,
   buildDrinkRows,
   buildTopCustomOptionsRows,
-} from '@/utils/statsReportUtils.js';
+} from "@/utils/statsReportUtils.js";
 // ---------------
 
 const tableHeadStyle = {
-  color: 'primary.main',
-  textAlign: 'center',
-  fontFamily: 'fontFamily.primary',
+  color: "primary.main",
+  textAlign: "center",
+  fontFamily: "fontFamily.primary",
 };
 
 const tableBodyStyle = {
-  color: 'text.primary',
-  textAlign: 'center',
-  fontFamily: 'fontFamily.secondary',
+  color: "text.primary",
+  textAlign: "center",
+  fontFamily: "fontFamily.secondary",
 };
 
 const getMonthLabel = (stats) =>
-  `${stats?.date?.monthName || 'Mes'} - ${stats?.date?.year || ''}`;
+  `${stats?.date?.monthName || "Mes"} - ${stats?.date?.year || ""}`;
 
 const SummaryMetric = ({ icon, label, value }) => (
   <Paper
     elevation={0}
     sx={{
       p: 2,
-      border: '1px solid',
-      borderColor: 'divider',
-      bgcolor: 'background.paper',
+      border: "1px solid",
+      borderColor: "divider",
+      bgcolor: "background.paper",
       minHeight: 96,
     }}
   >
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
       {icon}
       <Typography
         variant="body2"
         sx={{
-          fontFamily: 'fontFamily.primary',
-          color: 'primary.main',
+          fontFamily: "fontFamily.primary",
+          color: "primary.main",
         }}
       >
         {label}
@@ -80,8 +80,8 @@ const SummaryMetric = ({ icon, label, value }) => (
     <Typography
       variant="h5"
       sx={{
-        fontFamily: 'fontFamily.terciary',
-        color: 'text.primary',
+        fontFamily: "fontFamily.terciary",
+        color: "text.primary",
       }}
     >
       {value}
@@ -92,25 +92,25 @@ const SummaryMetric = ({ icon, label, value }) => (
 const ReportTableCard = ({ title, children, maxHeight = 360 }) => (
   <Paper
     sx={{
-      width: '100%',
+      width: "100%",
       borderRadius: 2,
-      overflow: 'hidden',
-      bgcolor: 'background.paper',
-      border: '1px solid',
-      borderColor: 'divider',
+      overflow: "hidden",
+      bgcolor: "background.paper",
+      border: "1px solid",
+      borderColor: "divider",
     }}
   >
     <Typography
       variant="h6"
       sx={{
-        fontFamily: 'fontFamily.primary',
-        color: 'text.primary',
-        textAlign: 'center',
+        fontFamily: "fontFamily.primary",
+        color: "text.primary",
+        textAlign: "center",
         px: 2,
         py: 1.5,
-        borderBottom: '1px solid',
-        borderColor: 'divider',
-        bgcolor: 'background.paper',
+        borderBottom: "1px solid",
+        borderColor: "divider",
+        bgcolor: "background.paper",
       }}
     >
       {title}
@@ -119,13 +119,13 @@ const ReportTableCard = ({ title, children, maxHeight = 360 }) => (
     <TableContainer
       sx={{
         maxHeight,
-        overflowX: 'auto',
-        '&::-webkit-scrollbar': {
+        overflowX: "auto",
+        "&::-webkit-scrollbar": {
           height: 8,
           width: 8,
         },
-        '&::-webkit-scrollbar-thumb': {
-          bgcolor: 'primary.main',
+        "&::-webkit-scrollbar-thumb": {
+          bgcolor: "primary.main",
           borderRadius: 2,
         },
       }}
@@ -136,7 +136,9 @@ const ReportTableCard = ({ title, children, maxHeight = 360 }) => (
 );
 
 export const CategorySalesReport = ({ monthlyStats }) => {
-  const [selectedMonthKey, setSelectedMonthKey] = useState('');
+  const isElectronApp =
+    typeof window !== "undefined" && Boolean(window.electronAPI);
+  const [selectedMonthKey, setSelectedMonthKey] = useState("");
 
   const reportOptions = useMemo(
     () =>
@@ -145,7 +147,7 @@ export const CategorySalesReport = ({ monthlyStats }) => {
         label: getMonthLabel(stats),
         stats,
       })),
-    [monthlyStats]
+    [monthlyStats],
   );
 
   const selectedReport = useMemo(() => {
@@ -158,7 +160,7 @@ export const CategorySalesReport = ({ monthlyStats }) => {
 
   const categoryRows = useMemo(
     () => buildCategoryRows(selectedReport?.productsByCategory || {}),
-    [selectedReport]
+    [selectedReport],
   );
 
   const drinkRows = useMemo(
@@ -169,50 +171,50 @@ export const CategorySalesReport = ({ monthlyStats }) => {
           selectedReport?.groupedCustomOptionsNormalized || [],
         groupedCustomOptions: selectedReport?.groupedCustomOptions || [],
       }),
-    [selectedReport]
+    [selectedReport],
   );
 
   const customOptionCategoryRows = useMemo(
     () =>
       buildCustomOptionCategoryRows(
-        selectedReport?.groupedCustomOptionsNormalized || []
+        selectedReport?.groupedCustomOptionsNormalized || [],
       ),
-    [selectedReport]
+    [selectedReport],
   );
 
   const friesSummary = useMemo(
     () =>
       buildFriesSummary(selectedReport?.groupedCustomOptionsNormalized || []),
-    [selectedReport]
+    [selectedReport],
   );
 
   const customOptionGroupsForTables = useMemo(
     () =>
       buildCustomOptionGroupsForTables(
-        selectedReport?.groupedCustomOptionsNormalized || []
+        selectedReport?.groupedCustomOptionsNormalized || [],
       ),
-    [selectedReport]
+    [selectedReport],
   );
 
   const topCustomOptions = useMemo(
     () => buildTopCustomOptionsRows(selectedReport?.groupedCustomOptions || []),
-    [selectedReport]
+    [selectedReport],
   );
 
   const topProducts = useMemo(
     () => selectedReport?.productsSales?.slice(0, 10) || [],
-    [selectedReport]
+    [selectedReport],
   );
 
   if (!selectedReport) {
     return (
       <Typography
         sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          width: '100%',
-          paddingTop: '10rem',
-          fontFamily: 'fontFamily.primary',
+          display: "flex",
+          justifyContent: "center",
+          width: "100%",
+          paddingTop: "10rem",
+          fontFamily: "fontFamily.primary",
         }}
       >
         NO HAY REPORTES MENSUALES DISPONIBLES.
@@ -221,29 +223,38 @@ export const CategorySalesReport = ({ monthlyStats }) => {
   }
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box
+      sx={{
+        width: "100%",
+        height: isElectronApp ? "calc(100vh - 112px)" : "auto",
+        overflowY: isElectronApp ? "auto" : "visible",
+        overflowX: isElectronApp ? "auto" : "visible",
+        pr: isElectronApp ? 1 : 0,
+        pb: isElectronApp ? 3 : 0,
+      }}
+    >
       <Paper
         elevation={0}
         sx={{
           p: 2,
           mb: 2,
-          border: '1px solid',
-          borderColor: 'divider',
-          bgcolor: 'background.paper',
+          border: "1px solid",
+          borderColor: "divider",
+          bgcolor: "background.paper",
         }}
       >
         <Stack
-          direction={{ xs: 'column', md: 'row' }}
+          direction={{ xs: "column", md: "row" }}
           spacing={2}
-          alignItems={{ xs: 'stretch', md: 'center' }}
+          alignItems={{ xs: "stretch", md: "center" }}
           justifyContent="space-between"
         >
           <Box>
             <Typography
               variant="h6"
               sx={{
-                fontFamily: 'fontFamily.primary',
-                color: 'text.primary',
+                fontFamily: "fontFamily.primary",
+                color: "text.primary",
               }}
             >
               REPORTE DE VENTAS POR CATEGORIA
@@ -251,26 +262,26 @@ export const CategorySalesReport = ({ monthlyStats }) => {
             <Typography
               variant="body2"
               sx={{
-                fontFamily: 'fontFamily.secondary',
-                color: 'text.secondary',
+                fontFamily: "fontFamily.secondary",
+                color: "text.secondary",
               }}
             >
               Datos calculados con pedidos finalizados del mes seleccionado.
             </Typography>
           </Box>
 
-          <FormControl sx={{ minWidth: { xs: '100%', md: 260 } }}>
+          <FormControl sx={{ minWidth: { xs: "100%", md: 260 } }}>
             <InputLabel id="category-report-month-label">
               Mes del reporte
             </InputLabel>
             <Select
               labelId="category-report-month-label"
-              value={selectedMonthKey || reportOptions[0]?.key || ''}
+              value={selectedMonthKey || reportOptions[0]?.key || ""}
               label="Mes del reporte"
               onChange={(event) => setSelectedMonthKey(event.target.value)}
               sx={{
-                fontFamily: 'fontFamily.secondary',
-                color: 'text.primary',
+                fontFamily: "fontFamily.secondary",
+                color: "text.primary",
               }}
             >
               {reportOptions.map((option) => (
@@ -285,11 +296,11 @@ export const CategorySalesReport = ({ monthlyStats }) => {
 
       <Box
         sx={{
-          display: 'grid',
+          display: "grid",
           gridTemplateColumns: {
-            xs: '1fr',
-            sm: 'repeat(2, minmax(0, 1fr))',
-            lg: 'repeat(5, minmax(0, 1fr))',
+            xs: "1fr",
+            sm: "repeat(2, minmax(0, 1fr))",
+            lg: "repeat(5, minmax(0, 1fr))",
           },
           gap: 2,
           mb: 2,
@@ -324,25 +335,25 @@ export const CategorySalesReport = ({ monthlyStats }) => {
 
       <Box
         sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', xl: '1.2fr 0.8fr' },
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", xl: "1.2fr 0.8fr" },
           gap: 2,
         }}
       >
         <Paper
           sx={{
-            width: '100%',
+            width: "100%",
             borderRadius: 2,
-            overflow: 'hidden',
-            bgcolor: 'background.paper',
+            overflow: "hidden",
+            bgcolor: "background.paper",
           }}
         >
           <Typography
             variant="h6"
             sx={{
-              fontFamily: 'fontFamily.primary',
-              color: 'text.primary',
-              textAlign: 'center',
+              fontFamily: "fontFamily.primary",
+              color: "text.primary",
+              textAlign: "center",
               m: 2,
             }}
           >
@@ -351,7 +362,7 @@ export const CategorySalesReport = ({ monthlyStats }) => {
 
           <TableContainer>
             <Table>
-              <TableHead sx={{ bgcolor: 'background.paper' }}>
+              <TableHead sx={{ bgcolor: "background.paper" }}>
                 <TableRow>
                   <TableCell sx={tableHeadStyle}>CATEGORIA</TableCell>
                   <TableCell sx={tableHeadStyle}>UNIDADES</TableCell>
@@ -361,7 +372,7 @@ export const CategorySalesReport = ({ monthlyStats }) => {
                   </TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody sx={{ bgcolor: 'background.default' }}>
+              <TableBody sx={{ bgcolor: "background.default" }}>
                 {categoryRows.map((row) => {
                   const topProduct = row.products[0];
 
@@ -379,7 +390,7 @@ export const CategorySalesReport = ({ monthlyStats }) => {
                       <TableCell sx={tableBodyStyle}>
                         {topProduct
                           ? `${topProduct.name} (${topProduct.quantity})`
-                          : '-'}
+                          : "-"}
                       </TableCell>
                     </TableRow>
                   );
@@ -391,18 +402,18 @@ export const CategorySalesReport = ({ monthlyStats }) => {
 
         <Paper
           sx={{
-            width: '100%',
+            width: "100%",
             borderRadius: 2,
-            overflow: 'hidden',
-            bgcolor: 'background.paper',
+            overflow: "hidden",
+            bgcolor: "background.paper",
           }}
         >
           <Typography
             variant="h6"
             sx={{
-              fontFamily: 'fontFamily.primary',
-              color: 'text.primary',
-              textAlign: 'center',
+              fontFamily: "fontFamily.primary",
+              color: "text.primary",
+              textAlign: "center",
               m: 2,
             }}
           >
@@ -411,7 +422,7 @@ export const CategorySalesReport = ({ monthlyStats }) => {
 
           <TableContainer>
             <Table>
-              <TableHead sx={{ bgcolor: 'background.paper' }}>
+              <TableHead sx={{ bgcolor: "background.paper" }}>
                 <TableRow>
                   <TableCell sx={tableHeadStyle}>BEBIDA</TableCell>
                   <TableCell sx={tableHeadStyle}>CANT.</TableCell>
@@ -419,7 +430,7 @@ export const CategorySalesReport = ({ monthlyStats }) => {
                   <TableCell sx={tableHeadStyle}>TOTAL</TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody sx={{ bgcolor: 'background.default' }}>
+              <TableBody sx={{ bgcolor: "background.default" }}>
                 {drinkRows.length > 0 ? (
                   drinkRows.map((drink) => (
                     <TableRow key={drink.name}>
@@ -454,10 +465,10 @@ export const CategorySalesReport = ({ monthlyStats }) => {
         <Typography
           variant="h6"
           sx={{
-            fontFamily: 'fontFamily.primary',
-            color: 'primary.main',
+            fontFamily: "fontFamily.primary",
+            color: "primary.main",
             mb: 2,
-            textAlign: 'center',
+            textAlign: "center",
           }}
         >
           EXTRAS / OPCIONES VENDIDAS
@@ -465,10 +476,10 @@ export const CategorySalesReport = ({ monthlyStats }) => {
 
         <Box
           sx={{
-            display: 'grid',
+            display: "grid",
             gridTemplateColumns: {
-              xs: '1fr',
-              lg: 'repeat(2, minmax(0, 1fr))',
+              xs: "1fr",
+              lg: "repeat(2, minmax(0, 1fr))",
             },
             gap: 2,
           }}
@@ -490,29 +501,29 @@ export const CategorySalesReport = ({ monthlyStats }) => {
                     </TableRow>
                   </TableHead>
 
-                  <TableBody sx={{ bgcolor: 'background.default' }}>
+                  <TableBody sx={{ bgcolor: "background.default" }}>
                     {group.rows.map((row) => (
                       <TableRow key={`${group.key}-${row.itemId || row.name}`}>
                         <TableCell sx={tableBodyStyle}>
-                          {String(row.name || '').toUpperCase()}
+                          {String(row.name || "").toUpperCase()}
 
                           {row.varieties?.length > 0 && (
                             <Typography
                               variant="caption"
                               sx={{
-                                display: 'block',
-                                fontFamily: 'fontFamily.secondary',
-                                color: 'text.secondary',
+                                display: "block",
+                                fontFamily: "fontFamily.secondary",
+                                color: "text.secondary",
                                 mt: 0.5,
                               }}
                             >
-                              Incluye: {row.varieties.join(', ')}
+                              Incluye: {row.varieties.join(", ")}
                             </Typography>
                           )}
                         </TableCell>
 
                         <TableCell sx={tableBodyStyle}>
-                          {row.optionName || '-'}
+                          {row.optionName || "-"}
                         </TableCell>
 
                         <TableCell sx={tableBodyStyle}>
@@ -532,12 +543,12 @@ export const CategorySalesReport = ({ monthlyStats }) => {
             <Paper
               sx={{
                 p: 3,
-                textAlign: 'center',
-                bgcolor: 'background.paper',
-                gridColumn: '1 / -1',
+                textAlign: "center",
+                bgcolor: "background.paper",
+                gridColumn: "1 / -1",
               }}
             >
-              <Typography sx={{ fontFamily: 'fontFamily.primary' }}>
+              <Typography sx={{ fontFamily: "fontFamily.primary" }}>
                 NO HAY EXTRAS DETECTADOS EN ESTE PERIODO.
               </Typography>
             </Paper>
@@ -547,35 +558,35 @@ export const CategorySalesReport = ({ monthlyStats }) => {
 
       <Paper
         sx={{
-          width: '100%',
+          width: "100%",
           mt: 2,
           borderRadius: 2,
-          overflow: 'hidden',
-          bgcolor: 'background.paper',
+          overflow: "hidden",
+          bgcolor: "background.paper",
         }}
       >
         <Typography
           variant="h6"
           sx={{
-            fontFamily: 'fontFamily.primary',
-            color: 'text.primary',
-            textAlign: 'center',
+            fontFamily: "fontFamily.primary",
+            color: "text.primary",
+            textAlign: "center",
             m: 2,
           }}
         >
           TOP 10 PRODUCTOS DEL MES
         </Typography>
 
-        <TableContainer sx={{ overflowX: 'auto' }}>
+        <TableContainer sx={{ overflowX: "auto" }}>
           <Table sx={{ minWidth: 600 }}>
-            <TableHead sx={{ bgcolor: 'background.paper' }}>
+            <TableHead sx={{ bgcolor: "background.paper" }}>
               <TableRow>
                 <TableCell sx={tableHeadStyle}>PRODUCTO</TableCell>
                 <TableCell sx={tableHeadStyle}>UNIDADES</TableCell>
                 <TableCell sx={tableHeadStyle}>TOTAL</TableCell>
               </TableRow>
             </TableHead>
-            <TableBody sx={{ bgcolor: 'background.default' }}>
+            <TableBody sx={{ bgcolor: "background.default" }}>
               {topProducts.map((product) => (
                 <TableRow key={product.name}>
                   <TableCell sx={tableBodyStyle}>
@@ -594,19 +605,19 @@ export const CategorySalesReport = ({ monthlyStats }) => {
 
       <Paper
         sx={{
-          width: '100%',
+          width: "100%",
           mt: 2,
           borderRadius: 2,
-          overflow: 'hidden',
-          bgcolor: 'background.paper',
+          overflow: "hidden",
+          bgcolor: "background.paper",
         }}
       >
         <Typography
           variant="h6"
           sx={{
-            fontFamily: 'fontFamily.primary',
-            color: 'text.primary',
-            textAlign: 'center',
+            fontFamily: "fontFamily.primary",
+            color: "text.primary",
+            textAlign: "center",
             m: 2,
           }}
         >
@@ -615,7 +626,7 @@ export const CategorySalesReport = ({ monthlyStats }) => {
 
         <TableContainer>
           <Table>
-            <TableHead sx={{ bgcolor: 'background.paper' }}>
+            <TableHead sx={{ bgcolor: "background.paper" }}>
               <TableRow>
                 <TableCell sx={tableHeadStyle}>ITEM</TableCell>
                 <TableCell sx={tableHeadStyle}>CANT.</TableCell>
@@ -624,20 +635,20 @@ export const CategorySalesReport = ({ monthlyStats }) => {
               </TableRow>
             </TableHead>
 
-            <TableBody sx={{ bgcolor: 'background.default' }}>
+            <TableBody sx={{ bgcolor: "background.default" }}>
               {topCustomOptions.length > 0 ? (
                 topCustomOptions.slice(0, 10).map((option) => (
                   <TableRow key={option.name}>
                     <TableCell sx={tableBodyStyle}>
-                      {String(option.name || '').toUpperCase()}
+                      {String(option.name || "").toUpperCase()}
                     </TableCell>
 
                     <TableCell sx={tableBodyStyle}>{option.quantity}</TableCell>
 
                     <TableCell sx={tableBodyStyle}>
                       {option.optionNames?.length > 0
-                        ? option.optionNames.join(', ')
-                        : '-'}
+                        ? option.optionNames.join(", ")
+                        : "-"}
                     </TableCell>
 
                     <TableCell sx={tableBodyStyle}>

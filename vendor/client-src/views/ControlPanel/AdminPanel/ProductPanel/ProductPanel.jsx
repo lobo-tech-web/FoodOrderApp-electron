@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo } from "react";
 
 // ---- MATERIAL UI ----
 import {
@@ -12,47 +12,49 @@ import {
   TableHead,
   TableRow,
   Paper,
-} from '@mui/material';
+} from "@mui/material";
 // ICONS
-import EditIcon from '@mui/icons-material/Edit';
-import CheckIcon from '@mui/icons-material/Check';
-import ClearIcon from '@mui/icons-material/Clear';
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import EditIcon from "@mui/icons-material/Edit";
+import CheckIcon from "@mui/icons-material/Check";
+import ClearIcon from "@mui/icons-material/Clear";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 // <-------------------
 
 // ---- COMPONENTS ----
 // import { ProductCard } from './ProductCard/ProductCard.jsx';
-import { ModalEditProduct } from '@/components/PanelComponents/ModalEditProduct/ModalEditProduct.jsx';
-import { LoadingComponent } from '@/components/LoadingComponent/LoadingComponent.jsx';
-import { PanelNavBar } from '@/components/PanelComponents/PanelNavBar/PanelNavBar.jsx';
-import { QuickEditPopover } from './QuickEditPopover/QuickEditPopover.jsx';
-import { CatalogModal } from './CreateCatalog/CatalogModal.jsx';
-import { generateProductCatalogPDF } from './CreateCatalog/CreateCatalog.jsx';
+import { ModalEditProduct } from "@/components/PanelComponents/ModalEditProduct/ModalEditProduct.jsx";
+import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
+import { PanelNavBar } from "@/components/PanelComponents/PanelNavBar/PanelNavBar.jsx";
+import { QuickEditPopover } from "./QuickEditPopover/QuickEditPopover.jsx";
+import { CatalogModal } from "./CreateCatalog/CatalogModal.jsx";
+import { generateProductCatalogPDF } from "./CreateCatalog/CreateCatalog.jsx";
 // <-------------------
 
 // ---- HOOKS ----
-import { useAlert } from '@/hooks/Alert.jsx';
+import { useAlert } from "@/hooks/Alert.jsx";
 // ---------------
 
 // ---- CONTEXT ----
-import { useProducts } from '@/context/Products.jsx';
+import { useProducts } from "@/context/Products.jsx";
 // -----------------
 
 // ---- STYLES ----
 const tableHeadStyle = {
-  color: 'primary.main',
-  textAlign: 'center',
-  fontFamily: 'fontFamily.primary',
+  color: "primary.main",
+  textAlign: "center",
+  fontFamily: "fontFamily.primary",
 };
 
 const tableCellStyle = {
-  color: 'text.primary',
-  textAlign: 'center',
-  fontFamily: 'fontFamily.secondary',
+  color: "text.primary",
+  textAlign: "center",
+  fontFamily: "fontFamily.secondary",
 };
 // ----------------
 
 export const ProductPanel = ({ user }) => {
+  const isElectronApp =
+    typeof window !== "undefined" && Boolean(window.electronAPI);
   const [loading, setLoading] = useState(false);
   const { AlertComponent, showAlert } = useAlert();
 
@@ -60,12 +62,12 @@ export const ProductPanel = ({ user }) => {
 
   const allProducts = useMemo(
     () => productState.products || [],
-    [productState.products]
+    [productState.products],
   );
 
   const countAllProducts = useMemo(
     () => productState.products.length || 0,
-    [productState.products]
+    [productState.products],
   );
 
   const [openEditProduct, setOpenEditProduct] = useState(false);
@@ -76,7 +78,7 @@ export const ProductPanel = ({ user }) => {
     anchorEl: null,
     product: null,
     field: null,
-    value: '',
+    value: "",
   });
 
   // QUICK EDIT HANDLERS
@@ -85,7 +87,7 @@ export const ProductPanel = ({ user }) => {
       anchorEl: event.currentTarget,
       product,
       field,
-      value: product[field]?.toString() || '',
+      value: product[field]?.toString() || "",
     });
   };
 
@@ -94,7 +96,7 @@ export const ProductPanel = ({ user }) => {
       anchorEl: null,
       product: null,
       field: null,
-      value: '',
+      value: "",
     });
   };
 
@@ -103,18 +105,18 @@ export const ProductPanel = ({ user }) => {
       const updatedProduct = {
         ...quickEditState.product,
         [quickEditState.field]:
-          quickEditState.field === 'price'
+          quickEditState.field === "price"
             ? Number.parseFloat(newValue)
-            : quickEditState.field === 'discount' ||
-                quickEditState.field === 'rewardPoints' ||
-                quickEditState.field === 'redeemPoints'
+            : quickEditState.field === "discount" ||
+                quickEditState.field === "rewardPoints" ||
+                quickEditState.field === "redeemPoints"
               ? Number.parseInt(newValue, 10)
               : newValue,
       };
       await updateProduct(updatedProduct);
       handleQuickEditClose();
     } catch (error) {
-      console.error('Error al actualizar el producto:', error);
+      console.error("Error al actualizar el producto:", error);
     }
   };
 
@@ -132,7 +134,7 @@ export const ProductPanel = ({ user }) => {
     const activeProducts = allProducts.filter((p) => p.status === true);
 
     if (activeProducts.length === 0) {
-      showAlert('No hay productos activos para generar el catálogo', 'warning');
+      showAlert("No hay productos activos para generar el catálogo", "warning");
       return;
     }
 
@@ -143,10 +145,10 @@ export const ProductPanel = ({ user }) => {
     setLoading(true);
     try {
       await generateProductCatalogPDF(allProducts, restaurantName);
-      showAlert('Catálogo PDF generado exitosamente', 'success');
+      showAlert("Catálogo PDF generado exitosamente", "success");
     } catch (error) {
-      console.error('Error al generar el catálogo:', error);
-      showAlert(error.message || 'Error al generar el catálogo PDF', 'error');
+      console.error("Error al generar el catálogo:", error);
+      showAlert(error.message || "Error al generar el catálogo PDF", "error");
     } finally {
       setLoading(false);
     }
@@ -156,9 +158,9 @@ export const ProductPanel = ({ user }) => {
     setLoading(true);
     try {
       await getAllProducts(user.id);
-      showAlert('Productos Actualizados!', 'success');
+      showAlert("Productos Actualizados!", "success");
     } catch (error) {
-      console.error('Error al obtener los productos:', error);
+      console.error("Error al obtener los productos:", error);
     } finally {
       setLoading(false);
     }
@@ -167,8 +169,18 @@ export const ProductPanel = ({ user }) => {
   if (loading) return <LoadingComponent />;
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-      <Box sx={{ maxWidth: 'auto', width: '100%' }}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        height: isElectronApp ? "calc(100vh - 112px)" : "auto",
+        overflowY: isElectronApp ? "auto" : "visible",
+        overflowX: isElectronApp ? "auto" : "visible",
+        pr: isElectronApp ? 1 : 0,
+        pb: isElectronApp ? 3 : 0,
+      }}
+    >
+      <Box sx={{ maxWidth: "auto", width: "100%" }}>
         {/* PANELNAVBAR DE LOS PRODUCTOS */}
         <PanelNavBar
           isProductPanel={true}
@@ -179,18 +191,18 @@ export const ProductPanel = ({ user }) => {
         {/* BOTON PARA CREAR CATALOGO */}
         {allProducts.length > 0 && (
           <Box
-            sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, px: 2 }}
+            sx={{ display: "flex", justifyContent: "flex-end", mb: 2, px: 2 }}
           >
             <Button
               variant="contained"
               startIcon={<PictureAsPdfIcon />}
               onClick={handleOpenCatalogModal}
               sx={{
-                bgcolor: 'error.main',
-                color: 'white',
-                fontFamily: 'fontFamily.primary',
-                '&:hover': {
-                  bgcolor: 'error.dark',
+                bgcolor: "error.main",
+                color: "white",
+                fontFamily: "fontFamily.primary",
+                "&:hover": {
+                  bgcolor: "error.dark",
                 },
               }}
             >
@@ -213,8 +225,8 @@ export const ProductPanel = ({ user }) => {
         {allProducts.length > 0 ? (
           <TableContainer component={Paper}>
             <Table>
-              <TableHead sx={{ bgcolor: 'background.paper' }}>
-                <TableRow sx={{ textAlign: 'center' }}>
+              <TableHead sx={{ bgcolor: "background.paper" }}>
+                <TableRow sx={{ textAlign: "center" }}>
                   <TableCell sx={tableHeadStyle}>NOMBRE</TableCell>
                   <TableCell sx={tableHeadStyle}>DESCRIPCIÓN</TableCell>
                   <TableCell sx={tableHeadStyle}>CATEGORIA</TableCell>
@@ -226,16 +238,16 @@ export const ProductPanel = ({ user }) => {
                   <TableCell sx={tableHeadStyle}>MODIFICAR</TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody sx={{ bgcolor: 'background.default' }}>
+              <TableBody sx={{ bgcolor: "background.default" }}>
                 {allProducts.map((product) => (
                   <TableRow
                     key={product.id}
                     sx={{
-                      transition: 'all 0.2s ease',
-                      cursor: 'pointer',
-                      '&:hover': {
-                        bgcolor: 'action.hover', // color del fondo
-                        transform: 'scale(1.002)', // efecto suave
+                      transition: "all 0.2s ease",
+                      cursor: "pointer",
+                      "&:hover": {
+                        bgcolor: "action.hover", // color del fondo
+                        transform: "scale(1.002)", // efecto suave
                         boxShadow: 2,
                       },
                     }}
@@ -252,41 +264,41 @@ export const ProductPanel = ({ user }) => {
                     <TableCell
                       sx={{
                         ...tableCellStyle,
-                        cursor: 'pointer',
-                        position: 'relative',
-                        '&:hover': {
-                          color: 'primary.main',
-                          bgcolor: 'action.hover',
-                          '& .quick-edit-icon': {
+                        cursor: "pointer",
+                        position: "relative",
+                        "&:hover": {
+                          color: "primary.main",
+                          bgcolor: "action.hover",
+                          "& .quick-edit-icon": {
                             opacity: 1,
                           },
                         },
                       }}
                       onClick={(event) =>
-                        handleQuickEditOpen(event, product, 'price')
+                        handleQuickEditOpen(event, product, "price")
                       }
                     >
                       <Box
                         sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                           gap: 1,
                         }}
                       >
                         <Typography
                           variant="body2"
-                          sx={{ fontFamily: 'fontFamily.secondary' }}
+                          sx={{ fontFamily: "fontFamily.secondary" }}
                         >
                           ${product.price}
                         </Typography>
                         <EditIcon
                           className="quick-edit-icon"
                           sx={{
-                            fontSize: '16px',
-                            color: 'primary.main',
+                            fontSize: "16px",
+                            color: "primary.main",
                             opacity: 0,
-                            transition: 'opacity 0.2s ease',
+                            transition: "opacity 0.2s ease",
                           }}
                         />
                       </Box>
@@ -294,40 +306,40 @@ export const ProductPanel = ({ user }) => {
                     <TableCell
                       sx={{
                         ...tableCellStyle,
-                        cursor: 'pointer',
-                        '&:hover': {
-                          color: 'primary.main',
-                          bgcolor: 'action.hover',
-                          '& .quick-edit-icon': {
+                        cursor: "pointer",
+                        "&:hover": {
+                          color: "primary.main",
+                          bgcolor: "action.hover",
+                          "& .quick-edit-icon": {
                             opacity: 1,
                           },
                         },
                       }}
                       onClick={(event) =>
-                        handleQuickEditOpen(event, product, 'discount')
+                        handleQuickEditOpen(event, product, "discount")
                       }
                     >
                       <Box
                         sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                           gap: 1,
                         }}
                       >
                         <Typography
                           variant="body2"
-                          sx={{ fontFamily: 'fontFamily.secondary' }}
+                          sx={{ fontFamily: "fontFamily.secondary" }}
                         >
                           {product.discount}%
                         </Typography>
                         <EditIcon
                           className="quick-edit-icon"
                           sx={{
-                            fontSize: '16px',
-                            color: 'primary.main',
+                            fontSize: "16px",
+                            color: "primary.main",
                             opacity: 0,
-                            transition: 'opacity 0.2s ease',
+                            transition: "opacity 0.2s ease",
                           }}
                         />
                       </Box>
@@ -335,40 +347,40 @@ export const ProductPanel = ({ user }) => {
                     <TableCell
                       sx={{
                         ...tableCellStyle,
-                        cursor: 'pointer',
-                        '&:hover': {
-                          color: 'primary.main',
-                          bgcolor: 'action.hover',
-                          '& .quick-edit-icon': {
+                        cursor: "pointer",
+                        "&:hover": {
+                          color: "primary.main",
+                          bgcolor: "action.hover",
+                          "& .quick-edit-icon": {
                             opacity: 1,
                           },
                         },
                       }}
                       onClick={(event) =>
-                        handleQuickEditOpen(event, product, 'rewardPoints')
+                        handleQuickEditOpen(event, product, "rewardPoints")
                       }
                     >
                       <Box
                         sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                           gap: 1,
                         }}
                       >
                         <Typography
                           variant="body2"
-                          sx={{ fontFamily: 'fontFamily.secondary' }}
+                          sx={{ fontFamily: "fontFamily.secondary" }}
                         >
                           {product.rewardPoints}
                         </Typography>
                         <EditIcon
                           className="quick-edit-icon"
                           sx={{
-                            fontSize: '16px',
-                            color: 'primary.main',
+                            fontSize: "16px",
+                            color: "primary.main",
                             opacity: 0,
-                            transition: 'opacity 0.2s ease',
+                            transition: "opacity 0.2s ease",
                           }}
                         />
                       </Box>
@@ -376,40 +388,40 @@ export const ProductPanel = ({ user }) => {
                     <TableCell
                       sx={{
                         ...tableCellStyle,
-                        cursor: 'pointer',
-                        '&:hover': {
-                          color: 'primary.main',
-                          bgcolor: 'action.hover',
-                          '& .quick-edit-icon': {
+                        cursor: "pointer",
+                        "&:hover": {
+                          color: "primary.main",
+                          bgcolor: "action.hover",
+                          "& .quick-edit-icon": {
                             opacity: 1,
                           },
                         },
                       }}
                       onClick={(event) =>
-                        handleQuickEditOpen(event, product, 'redeemPoints')
+                        handleQuickEditOpen(event, product, "redeemPoints")
                       }
                     >
                       <Box
                         sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                           gap: 1,
                         }}
                       >
                         <Typography
                           variant="body2"
-                          sx={{ fontFamily: 'fontFamily.secondary' }}
+                          sx={{ fontFamily: "fontFamily.secondary" }}
                         >
                           {product.redeemPoints}
                         </Typography>
                         <EditIcon
                           className="quick-edit-icon"
                           sx={{
-                            fontSize: '16px',
-                            color: 'warning.main',
+                            fontSize: "16px",
+                            color: "warning.main",
                             opacity: 0,
-                            transition: 'opacity 0.2s ease',
+                            transition: "opacity 0.2s ease",
                           }}
                         />
                       </Box>
@@ -419,23 +431,23 @@ export const ProductPanel = ({ user }) => {
                         <Typography
                           variant="body2"
                           sx={{
-                            fontFamily: 'fontFamily.terciary',
-                            color: 'success.main',
+                            fontFamily: "fontFamily.terciary",
+                            color: "success.main",
                           }}
                         >
                           ACTIVO
-                          <CheckIcon sx={{ color: 'success.main' }} />
+                          <CheckIcon sx={{ color: "success.main" }} />
                         </Typography>
                       ) : (
                         <Typography
                           variant="body2"
                           sx={{
-                            fontFamily: 'fontFamily.terciary',
-                            color: 'error.main',
+                            fontFamily: "fontFamily.terciary",
+                            color: "error.main",
                           }}
                         >
                           DESACTIVADO
-                          <ClearIcon sx={{ color: 'error.main' }} />
+                          <ClearIcon sx={{ color: "error.main" }} />
                         </Typography>
                       )}
                     </TableCell>
@@ -443,9 +455,9 @@ export const ProductPanel = ({ user }) => {
                       <Button onClick={() => handleOpenEditProduct(product)}>
                         <EditIcon
                           sx={{
-                            color: 'text.primary',
-                            '&:hover': {
-                              color: 'primary.main',
+                            color: "text.primary",
+                            "&:hover": {
+                              color: "primary.main",
                             },
                           }}
                         />
@@ -459,12 +471,12 @@ export const ProductPanel = ({ user }) => {
         ) : (
           <Typography
             sx={{
-              display: 'flex',
-              alignContent: 'center',
-              justifyContent: 'center',
-              width: '100%',
-              paddingTop: '10rem',
-              fontFamily: 'fontFamily.primary',
+              display: "flex",
+              alignContent: "center",
+              justifyContent: "center",
+              width: "100%",
+              paddingTop: "10rem",
+              fontFamily: "fontFamily.primary",
             }}
           >
             NO HAY PRODUCTOS DISPONIBLES.
@@ -496,7 +508,7 @@ export const ProductPanel = ({ user }) => {
         open={catalogModalOpen}
         onClose={() => setCatalogModalOpen(false)}
         onGenerate={handleGenerateCatalog}
-        defaultName={user?.businessName || 'MI RESTAURANTE'}
+        defaultName={user?.businessName || "MI RESTAURANTE"}
       />
       {AlertComponent}
     </Box>

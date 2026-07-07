@@ -78,6 +78,33 @@ export const getUserByID = async (userId) => {
 // ACTUALIZAR USUARIO
 export const updateUserService = async (userData) => {
     try {
+        const logoFile =
+            userData.businessLogoFile ||
+            userData.logoFile ||
+            userData.image ||
+            null;
+
+        const isFile =
+            typeof File !== 'undefined' && logoFile instanceof File;
+
+        if (isFile) {
+            const {
+                businessLogoFile,
+                logoFile: removedLogoFile,
+                image,
+                ...cleanUserData
+            } = userData;
+
+            const formData = new FormData();
+
+            formData.append('userData', JSON.stringify(cleanUserData));
+            formData.append('image', logoFile);
+
+            const response = await apiWithToken.put(apiPutURLUsers, formData);
+
+            return response.data;
+        }
+
         const response = await apiWithToken.put(apiPutURLUsers, { userData });
         return response.data;
     } catch (error) {

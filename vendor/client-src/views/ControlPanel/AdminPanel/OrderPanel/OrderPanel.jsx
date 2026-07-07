@@ -83,9 +83,9 @@ const ORDER_STATUS = {
 };
 
 export const OrderPanel = ({ user, externalView }) => {
-  const { AlertComponent, showAlert } = useAlert();
   const isElectronApp =
     typeof window !== "undefined" && Boolean(window.electronAPI);
+  const { AlertComponent, showAlert } = useAlert();
   const [loading, setLoading] = useState(false);
 
   // REFRESH AUTOMÁTICO
@@ -107,8 +107,8 @@ export const OrderPanel = ({ user, externalView }) => {
   };
 
   const activeTab = useMemo(() => {
-    if (externalView === 2) return 0;
-    if (externalView === 21) return 1;
+    if (externalView === 1) return 0;
+    if (externalView === 11) return 1;
     return 2;
   }, [externalView]);
 

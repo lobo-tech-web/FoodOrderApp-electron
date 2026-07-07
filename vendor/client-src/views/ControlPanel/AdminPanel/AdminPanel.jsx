@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 // APLICAR RUTAS TAL VEZ PARA NO IR NAVEGANDO ENTRE TABS PARA QUE QUEDE MEJOR
 // --------> RUTA CATEGORIAS
@@ -16,28 +16,29 @@ import {
   AppBar,
   IconButton,
   ThemeProvider,
-} from '@mui/material';
+} from "@mui/material";
 // ICONS
-import { Menu as MenuIcon } from '@mui/icons-material';
+import { Menu as MenuIcon } from "@mui/icons-material";
 // <--------------------
 
 // ---- COMPONENTS ----
-import { AdminDrawer } from './AdminDrawer/AdminDrawer.jsx';
-import { LoadingComponent } from '@/components/LoadingComponent/LoadingComponent.jsx';
-import { ProductPanel } from './ProductPanel/ProductPanel.jsx';
-import { CustomOptionPanel } from './CustomOptionPanel/CustomOptionPanel.jsx';
-import { OrderPanel } from './OrderPanel/OrderPanel.jsx';
-import { CategoryPanel } from './CategoryPanel/CategoryPanel.jsx';
-import { UserPointsRestaurantPanel } from './UserPointsRestaurantPanel/UserPointsRestaurantPanel.jsx';
-import { StatsPanel } from './StatsPanel/StatsPanel.jsx';
-import { RiderPanel } from './RiderPanel/RiderPanel.jsx';
+import { AdminDrawer } from "./AdminDrawer/AdminDrawer.jsx";
+import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
+import { ProductPanel } from "./ProductPanel/ProductPanel.jsx";
+import { CustomOptionPanel } from "./CustomOptionPanel/CustomOptionPanel.jsx";
+import { OrderPanel } from "./OrderPanel/OrderPanel.jsx";
+import { CategoryPanel } from "./CategoryPanel/CategoryPanel.jsx";
+import { UserPointsRestaurantPanel } from "./UserPointsRestaurantPanel/UserPointsRestaurantPanel.jsx";
+import { StatsPanel } from "./StatsPanel/StatsPanel.jsx";
+import { RiderPanel } from "./RiderPanel/RiderPanel.jsx";
+import { LocalSettingsPanel } from "./LocalSettingsPanel/LocalSettingsPanel.jsx";
 // <-------------------
 
 // ---- CONTEXT ----
-import { useLobotechThemeContext } from '@/context/ThemeContext.jsx';
-import { useUser } from '@/context/Users.jsx';
-import { useProducts } from '@/context/Products.jsx';
-import { useOrders } from '@/context/Orders.jsx';
+import { useLobotechThemeContext } from "@/context/ThemeContext.jsx";
+import { useUser } from "@/context/Users.jsx";
+import { useProducts } from "@/context/Products.jsx";
+import { useOrders } from "@/context/Orders.jsx";
 // <----------------
 
 // ---- STYLES ----
@@ -48,7 +49,7 @@ export const AdminPanel = () => {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(1);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleDrawerToggle = () => {
@@ -64,12 +65,12 @@ export const AdminPanel = () => {
 
   const logoutUser = () => {
     userLogOut();
-    navigate('/');
+    navigate("/");
   };
 
   useEffect(() => {
-    if (!user || !user.id || user.role !== 'admin') {
-      navigate('/');
+    if (!user || !user.id || user.role !== "admin") {
+      navigate("/");
       return;
     }
     const fetchData = async () => {
@@ -80,7 +81,7 @@ export const AdminPanel = () => {
         await getMonthlyOrderStats(user.id);
         await getRidersByRestaurant(user.id);
       } catch (error) {
-        console.error('Error al obtener productos y categorías:', error);
+        console.error("Error al obtener productos y categorías:", error);
       } finally {
         setLoading(false);
       }
@@ -100,7 +101,7 @@ export const AdminPanel = () => {
 
   return (
     <ThemeProvider theme={lobotechTheme}>
-      <Box sx={{ display: 'flex' }}>
+      <Box sx={{ display: "flex" }}>
         <CssBaseline />
 
         {/* NAVBAR SUPERIOR: Ahora mucho más limpia, solo título y botón menú */}
@@ -110,9 +111,9 @@ export const AdminPanel = () => {
           sx={{
             width: { md: `calc(100% - ${drawerWidth}px)` },
             ml: { md: `${drawerWidth}px` },
-            bgcolor: 'background.paper',
-            borderBottom: '1px solid',
-            borderColor: 'divider',
+            bgcolor: "background.paper",
+            borderBottom: "1px solid",
+            borderColor: "divider",
           }}
         >
           <Toolbar>
@@ -120,26 +121,27 @@ export const AdminPanel = () => {
               color="inherit"
               edge="start"
               onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { md: 'none' }, color: 'primary.main' }}
+              sx={{ mr: 2, display: { md: "none" }, color: "primary.main" }}
             >
               <MenuIcon />
             </IconButton>
             <Typography
               variant="h6"
               noWrap
-              sx={{ fontFamily: 'fontFamily.primary', color: 'text.primary' }}
+              sx={{ fontFamily: "fontFamily.primary", color: "text.primary" }}
             >
-              {activeTab === 0 && 'GESTIÓN DE CATEGORÍAS'}
-              {activeTab === 1 && 'CATÁLOGO DE PRODUCTOS'}
-              {activeTab === 11 && 'GESTIÓN DE PERSONALIZACIÓNES'}
-              {activeTab === 2 && 'PEDIDOS DE HOY'}
-              {activeTab === 21 && 'PEDIDOS DEL MES'}
-              {activeTab === 22 && 'HISTORIAL DE PEDIDOS'}
-              {activeTab === 3 && 'FIDELIZACIÓN DE CLIENTES'}
-              {activeTab === 4 && 'ESTADÍSTICAS DE VENTAS DIARIAS'}
-              {activeTab === 41 && 'ESTADÍSTICAS DE VENTAS MENSUALES'}
-              {activeTab === 42 && 'REPORTE DE VENTAS POR CATEGORÍA'}
-              {activeTab === 5 && 'GESTIÓN DE CADETES'}
+              {activeTab === 0 && "GESTIÓN DE MI NEGOCIO"}
+              {activeTab === 1 && "PEDIDOS DE HOY"}
+              {activeTab === 11 && "PEDIDOS DEL MES"}
+              {activeTab === 12 && "HISTORIAL DE PEDIDOS"}
+              {activeTab === 2 && "GESTIÓN DE CATEGORÍAS"}
+              {activeTab === 21 && "CATÁLOGO DE PRODUCTOS"}
+              {activeTab === 22 && "GESTIÓN DE PERSONALIZACIÓNES"}
+              {activeTab === 3 && "FIDELIZACIÓN DE CLIENTES"}
+              {activeTab === 4 && "ESTADÍSTICAS DE VENTAS DIARIAS"}
+              {activeTab === 41 && "ESTADÍSTICAS DE VENTAS MENSUALES"}
+              {activeTab === 42 && "REPORTE DE VENTAS POR CATEGORÍA"}
+              {activeTab === 5 && "GESTIÓN DE CADETES"}
             </Typography>
           </Toolbar>
         </AppBar>
@@ -155,8 +157,8 @@ export const AdminPanel = () => {
             onClose={handleDrawerToggle}
             ModalProps={{ keepMounted: true }}
             sx={{
-              display: { xs: 'block', md: 'none' },
-              '& .MuiDrawer-paper': { width: drawerWidth },
+              display: { xs: "block", md: "none" },
+              "& .MuiDrawer-paper": { width: drawerWidth },
             }}
           >
             <AdminDrawer
@@ -164,7 +166,6 @@ export const AdminPanel = () => {
               activeTab={activeTab}
               setActiveTab={setActiveTab}
               onLogout={logoutUser}
-              navigate={navigate}
               onCloseMobile={() => setMobileOpen(false)}
             />
           </Drawer>
@@ -173,11 +174,11 @@ export const AdminPanel = () => {
           <Drawer
             variant="permanent"
             sx={{
-              display: { xs: 'none', md: 'block' },
-              '& .MuiDrawer-paper': {
+              display: { xs: "none", md: "block" },
+              "& .MuiDrawer-paper": {
                 width: drawerWidth,
-                borderRight: '1px solid',
-                borderColor: 'divider',
+                borderRight: "1px solid",
+                borderColor: "divider",
               },
             }}
             open
@@ -187,7 +188,6 @@ export const AdminPanel = () => {
               activeTab={activeTab}
               setActiveTab={setActiveTab}
               onLogout={logoutUser}
-              navigate={navigate}
             />
           </Drawer>
         </Box>
@@ -199,16 +199,17 @@ export const AdminPanel = () => {
             flexGrow: 1,
             p: 3,
             width: { md: `calc(100% - ${drawerWidth}px)` },
-            bgcolor: 'background.default',
+            bgcolor: "background.default",
           }}
         >
           <Toolbar /> {/* Espaciador */}
-          {activeTab === 0 && <CategoryPanel user={user} />}
-          {activeTab === 1 && <ProductPanel user={user} />}
-          {activeTab === 11 && <CustomOptionPanel user={user} />}
-          {(activeTab === 2 || activeTab === 21 || activeTab === 22) && (
+          {activeTab === 0 && <LocalSettingsPanel user={user} />}
+          {(activeTab === 1 || activeTab === 11 || activeTab === 12) && (
             <OrderPanel user={user} externalView={activeTab} />
           )}
+          {activeTab === 2 && <CategoryPanel user={user} />}
+          {activeTab === 21 && <ProductPanel user={user} />}
+          {activeTab === 22 && <CustomOptionPanel user={user} />}
           {activeTab === 3 && <UserPointsRestaurantPanel user={user} />}
           {(activeTab === 4 || activeTab === 41 || activeTab === 42) && (
             <StatsPanel user={user} externalView={activeTab} />

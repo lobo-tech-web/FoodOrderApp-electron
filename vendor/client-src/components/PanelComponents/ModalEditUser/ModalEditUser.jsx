@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from "react";
 
 // ---- MATERIAL UI ----
 import {
@@ -20,104 +20,106 @@ import {
   IconButton,
   useMediaQuery,
   useTheme,
-} from '@mui/material';
+} from "@mui/material";
 // ICONS
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 // ---------------------
 
-// ---- UTILS ----
-import { provinciasYciudades } from '@/utils/argentinaLocations.js';
-// ---------------
-
 // ---- COMPONENTS ----
-import { LoadingComponent } from '@/components/LoadingComponent/LoadingComponent.jsx';
+import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
 // --------------------
 
 // ---- HOOKS ----
-import { useAlert } from '@/hooks/Alert.jsx';
+import { useAlert } from "@/hooks/Alert.jsx";
 // ---------------
 
 // ---- UTILS ----
-import { initialUpdateUserState } from '@/utils/userUtils.js';
+import { provinciasYciudades } from "@/utils/argentinaLocations.js";
+import {
+  initialUpdateUserState,
+  buildModalEditUserPayload,
+} from "@/utils/userUtils.js";
+import { paymentMethods } from "@/utils/components/PaymentUtils.jsx";
+import { orderTypeOptions } from "@/utils/components/OrderTypeUtils.jsx";
 // ---------------
 
 // ---- CONTEXT ----
-import { useUser } from '@/context/Users.jsx';
+import { useUser } from "@/context/Users.jsx";
 // -----------------
 
 // ---- SERVICES ----
-import { deleteUserService } from '@/services/users.js';
+import { deleteUserService } from "@/services/users.js";
 // ------------------
 
 // ---- STYLES ----
 const textFieldStyle = {
-  '& .MuiInputBase-root': {
-    fontFamily: 'fontFamily.primary',
-    fontSize: { xs: '14px', sm: '16px', md: '16px' },
-    minHeight: { xs: '48px', sm: '56px', md: '56px' },
-    color: 'text.primary',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: { xs: '8px', sm: '12px' },
+  "& .MuiInputBase-root": {
+    fontFamily: "fontFamily.primary",
+    fontSize: { xs: "14px", sm: "16px", md: "16px" },
+    minHeight: { xs: "48px", sm: "56px", md: "56px" },
+    color: "text.primary",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderRadius: { xs: "8px", sm: "12px" },
   },
-  '& .MuiOutlinedInput-root': {
-    '& fieldset': {
-      borderColor: 'rgba(184, 182, 186, 0.3)',
-      borderWidth: '1px',
+  "& .MuiOutlinedInput-root": {
+    "& fieldset": {
+      borderColor: "rgba(184, 182, 186, 0.3)",
+      borderWidth: "1px",
     },
-    '&:hover fieldset': {
-      borderColor: 'primary.main',
-      borderWidth: '1px',
+    "&:hover fieldset": {
+      borderColor: "primary.main",
+      borderWidth: "1px",
     },
-    '&.Mui-focused fieldset': {
-      borderColor: 'primary.main',
-      borderWidth: '2px',
-      boxShadow: '0 0 0 3px rgba(245, 166, 35, 0.2)',
+    "&.Mui-focused fieldset": {
+      borderColor: "primary.main",
+      borderWidth: "2px",
+      boxShadow: "0 0 0 3px rgba(245, 166, 35, 0.2)",
     },
   },
-  width: '100%',
-  marginBottom: { xs: '16px', sm: '20px', md: '20px' },
+  width: "100%",
+  marginBottom: { xs: "16px", sm: "20px", md: "20px" },
 };
 
 const labelStyle = {
-  fontFamily: 'fontFamily.primary',
-  color: 'primary.main',
-  fontWeight: 'bold',
-  fontSize: { xs: '14px', sm: '16px', md: '16px' },
+  fontFamily: "fontFamily.primary",
+  color: "primary.main",
+  fontWeight: "bold",
+  fontSize: { xs: "14px", sm: "16px", md: "16px" },
   lineHeight: 1,
   margin: 0,
 };
 
 const labelContainerStyle = {
-  display: 'flex',
-  alignItems: 'center',
+  display: "flex",
+  alignItems: "center",
   gap: { xs: 1, sm: 1.5, md: 1.5 },
   mb: { xs: 1, sm: 1.5, md: 1 },
 };
 
 const cancelButtonStyle = {
-  fontFamily: 'fontFamily.primary',
-  bgcolor: 'primary.dark',
-  color: 'text.primary',
+  fontFamily: "fontFamily.primary",
+  bgcolor: "primary.dark",
+  color: "text.primary",
 };
 
 const submitButtonStyle = {
-  fontFamily: 'fontFamily.primary',
-  bgcolor: 'primary.main',
-  color: 'text.terciary',
+  fontFamily: "fontFamily.primary",
+  bgcolor: "primary.main",
+  color: "text.terciary",
 };
 
 const deleteButtonStyle = {
-  fontFamily: 'fontFamily.primary',
-  bgcolor: 'error.main',
-  color: 'text.primary',
+  fontFamily: "fontFamily.primary",
+  bgcolor: "error.main",
+  color: "text.primary",
 };
 // --------------------
 
 export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isXsScreen = useMediaQuery(theme.breakpoints.down('xs'));
-  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isXsScreen = useMediaQuery(theme.breakpoints.down("xs"));
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
   const [loading, setLoading] = useState(false);
   const { AlertComponent, showAlert } = useAlert();
@@ -131,22 +133,42 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
 
   // Días de la semana
   const daysOfWeek = [
-    'LUNES',
-    'MARTES',
-    'MIÉRCOLES',
-    'JUEVES',
-    'VIERNES',
-    'SÁBADO',
-    'DOMINGO',
+    "LUNES",
+    "MARTES",
+    "MIÉRCOLES",
+    "JUEVES",
+    "VIERNES",
+    "SÁBADO",
+    "DOMINGO",
   ];
 
   const handleInputChange = ({ target: { name, value, type, checked } }) => {
     setUser((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-      ...(name === 'state' && { city: '' }),
+      [name]: type === "checkbox" ? checked : value,
+      ...(name === "state" && { city: "" }),
     }));
   };
+
+  const toggleArrayValue = (field, value) => {
+    setUser((prev) => {
+      const currentValues = Array.isArray(prev[field]) ? prev[field] : [];
+
+      const newValues = currentValues.includes(value)
+        ? currentValues.filter((item) => item !== value)
+        : [...currentValues, value];
+
+      return {
+        ...prev,
+        [field]: newValues,
+      };
+    });
+  };
+
+  const canShowBusinessFields =
+    userState?.user?.role === "dev" || user?.role === "admin";
+
+  const canEditRoleAndStatus = userState?.user?.role === "dev";
 
   // Manejar cambios en los horarios
   const handleWorkingHoursChange = (day, value) => {
@@ -161,35 +183,35 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
 
   // Formatear los horarios para mostrar en los campos de texto
   const formatWorkingHoursForDisplay = (workingHours, day) => {
-    if (!workingHours) return '';
+    if (!workingHours) return "";
 
     const dayHours = workingHours[day];
 
     // Si es un array, lo unimos con comas
     if (Array.isArray(dayHours)) {
-      return dayHours.join(', ');
+      return dayHours.join(", ");
     }
 
     // Si es un string, lo devolvemos directamente
-    if (typeof dayHours === 'string') {
+    if (typeof dayHours === "string") {
       return dayHours;
     }
 
-    return '';
+    return "";
   };
 
   const handleDeleteUser = async (userId) => {
     const isConfirmed = window.confirm(
-      '¿Estás seguro de que quieres eliminar este USUARIO?'
+      "¿Estás seguro de que quieres eliminar este USUARIO?",
     );
     if (!isConfirmed) return;
     setLoading(true);
     try {
       await deleteUserService(userId);
-      showAlert('USUARIO eliminado correctamente', 'success');
+      showAlert("USUARIO eliminado correctamente", "success");
       handleClose();
     } catch (error) {
-      showAlert('Error al eliminar el USUARIO', 'error');
+      showAlert("Error al eliminar el USUARIO", "error");
     } finally {
       setLoading(false);
     }
@@ -213,43 +235,23 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
       !user.whatsappNumber
     )
       return showAlert(
-        'Por favor completar todos los campos requeridos obligatoriamente',
-        'warning'
+        "Por favor completar todos los campos requeridos obligatoriamente",
+        "warning",
       );
 
     setLoading(true);
     try {
-      // Procesar los horarios antes de enviar al backend
-      const processedUser = {
-        ...user,
-        workingHours: Object.entries(user.workingHours || {}).reduce(
-          (acc, [day, value]) => {
-            // Si es un string vacío, usar array vacío
-            if (value === '') {
-              acc[day] = [];
-            }
-            // Si es un string con contenido, dividir por comas y limpiar
-            else if (typeof value === 'string') {
-              acc[day] = value
-                .split(',')
-                .map((time) => time.trim())
-                .filter((time) => time !== '');
-            }
-            // Si ya es un array u otro valor, dejarlo como está
-            else {
-              acc[day] = value;
-            }
-            return acc;
-          },
-          {}
-        ),
-      };
-      await userModifier(processedUser);
-      showAlert('Usuario actualizado correctamente!', 'success');
+      const payload = buildModalEditUserPayload({
+        userData: user,
+        viewerRole: userState?.user?.role,
+      });
+
+      await userModifier(payload);
+      showAlert("Usuario actualizado correctamente!", "success");
       resetUser();
     } catch (error) {
-      const errorMessage = error || 'Error desconocido';
-      showAlert(errorMessage, 'error');
+      const errorMessage = error || "Error desconocido";
+      showAlert(errorMessage, "error");
     } finally {
       setLoading(false);
     }
@@ -266,47 +268,47 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
     }
   }, [show, isEditing, showUser]);
 
-  if (loading) return <LoadingComponent message={'Guardando cambios...'} />;
+  if (loading) return <LoadingComponent message={"Guardando cambios..."} />;
 
   return (
     <>
       <Dialog
         open={show}
         onClose={handleClose}
-        maxWidth={isDesktop ? 'md' : 'sm'}
+        maxWidth={isDesktop ? "md" : "sm"}
         fullWidth
         fullScreen={isXsScreen}
         PaperProps={{
           sx: {
             borderRadius: {
-              xs: isXsScreen ? 0 : '12px',
-              sm: '16px',
-              md: '20px',
+              xs: isXsScreen ? 0 : "12px",
+              sm: "16px",
+              md: "20px",
             },
-            overflow: 'hidden',
-            bgcolor: 'background.default',
-            boxShadow: 'primary.main',
-            border: 'primary.main',
-            maxHeight: { xs: '100vh', sm: '90vh', md: '85vh' },
-            width: { xs: '100%', sm: 'auto', md: '600px' },
-            margin: { xs: 0, sm: '32px' },
+            overflow: "hidden",
+            bgcolor: "background.default",
+            boxShadow: "primary.main",
+            border: "primary.main",
+            maxHeight: { xs: "100vh", sm: "90vh", md: "85vh" },
+            width: { xs: "100%", sm: "auto", md: "600px" },
+            margin: { xs: 0, sm: "32px" },
           },
         }}
         TransitionProps={{
           style: {
             transition: isMobile
-              ? 'transform 300ms ease-in-out'
-              : 'opacity 300ms ease-in-out',
+              ? "transform 300ms ease-in-out"
+              : "opacity 300ms ease-in-out",
           },
         }}
       >
         <DialogTitle
           sx={{
-            bgcolor: 'background.paper',
-            color: 'text.primary',
+            bgcolor: "background.paper",
+            color: "text.primary",
             padding: { xs: 2, sm: 3, md: 3 },
-            borderBottom: '2px solid #f5a623',
-            position: { xs: 'sticky', sm: 'static' },
+            borderBottom: "2px solid #f5a623",
+            position: { xs: "sticky", sm: "static" },
             top: 0,
             zIndex: 1,
           }}
@@ -315,16 +317,16 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
             variant="h6"
             component="div"
             sx={{
-              fontFamily: 'fontFamily.primary',
-              color: 'primary.main',
-              fontSize: { xs: '18px', sm: '24px', md: '20px' },
-              display: 'flex',
-              alignItems: 'center',
+              fontFamily: "fontFamily.primary",
+              color: "primary.main",
+              fontSize: { xs: "18px", sm: "24px", md: "20px" },
+              display: "flex",
+              alignItems: "center",
               gap: { xs: 0.5, sm: 1, md: 1.5 },
-              fontWeight: 'bold',
+              fontWeight: "bold",
             }}
           >
-            {isEditing ? 'EDITAR USUARIO' : 'CREAR USUARIO'}
+            {isEditing ? "EDITAR USUARIO" : "CREAR USUARIO"}
           </Typography>
         </DialogTitle>
 
@@ -333,19 +335,19 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
             elevation={0}
             sx={{
               p: { xs: 2, sm: 3, md: 4 },
-              bgcolor: 'background.paper',
-              borderRadius: { xs: '8px', sm: '12px' },
-              border: '1px solid rgba(184, 182, 186, 0.1)',
+              bgcolor: "background.paper",
+              borderRadius: { xs: "8px", sm: "12px" },
+              border: "1px solid rgba(184, 182, 186, 0.1)",
               mb: { xs: 2, sm: 3 },
               mt: { xs: 1, sm: 1.5 },
             }}
           >
             <Box component="form" noValidate sx={{ mt: 1 }}>
               {/* CAMPOS DE SÓLO LECTURA */}
-              {userState?.user?.role === 'dev' &&
+              {userState?.user?.role === "dev" &&
                 [
-                  { label: 'USER ID', name: 'id', type: 'text' },
-                  { label: 'N° USUARIO', name: 'userNumber', type: 'number' },
+                  { label: "USER ID", name: "id", type: "text" },
+                  { label: "N° USUARIO", name: "userNumber", type: "number" },
                 ].map((field) => (
                   <Box key={field.name}>
                     <Box sx={labelContainerStyle}>
@@ -359,11 +361,11 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
                       value={user[field.name]}
                       sx={{
                         ...textFieldStyle,
-                        '& .MuiInputBase-input': {
+                        "& .MuiInputBase-input": {
                           padding: {
-                            xs: '14px 16px',
-                            sm: '16px 20px',
-                            md: '20px 24px',
+                            xs: "14px 16px",
+                            sm: "16px 20px",
+                            md: "20px 24px",
                           },
                         },
                       }}
@@ -373,13 +375,13 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
 
               {/* CAMPOS DE INFORMACIÓN DE USUARIO */}
               {[
-                { label: 'EMAIL', name: 'email', type: 'text' },
-                { label: 'NOMBRE', name: 'name', type: 'text' },
-                { label: 'DNI/CUIT/CUIL', name: 'cuit', type: 'text' },
-                { label: 'TELÉFONO', name: 'phone', type: 'text' },
-                { label: 'DIRECCIÓN', name: 'address', type: 'text' },
-                { label: 'WHATSAPP', name: 'whatsappNumber', type: 'text' },
-                { label: 'CP', name: 'postalCode', type: 'text' },
+                { label: "EMAIL", name: "email", type: "text" },
+                { label: "NOMBRE", name: "name", type: "text" },
+                { label: "DNI/CUIT/CUIL", name: "cuit", type: "text" },
+                { label: "TELÉFONO", name: "phone", type: "text" },
+                { label: "DIRECCIÓN", name: "address", type: "text" },
+                { label: "WHATSAPP", name: "whatsappNumber", type: "text" },
+                { label: "CP", name: "postalCode", type: "text" },
               ].map((field) => (
                 <Box key={field.name}>
                   <Box sx={labelContainerStyle}>
@@ -394,11 +396,11 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
                     onChange={handleInputChange}
                     sx={{
                       ...textFieldStyle,
-                      '& .MuiInputBase-input': {
+                      "& .MuiInputBase-input": {
                         padding: {
-                          xs: '14px 16px',
-                          sm: '16px 20px',
-                          md: '20px 24px',
+                          xs: "14px 16px",
+                          sm: "16px 20px",
+                          md: "20px 24px",
                         },
                       },
                     }}
@@ -413,13 +415,13 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
                 <FormControl fullWidth required sx={textFieldStyle}>
                   <Select
                     name="state"
-                    value={user.state || ''}
+                    value={user.state || ""}
                     onChange={handleInputChange}
                     displayEmpty
                     renderValue={(selected) => {
                       if (!selected) {
                         return (
-                          <Typography sx={{ color: 'text.disabled' }}>
+                          <Typography sx={{ color: "text.disabled" }}>
                             Selecciona una provincia
                           </Typography>
                         );
@@ -427,8 +429,8 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
                       return selected;
                     }}
                     sx={{
-                      fontFamily: 'fontFamily.terciary',
-                      color: 'text.primary',
+                      fontFamily: "fontFamily.terciary",
+                      color: "text.primary",
                     }}
                   >
                     {provinceOptions.map((provincia) => (
@@ -436,8 +438,8 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
                         key={provincia}
                         value={provincia}
                         sx={{
-                          fontFamily: 'fontFamily.terciary',
-                          color: 'text.primary',
+                          fontFamily: "fontFamily.terciary",
+                          color: "text.primary",
                         }}
                       >
                         {provincia}
@@ -454,24 +456,24 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
                 <FormControl fullWidth required sx={textFieldStyle}>
                   <Select
                     name="city"
-                    value={user.city || ''}
+                    value={user.city || ""}
                     onChange={handleInputChange}
                     displayEmpty
                     renderValue={(selected) => {
                       if (!selected) {
                         return (
-                          <Typography sx={{ color: 'text.disabled' }}>
+                          <Typography sx={{ color: "text.disabled" }}>
                             {user.state
-                              ? 'Selecciona una localidad'
-                              : 'Primero selecciona una provincia'}
+                              ? "Selecciona una localidad"
+                              : "Primero selecciona una provincia"}
                           </Typography>
                         );
                       }
                       return selected;
                     }}
                     sx={{
-                      fontFamily: 'fontFamily.terciary',
-                      color: 'text.primary',
+                      fontFamily: "fontFamily.terciary",
+                      color: "text.primary",
                     }}
                   >
                     {cityOptions.map((ciudad) => (
@@ -479,8 +481,8 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
                         key={ciudad}
                         value={ciudad}
                         sx={{
-                          fontFamily: 'fontFamily.terciary',
-                          color: 'text.primary',
+                          fontFamily: "fontFamily.terciary",
+                          color: "text.primary",
                         }}
                       >
                         {ciudad}
@@ -491,16 +493,16 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
               </Box>
 
               {/* HORARIOS DE TRABAJO */}
-              {userState?.user?.role === 'dev' && (
+              {userState?.user?.role === "dev" && (
                 <Box sx={{ mt: 3, mb: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                     <Typography
                       variant="h6"
                       sx={{
-                        fontFamily: 'fontFamily.primary',
-                        color: 'text.primary',
+                        fontFamily: "fontFamily.primary",
+                        color: "text.primary",
                         borderBottom: 1,
-                        borderColor: 'primary.main',
+                        borderColor: "primary.main",
                         pb: 1,
                         flexGrow: 1,
                       }}
@@ -527,18 +529,18 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
                         placeholder="Ejemplo: 12:00-15:00, 19:00-23:00"
                         value={formatWorkingHoursForDisplay(
                           user.workingHours,
-                          day
+                          day,
                         )}
                         onChange={(e) =>
                           handleWorkingHoursChange(day, e.target.value)
                         }
                         sx={{
                           ...textFieldStyle,
-                          '& .MuiInputBase-input': {
+                          "& .MuiInputBase-input": {
                             padding: {
-                              xs: '14px 16px',
-                              sm: '16px 20px',
-                              md: '20px 24px',
+                              xs: "14px 16px",
+                              sm: "16px 20px",
+                              md: "20px 24px",
                             },
                           },
                         }}
@@ -549,48 +551,227 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
               )}
 
               {/* MODIF. ROLE DEV */}
-              {userState?.user?.role === 'dev' &&
-                [
-                  {
-                    label: 'NOMBRE DEL LOCAL',
-                    name: 'businessName',
-                    type: 'text',
-                  },
-                  {
-                    label: 'LINK MERCADOPAGO',
-                    name: 'mercadoPagoLink',
-                    type: 'text',
-                  },
-                  {
-                    label: 'ALIAS BANCARIO',
-                    name: 'transferPaymentAlias',
-                    type: 'text',
-                  },
-                ].map((field) => (
-                  <Box key={field.name}>
-                    <Box sx={labelContainerStyle}>
-                      <Typography sx={labelStyle}>{field.label}</Typography>
-                    </Box>
-                    <TextField
-                      fullWidth
-                      name={field.name}
-                      type={field.type}
-                      value={user[field.name]}
-                      onChange={handleInputChange}
-                      sx={{
-                        ...textFieldStyle,
-                        '& .MuiInputBase-input': {
-                          padding: {
-                            xs: '14px 16px',
-                            sm: '16px 20px',
-                            md: '20px 24px',
+              {canShowBusinessFields && (
+                <Box sx={{ mt: 3, mb: 3 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontFamily: "fontFamily.primary",
+                      color: "text.primary",
+                      borderBottom: 1,
+                      borderColor: "primary.main",
+                      pb: 1,
+                      mb: 2,
+                    }}
+                  >
+                    DATOS DEL LOCAL
+                  </Typography>
+
+                  {[
+                    {
+                      label: "NOMBRE DEL LOCAL",
+                      name: "businessName",
+                      type: "text",
+                    },
+                    {
+                      label: "WHATSAPP DEL LOCAL",
+                      name: "whatsappNumber",
+                      type: "text",
+                    },
+                    {
+                      label: "URL DEL LOCAL",
+                      name: "businessUrl",
+                      type: "text",
+                    },
+                    {
+                      label: "SLUG DEL LOCAL",
+                      name: "businessSlug",
+                      type: "text",
+                    },
+                    {
+                      label: "DOMINIO PERSONALIZADO",
+                      name: "customDomain",
+                      type: "text",
+                    },
+                    {
+                      label: "URL LOGO",
+                      name: "businessLogoUrl",
+                      type: "text",
+                    },
+                    {
+                      label: "ID LOGO IMAGEKIT",
+                      name: "businessLogoId",
+                      type: "text",
+                      disabled: true,
+                    },
+                    {
+                      label: "LINK MERCADOPAGO",
+                      name: "mercadoPagoLink",
+                      type: "text",
+                    },
+                    {
+                      label: "ALIAS BANCARIO",
+                      name: "transferPaymentAlias",
+                      type: "text",
+                    },
+                  ].map((field) => (
+                    <Box key={field.name}>
+                      <Box sx={labelContainerStyle}>
+                        <Typography sx={labelStyle}>{field.label}</Typography>
+                      </Box>
+
+                      <TextField
+                        fullWidth
+                        disabled={Boolean(field.disabled)}
+                        name={field.name}
+                        type={field.type}
+                        value={user[field.name] || ""}
+                        onChange={handleInputChange}
+                        sx={{
+                          ...textFieldStyle,
+                          "& .MuiInputBase-input": {
+                            padding: {
+                              xs: "14px 16px",
+                              sm: "16px 20px",
+                              md: "20px 24px",
+                            },
                           },
-                        },
-                      }}
-                    />
+                        }}
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              )}
+
+              {canShowBusinessFields && (
+                <Box sx={{ mt: 3, mb: 3 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontFamily: "fontFamily.primary",
+                      color: "text.primary",
+                      borderBottom: 1,
+                      borderColor: "primary.main",
+                      pb: 1,
+                      mb: 2,
+                    }}
+                  >
+                    CONFIGURACIÓN DEL MENÚ
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      fontFamily: "fontFamily.primary",
+                      color: "primary.main",
+                      mb: 1,
+                    }}
+                  >
+                    MÉTODOS DE PAGO
+                  </Typography>
+
+                  <Box sx={{ mb: 3 }}>
+                    {paymentMethods.map((method) => (
+                      <FormControlLabel
+                        key={method.value}
+                        control={
+                          <Checkbox
+                            checked={
+                              Array.isArray(user.paymentMethods) &&
+                              user.paymentMethods.includes(method.value)
+                            }
+                            onChange={() =>
+                              toggleArrayValue("paymentMethods", method.value)
+                            }
+                            sx={{
+                              "&.Mui-checked": {
+                                color: "primary.main",
+                              },
+                            }}
+                          />
+                        }
+                        label={
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            {method.icon}
+                            <Typography
+                              sx={{ fontFamily: "fontFamily.secondary" }}
+                            >
+                              {method.value}
+                            </Typography>
+                          </Box>
+                        }
+                        sx={{
+                          display: "flex",
+                          width: "100%",
+                          color: "text.primary",
+                        }}
+                      />
+                    ))}
                   </Box>
-                ))}
-              {userState?.user?.role === 'dev' && (
+
+                  <Typography
+                    sx={{
+                      fontFamily: "fontFamily.primary",
+                      color: "primary.main",
+                      mb: 1,
+                    }}
+                  >
+                    TIPOS DE ENTREGA
+                  </Typography>
+
+                  <Box>
+                    {orderTypeOptions.map((type) => (
+                      <FormControlLabel
+                        key={type.value}
+                        control={
+                          <Checkbox
+                            checked={
+                              Array.isArray(user.enabledOrderTypes) &&
+                              user.enabledOrderTypes.includes(type.value)
+                            }
+                            onChange={() =>
+                              toggleArrayValue("enabledOrderTypes", type.value)
+                            }
+                            sx={{
+                              "&.Mui-checked": {
+                                color: "primary.main",
+                              },
+                            }}
+                          />
+                        }
+                        label={
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            {type.icon}
+                            <Typography
+                              sx={{ fontFamily: "fontFamily.secondary" }}
+                            >
+                              {type.value}
+                            </Typography>
+                          </Box>
+                        }
+                        sx={{
+                          display: "flex",
+                          width: "100%",
+                          color: "text.primary",
+                        }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
+
+              {canEditRoleAndStatus && (
                 <Box>
                   <Box sx={labelContainerStyle}>
                     <Typography sx={labelStyle}>ROLES</Typography>
@@ -598,20 +779,20 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
                   <FormControl fullWidth sx={textFieldStyle}>
                     <Select
                       name="role"
-                      value={user.role || ''}
+                      value={user.role || ""}
                       onChange={handleInputChange}
                       sx={{
-                        fontFamily: 'fontFamily.terciary',
-                        color: 'text.primary',
+                        fontFamily: "fontFamily.terciary",
+                        color: "text.primary",
                       }}
                     >
-                      {['user', 'admin', 'dev'].map((role) => (
+                      {["user", "admin", "dev"].map((role) => (
                         <MenuItem
                           key={role}
                           value={role}
                           sx={{
-                            fontFamily: 'fontFamily.terciary',
-                            color: 'text.primary',
+                            fontFamily: "fontFamily.terciary",
+                            color: "text.primary",
                           }}
                         >
                           {role?.toUpperCase()}
@@ -626,16 +807,16 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
                         onChange={handleInputChange}
                         name="status"
                         sx={{
-                          '&.Mui-checked': {
-                            color: 'primary.main',
+                          "&.Mui-checked": {
+                            color: "primary.main",
                           },
                         }}
                       />
                     }
                     label="STATUS"
                     sx={{
-                      fontFamily: 'fontFamily.terciary',
-                      color: 'primary.main',
+                      fontFamily: "fontFamily.terciary",
+                      color: "primary.main",
                     }}
                   />
                 </Box>
@@ -644,10 +825,10 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
           </Paper>
         </DialogContent>
 
-        <DialogActions sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <DialogActions sx={{ display: "flex", justifyContent: "flex-end" }}>
           <Box>
             {/* BOTÓN PARA ELIMINAR USUARIO (DEV) */}
-            {userState?.user?.role === 'dev' && isEditing && (
+            {userState?.user?.role === "dev" && isEditing && (
               <Button
                 size="small"
                 onClick={() => handleDeleteUser(user.id)}
@@ -662,9 +843,9 @@ export const ModalEditUser = ({ show, handleClose, isEditing, showUser }) => {
 
           <Box
             sx={{
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'flex-end',
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "flex-end",
               gap: 1,
             }}
           >

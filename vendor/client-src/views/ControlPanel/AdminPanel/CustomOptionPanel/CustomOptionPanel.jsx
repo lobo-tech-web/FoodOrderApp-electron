@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from "react";
 
 // ---- MATERIAL UI ----
 import {
@@ -16,7 +16,7 @@ import {
   InputAdornment,
   Stack,
   Tooltip,
-} from '@mui/material';
+} from "@mui/material";
 // ICONS
 import {
   ExpandLess,
@@ -32,47 +32,49 @@ import {
   Inventory2 as EmptyIcon,
   Category as CategoryIcon,
   Delete as DeleteIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 // ---------------------
 
 // ---- CONTEXT ----
-import { useProducts } from '@/context/Products.jsx';
+import { useProducts } from "@/context/Products.jsx";
 // -----------------
 
 // ---- HOOKS ----
-import { useAlert } from '@/hooks/Alert.jsx';
+import { useAlert } from "@/hooks/Alert.jsx";
 // ---------------
 
 // ---- COMPONENTS ----
-import { LoadingComponent } from '@/components/LoadingComponent/LoadingComponent.jsx';
-import { CustomOptionNavBar } from './CustomOptionNavBar/CustomOptionNavBar.jsx';
-import { ModalCreateCustomOption } from '@/components/PanelComponents/ModalCreateCustomOption/ModalCreateCustomOption.jsx';
-import { ModalAssignProductsCustomOption } from '@/components/PanelComponents/ModalAssignProductsCustomOption/ModalAssignProductsCustomOption.jsx';
-import { ModalDeleteCustomOption } from './ModalDeleteCustomOption/ModalDeleteCustomOption.jsx';
+import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
+import { CustomOptionNavBar } from "./CustomOptionNavBar/CustomOptionNavBar.jsx";
+import { ModalCreateCustomOption } from "@/components/PanelComponents/ModalCreateCustomOption/ModalCreateCustomOption.jsx";
+import { ModalAssignProductsCustomOption } from "@/components/PanelComponents/ModalAssignProductsCustomOption/ModalAssignProductsCustomOption.jsx";
+import { ModalDeleteCustomOption } from "./ModalDeleteCustomOption/ModalDeleteCustomOption.jsx";
 // --------------------
 
 // ---- STYLES ----
 const buttonStyle = {
-  bgcolor: 'primary.main',
-  color: 'text.terciary',
-  fontFamily: 'fontFamily.terciary',
-  borderRadius: '8px',
+  bgcolor: "primary.main",
+  color: "text.terciary",
+  fontFamily: "fontFamily.terciary",
+  borderRadius: "8px",
   px: 2,
   py: 0.5,
-  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-  '&:hover': {
-    bgcolor: 'background.paper',
-    color: 'primary.main',
-    boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
+  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+  "&:hover": {
+    bgcolor: "background.paper",
+    color: "primary.main",
+    boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
   },
 };
 const chipStyle = {
-  fontFamily: 'fontFamily.secondary',
-  color: 'text.primary',
+  fontFamily: "fontFamily.secondary",
+  color: "text.primary",
 };
 // ----------------
 
 export const CustomOptionPanel = ({ user }) => {
+  const isElectronApp =
+    typeof window !== "undefined" && Boolean(window.electronAPI);
   const [loading, setLoading] = useState(false);
   const { AlertComponent, showAlert } = useAlert();
   const { productState, getAllCustomOptions, deleteCustomOption } =
@@ -80,12 +82,12 @@ export const CustomOptionPanel = ({ user }) => {
 
   const allCustomOptions = useMemo(
     () => productState.customOptions || [],
-    [productState.customOptions]
+    [productState.customOptions],
   );
 
   const allProducts = useMemo(
     () => productState?.allProducts || [],
-    [productState?.allProducts]
+    [productState?.allProducts],
   );
 
   const [expanded, setExpanded] = useState(null);
@@ -131,7 +133,7 @@ export const CustomOptionPanel = ({ user }) => {
 
       if (assignModal.option?.id === deleteDialog.option.id) closeAssignModal();
 
-      showAlert('Personalización eliminada correctamente', 'success');
+      showAlert("Personalización eliminada correctamente", "success");
 
       setDeleteDialog({
         open: false,
@@ -139,7 +141,7 @@ export const CustomOptionPanel = ({ user }) => {
         loading: false,
       });
     } catch (error) {
-      showAlert(error || 'Error al eliminar la personalización', 'error');
+      showAlert(error || "Error al eliminar la personalización", "error");
 
       setDeleteDialog((prev) => ({
         ...prev,
@@ -148,12 +150,12 @@ export const CustomOptionPanel = ({ user }) => {
     }
   };
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [relationFilter, setRelationFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [relationFilter, setRelationFilter] = useState("all");
 
   const getProductCategoryName = (product) => {
-    return product?.category?.name || product?.category || 'Sin categoría';
+    return product?.category?.name || product?.category || "Sin categoría";
   };
 
   // Devuelve los productos relacionados a una custom option
@@ -164,11 +166,11 @@ export const CustomOptionPanel = ({ user }) => {
 
       return allProducts.filter((product) =>
         product.productCustomOptions?.some(
-          (customOption) => customOption.id === option.id
-        )
+          (customOption) => customOption.id === option.id,
+        ),
       );
     },
-    [allProducts]
+    [allProducts],
   );
 
   const getRelatedCategories = (products = []) => {
@@ -196,15 +198,15 @@ export const CustomOptionPanel = ({ user }) => {
         option.name?.toLowerCase().includes(term) ||
         option.items?.some((item) => item.name?.toLowerCase().includes(term)) ||
         relatedProducts.some((product) =>
-          product.name?.toLowerCase().includes(term)
+          product.name?.toLowerCase().includes(term),
         );
 
-      const matchesType = typeFilter === 'all' || option.type === typeFilter;
+      const matchesType = typeFilter === "all" || option.type === typeFilter;
 
       const matchesRelation =
-        relationFilter === 'all' ||
-        (relationFilter === 'withProducts' && relatedProducts.length > 0) ||
-        (relationFilter === 'withoutProducts' && relatedProducts.length === 0);
+        relationFilter === "all" ||
+        (relationFilter === "withProducts" && relatedProducts.length > 0) ||
+        (relationFilter === "withoutProducts" && relatedProducts.length === 0);
 
       return matchesSearch && matchesType && matchesRelation;
     });
@@ -242,7 +244,7 @@ export const CustomOptionPanel = ({ user }) => {
     try {
       await getAllCustomOptions(user.id);
     } catch (error) {
-      console.error('Error al obtener las custom options:', error);
+      console.error("Error al obtener las custom options:", error);
     } finally {
       setLoading(false);
     }
@@ -253,7 +255,7 @@ export const CustomOptionPanel = ({ user }) => {
       await fetchCustomOptions();
       setDialogOpen(false);
     } catch (error) {
-      console.error('Error al obtener las custom options:', error);
+      console.error("Error al obtener las custom options:", error);
     }
   };
 
@@ -276,15 +278,15 @@ export const CustomOptionPanel = ({ user }) => {
 
   const optionTypes = {
     unique: {
-      label: 'Seleccion única obligatoria',
+      label: "Seleccion única obligatoria",
       icon: <TaskAltIcon color="primary" />,
     },
     checkbox: {
-      label: 'Seleccion múltiple',
+      label: "Seleccion múltiple",
       icon: <CheckBoxIcon color="info" />,
     },
     extra: {
-      label: 'Opción incrementable',
+      label: "Opción incrementable",
       icon: <PlusOneIcon color="success" />,
     },
   };
@@ -292,8 +294,18 @@ export const CustomOptionPanel = ({ user }) => {
   if (loading) return <LoadingComponent />;
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-      <Box sx={{ width: '100%' }}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        height: isElectronApp ? "calc(100vh - 112px)" : "auto",
+        overflowY: isElectronApp ? "auto" : "visible",
+        overflowX: isElectronApp ? "auto" : "visible",
+        pr: isElectronApp ? 1 : 0,
+        pb: isElectronApp ? 3 : 0,
+      }}
+    >
+      <Box sx={{ width: "100%" }}>
         <CustomOptionNavBar
           handleRefresh={fetchCustomOptions}
           addCustom={openCreateDialog}
@@ -302,8 +314,8 @@ export const CustomOptionPanel = ({ user }) => {
         <Typography
           variant="subtitle1"
           sx={{
-            fontFamily: 'fontFamily.secondary',
-            color: 'text.primary',
+            fontFamily: "fontFamily.secondary",
+            color: "text.primary",
             mb: 1,
           }}
         >
@@ -317,21 +329,21 @@ export const CustomOptionPanel = ({ user }) => {
           sx={{
             p: 2,
             mb: 2,
-            bgcolor: 'background.paper',
-            border: '1px solid',
-            borderColor: 'rgba(184, 182, 186, 0.22)',
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "rgba(184, 182, 186, 0.22)",
             borderRadius: 2,
           }}
         >
           <Box
             sx={{
-              display: 'grid',
+              display: "grid",
               gridTemplateColumns: {
-                xs: '1fr',
-                md: '1.4fr 1fr 1fr',
+                xs: "1fr",
+                md: "1.4fr 1fr 1fr",
               },
               gap: 1.5,
-              alignItems: 'center',
+              alignItems: "center",
             }}
           >
             <TextField
@@ -352,36 +364,36 @@ export const CustomOptionPanel = ({ user }) => {
             <Stack direction="row" spacing={1} flexWrap="wrap">
               <Typography
                 variant="caption"
-                sx={{ fontFamily: 'fontFamily.secondary' }}
+                sx={{ fontFamily: "fontFamily.secondary" }}
               >
                 Tipo:
               </Typography>
               <Chip
                 label="Todas"
                 clickable
-                color={typeFilter === 'all' ? 'primary' : 'default'}
-                onClick={() => setTypeFilter('all')}
+                color={typeFilter === "all" ? "primary" : "default"}
+                onClick={() => setTypeFilter("all")}
                 sx={chipStyle}
               />
               <Chip
                 label="Única"
                 clickable
-                color={typeFilter === 'unique' ? 'primary' : 'default'}
-                onClick={() => setTypeFilter('unique')}
+                color={typeFilter === "unique" ? "primary" : "default"}
+                onClick={() => setTypeFilter("unique")}
                 sx={chipStyle}
               />
               <Chip
                 label="Múltiple"
                 clickable
-                color={typeFilter === 'checkbox' ? 'primary' : 'default'}
-                onClick={() => setTypeFilter('checkbox')}
+                color={typeFilter === "checkbox" ? "primary" : "default"}
+                onClick={() => setTypeFilter("checkbox")}
                 sx={chipStyle}
               />
               <Chip
                 label="Incrementable"
                 clickable
-                color={typeFilter === 'extra' ? 'primary' : 'default'}
-                onClick={() => setTypeFilter('extra')}
+                color={typeFilter === "extra" ? "primary" : "default"}
+                onClick={() => setTypeFilter("extra")}
                 sx={chipStyle}
               />
             </Stack>
@@ -389,40 +401,40 @@ export const CustomOptionPanel = ({ user }) => {
             <Stack direction="row" spacing={1} flexWrap="wrap">
               <Typography
                 variant="caption"
-                sx={{ fontFamily: 'fontFamily.secondary' }}
+                sx={{ fontFamily: "fontFamily.secondary" }}
               >
                 Mostrar:
               </Typography>
               <Chip
                 label="Todas"
                 clickable
-                variant={relationFilter === 'all' ? 'filled' : 'outlined'}
-                color={relationFilter === 'all' ? 'primary' : 'default'}
-                onClick={() => setRelationFilter('all')}
+                variant={relationFilter === "all" ? "filled" : "outlined"}
+                color={relationFilter === "all" ? "primary" : "default"}
+                onClick={() => setRelationFilter("all")}
                 sx={chipStyle}
               />
               <Chip
                 label="Con productos"
                 clickable
                 variant={
-                  relationFilter === 'withProducts' ? 'filled' : 'outlined'
+                  relationFilter === "withProducts" ? "filled" : "outlined"
                 }
                 color={
-                  relationFilter === 'withProducts' ? 'primary' : 'default'
+                  relationFilter === "withProducts" ? "primary" : "default"
                 }
-                onClick={() => setRelationFilter('withProducts')}
+                onClick={() => setRelationFilter("withProducts")}
                 sx={chipStyle}
               />
               <Chip
                 label="Sin productos"
                 clickable
                 variant={
-                  relationFilter === 'withoutProducts' ? 'filled' : 'outlined'
+                  relationFilter === "withoutProducts" ? "filled" : "outlined"
                 }
                 color={
-                  relationFilter === 'withoutProducts' ? 'primary' : 'default'
+                  relationFilter === "withoutProducts" ? "primary" : "default"
                 }
-                onClick={() => setRelationFilter('withoutProducts')}
+                onClick={() => setRelationFilter("withoutProducts")}
                 sx={chipStyle}
               />
             </Stack>
@@ -434,26 +446,26 @@ export const CustomOptionPanel = ({ user }) => {
             elevation={0}
             sx={{
               p: 4,
-              textAlign: 'center',
-              bgcolor: 'background.paper',
-              border: '1px dashed',
-              borderColor: 'rgba(184, 182, 186, 0.28)',
+              textAlign: "center",
+              bgcolor: "background.paper",
+              border: "1px dashed",
+              borderColor: "rgba(184, 182, 186, 0.28)",
               borderRadius: 2,
             }}
           >
-            <EmptyIcon sx={{ fontSize: 44, color: 'text.secondary', mb: 1 }} />
+            <EmptyIcon sx={{ fontSize: 44, color: "text.secondary", mb: 1 }} />
             <Typography
               sx={{
-                fontFamily: 'fontFamily.primary',
-                color: 'text.primary',
+                fontFamily: "fontFamily.primary",
+                color: "text.primary",
               }}
             >
               No se encontraron personalizaciónes
             </Typography>
             <Typography
               sx={{
-                fontFamily: 'fontFamily.secondary',
-                color: 'text.secondary',
+                fontFamily: "fontFamily.secondary",
+                color: "text.secondary",
                 fontSize: 14,
               }}
             >
@@ -475,32 +487,32 @@ export const CustomOptionPanel = ({ user }) => {
                 sx={{
                   mb: 2,
                   p: 2,
-                  bgcolor: 'background.paper',
-                  border: '1px solid',
-                  borderColor: 'primary.main',
+                  bgcolor: "background.paper",
+                  border: "1px solid",
+                  borderColor: "primary.main",
                   borderRadius: 1,
                 }}
               >
                 <Box
                   sx={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr auto 1fr',
-                    alignItems: 'center',
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto 1fr",
+                    alignItems: "center",
                     gap: 2,
                   }}
                 >
                   <Box
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifySelf: 'start',
+                      display: "flex",
+                      alignItems: "center",
+                      justifySelf: "start",
                       gap: 1,
                     }}
                   >
                     <IconButton
                       onClick={() => setExpanded(isExpanded ? null : option.id)}
                       size="small"
-                      sx={{ color: 'primary.main' }}
+                      sx={{ color: "primary.main" }}
                     >
                       {isExpanded ? <ExpandLess /> : <ExpandMore />}
                     </IconButton>
@@ -510,8 +522,8 @@ export const CustomOptionPanel = ({ user }) => {
                     <Typography
                       variant="subtitle1"
                       sx={{
-                        fontFamily: 'fontFamily.primary',
-                        color: 'text.primary',
+                        fontFamily: "fontFamily.primary",
+                        color: "text.primary",
                       }}
                     >
                       {option.name}
@@ -520,7 +532,7 @@ export const CustomOptionPanel = ({ user }) => {
                     <IconButton
                       onClick={() => openEditDialog(option)}
                       size="small"
-                      sx={{ color: 'primary.main' }}
+                      sx={{ color: "primary.main" }}
                     >
                       <EditIcon fontSize="small" />
                     </IconButton>
@@ -530,12 +542,12 @@ export const CustomOptionPanel = ({ user }) => {
                         onClick={() => openDeleteDialog(option)}
                         size="small"
                         sx={{
-                          color: 'error.main',
-                          border: '1px solid',
-                          borderColor: 'transparent',
-                          '&:hover': {
-                            borderColor: 'error.main',
-                            bgcolor: 'rgba(244, 67, 54, 0.08)',
+                          color: "error.main",
+                          border: "1px solid",
+                          borderColor: "transparent",
+                          "&:hover": {
+                            borderColor: "error.main",
+                            bgcolor: "rgba(244, 67, 54, 0.08)",
                           },
                         }}
                       >
@@ -546,18 +558,18 @@ export const CustomOptionPanel = ({ user }) => {
 
                   <Box
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      justifySelf: 'center',
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      justifySelf: "center",
                       gap: 1,
                     }}
                   >
                     <Typography
                       variant="subtitle1"
                       sx={{
-                        fontFamily: 'fontFamily.secondary',
-                        color: 'text.primary',
+                        fontFamily: "fontFamily.secondary",
+                        color: "text.primary",
                       }}
                     >
                       Tipo:
@@ -568,8 +580,8 @@ export const CustomOptionPanel = ({ user }) => {
                     <Typography
                       variant="subtitle1"
                       sx={{
-                        fontFamily: 'fontFamily.secondary',
-                        color: 'primary.main',
+                        fontFamily: "fontFamily.secondary",
+                        color: "primary.main",
                       }}
                     >
                       {selectedType?.label || option.type}
@@ -578,11 +590,11 @@ export const CustomOptionPanel = ({ user }) => {
 
                   <Box
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'flex-end',
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "flex-end",
                       gap: 1,
-                      justifySelf: 'end',
+                      justifySelf: "end",
                     }}
                   >
                     <Chip
@@ -590,8 +602,8 @@ export const CustomOptionPanel = ({ user }) => {
                       variant="outlined"
                       size="medium"
                       sx={{
-                        fontFamily: 'fontFamily.secondary',
-                        borderColor: 'text.primary',
+                        fontFamily: "fontFamily.secondary",
+                        borderColor: "text.primary",
                       }}
                     />
                     <Button
@@ -612,8 +624,8 @@ export const CustomOptionPanel = ({ user }) => {
                   <Typography
                     variant="subtitle2"
                     sx={{
-                      fontFamily: 'fontFamily.secondary',
-                      color: 'primary.main',
+                      fontFamily: "fontFamily.secondary",
+                      color: "primary.main",
                       mt: 1,
                     }}
                   >
@@ -623,7 +635,7 @@ export const CustomOptionPanel = ({ user }) => {
                     {[...(option.items || [])]
                       .sort(
                         (a, b) =>
-                          Number(a.priority ?? 10) - Number(b.priority ?? 10)
+                          Number(a.priority ?? 10) - Number(b.priority ?? 10),
                       )
                       .map((item) => (
                         <ListItem
@@ -637,14 +649,14 @@ export const CustomOptionPanel = ({ user }) => {
                           <Typography
                             variant="subtitle2"
                             sx={{
-                              fontFamily: 'fontFamily.secondary',
-                              color: 'text.primary',
+                              fontFamily: "fontFamily.secondary",
+                              color: "text.primary",
                             }}
                           >
                             {item.name}
                             {Number(item.extraCost) > 0 &&
                               ` (+$${item.extraCost})`}
-                            {item.status === false && ' — Inactivo'}
+                            {item.status === false && " — Inactivo"}
                           </Typography>
                         </ListItem>
                       ))}
@@ -655,8 +667,8 @@ export const CustomOptionPanel = ({ user }) => {
                   <Typography
                     variant="subtitle2"
                     sx={{
-                      fontFamily: 'fontFamily.secondary',
-                      color: 'primary.main',
+                      fontFamily: "fontFamily.secondary",
+                      color: "primary.main",
                       mb: 0.5,
                     }}
                   >
@@ -665,10 +677,10 @@ export const CustomOptionPanel = ({ user }) => {
                   {relatedProducts.length === 0 ? (
                     <Box
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
+                        display: "flex",
+                        alignItems: "center",
                         gap: 1,
-                        color: 'text.secondary',
+                        color: "text.secondary",
                         mb: 1,
                       }}
                     >
@@ -676,8 +688,8 @@ export const CustomOptionPanel = ({ user }) => {
                       <Typography
                         variant="subtitle2"
                         sx={{
-                          fontFamily: 'fontFamily.secondary',
-                          color: 'text.secondary',
+                          fontFamily: "fontFamily.secondary",
+                          color: "text.secondary",
                         }}
                       >
                         No hay productos asociados.
@@ -687,8 +699,8 @@ export const CustomOptionPanel = ({ user }) => {
                     <>
                       <Box
                         sx={{
-                          display: 'flex',
-                          flexWrap: 'wrap',
+                          display: "flex",
+                          flexWrap: "wrap",
                           gap: 1,
                           mb: 1.5,
                         }}
@@ -701,9 +713,9 @@ export const CustomOptionPanel = ({ user }) => {
                             size="small"
                             variant="outlined"
                             sx={{
-                              fontFamily: 'fontFamily.secondary',
-                              color: 'text.primary',
-                              borderColor: 'text.primary',
+                              fontFamily: "fontFamily.secondary",
+                              color: "text.primary",
+                              borderColor: "text.primary",
                             }}
                           />
                         ))}
@@ -711,7 +723,7 @@ export const CustomOptionPanel = ({ user }) => {
                       <List
                         dense
                         sx={{
-                          display: 'flex',
+                          display: "flex",
                           gap: 1,
                         }}
                       >
@@ -727,22 +739,22 @@ export const CustomOptionPanel = ({ user }) => {
                               key={prod.id}
                               disableGutters
                               sx={{
-                                display: 'flex',
+                                display: "flex",
                                 gap: 1,
-                                alignItems: 'center',
+                                alignItems: "center",
                                 px: 1,
                                 py: 0.8,
                                 mb: 0.6,
                                 borderRadius: 8,
-                                bgcolor: 'background.paper',
+                                bgcolor: "background.paper",
                               }}
                             >
                               <LunchDiningIcon color="primary" />
                               <Box sx={{ minWidth: 0, flex: 1 }}>
                                 <Typography
                                   sx={{
-                                    fontFamily: 'fontFamily.primary',
-                                    color: 'text.primary',
+                                    fontFamily: "fontFamily.primary",
+                                    color: "text.primary",
                                     fontSize: 16,
                                   }}
                                 >
@@ -751,8 +763,8 @@ export const CustomOptionPanel = ({ user }) => {
 
                                 <Typography
                                   sx={{
-                                    fontFamily: 'fontFamily.secondary',
-                                    color: 'text.secondary',
+                                    fontFamily: "fontFamily.secondary",
+                                    color: "text.secondary",
                                     fontSize: 12,
                                   }}
                                 >
@@ -774,8 +786,8 @@ export const CustomOptionPanel = ({ user }) => {
                         <Typography
                           variant="body2"
                           sx={{
-                            fontFamily: 'fontFamily.secondary',
-                            color: 'text.primary',
+                            fontFamily: "fontFamily.secondary",
+                            color: "text.primary",
                             mt: 0.8,
                           }}
                         >

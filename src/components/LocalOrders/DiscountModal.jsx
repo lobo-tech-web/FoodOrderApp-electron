@@ -1,3 +1,4 @@
+// ---- Material UI ----
 import {
   Box,
   Button,
@@ -9,15 +10,22 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+// Icons
 import {
   AttachMoney as MoneyIcon,
   Cancel as CancelIcon,
   LocalOffer as DiscountIcon,
   Percent as PercentIcon,
 } from "@mui/icons-material";
+// ----------------------
 
+// ---- Utils ----
 import { formatCurrency } from "@/utils/orderCalculations.js";
+// ---------------
+
+// ---- Style ----
 import { buttonStyle1 } from "../styles/buttonStyle.js";
+// ---------------
 
 const DISCOUNT_TYPES = [
   { value: "SIN DESCUENTO", label: "Sin descuento", icon: <CancelIcon /> },
@@ -48,6 +56,7 @@ export const DiscountModal = ({
           gap: 1,
           fontFamily: "fontFamily.primary",
           color: "text.primary",
+          bgcolor: "background.main",
         }}
       >
         <DiscountIcon color="primary" />
@@ -73,7 +82,7 @@ export const DiscountModal = ({
                 startIcon={option.icon}
                 onClick={() => onDiscountTypeChange(option.value)}
                 sx={{
-                  minHeight: 54,
+                  minHeight: 48,
                   fontFamily: "fontFamily.secondary",
                   borderRadius: 2,
                   color: active ? "text.terciary" : "text.primary",
@@ -89,8 +98,14 @@ export const DiscountModal = ({
           <TextField
             fullWidth
             type="number"
-            label={isPercentage ? "Descuento en porcentaje" : "Descuento en monto"}
-            value={isPercentage ? discountConfig.discount : discountConfig.discountamount}
+            label={
+              isPercentage ? "Descuento en porcentaje" : "Descuento en monto"
+            }
+            value={
+              isPercentage
+                ? discountConfig.discount
+                : discountConfig.discountamount
+            }
             onChange={(event) => onDiscountValueChange(event.target.value)}
             InputProps={{
               startAdornment: (
@@ -109,14 +124,17 @@ export const DiscountModal = ({
                 ? "Ingresa un valor entre 0 y 100."
                 : "El descuento no puede superar el subtotal."
             }
-            sx={{ mb: 2 }}
+            sx={{
+              fontFamily: "fontFamily.secondary",
+              mb: 2,
+            }}
           />
         )}
 
         <Box
           sx={{
             border: "1px solid",
-            borderColor: "divider",
+            borderColor: "primary.main",
             borderRadius: 2,
             bgcolor: "background.paper",
             p: 2,
@@ -134,20 +152,43 @@ export const DiscountModal = ({
             <Typography sx={{ fontFamily: "fontFamily.secondary" }}>
               Descuento
             </Typography>
-            <Typography sx={{ fontFamily: "fontFamily.primary", color: "error.main" }}>
+            <Typography
+              sx={{ fontFamily: "fontFamily.primary", color: "error.main" }}
+            >
               - {formatCurrency(discountAmount)}
             </Typography>
           </Box>
-          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-            <Typography sx={{ fontFamily: "fontFamily.primary" }}>Total</Typography>
-            <Typography sx={{ fontFamily: "fontFamily.primary", color: "primary.main" }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              borderTop: "1px solid",
+            }}
+          >
+            <Typography
+              sx={{
+                fontFamily: "fontFamily.primary",
+                fontSize: { xs: "0.8rem", sm: "1rem", md: "1.3rem" },
+                mt: 1,
+              }}
+            >
+              TOTAL
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: "fontFamily.primary",
+                color: "primary.main",
+                fontSize: { xs: "0.8rem", sm: "1rem", md: "1.3rem" },
+                mt: 1,
+              }}
+            >
               {formatCurrency(totalAmount)}
             </Typography>
           </Box>
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ p: 2 }}>
+      <DialogActions sx={{ bgcolor: "background.paper", p: 2 }}>
         <Button onClick={onClose} sx={{ fontFamily: "fontFamily.primary" }}>
           Cerrar
         </Button>
