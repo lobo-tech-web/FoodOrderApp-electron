@@ -75,7 +75,7 @@ const getProductCommentHtml = (item = {}) => {
 
   return `
     <div class="product-comment">
-      <strong>NOTA:</strong> ${escapeHtml(normalizeUpper(comment))}
+      <strong>✏️</strong> ${escapeHtml(normalizeUpper(comment))}
     </div>
   `;
 };
@@ -90,8 +90,8 @@ const getProductsHtml = (order = {}) =>
         normalizeUpper(item.name, 'PRODUCTO'),
       )}</span>
           </div>
-          ${getOptionRowsHtml(item)}
           ${getProductCommentHtml(item)}
+          ${getOptionRowsHtml(item)}
         </div>
       `,
     )
@@ -227,7 +227,6 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
           margin: 0.6mm 0 0 3mm;
           padding: 0.3mm 0 0.2mm 2mm;
           border: 0;
-          border-left: 2px solid #000;
           font-size: 11px;
           font-weight: 900;
           overflow-wrap: anywhere;
