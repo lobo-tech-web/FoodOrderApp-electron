@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   resetPrinterConfig: () => ipcRenderer.invoke('printers:reset-config'),
   printHtml: (type, html) =>
     ipcRenderer.invoke('printers:print-html', { type, html }),
+  openExternal: (url) => ipcRenderer.invoke('shell:open-external', url),
 });
 
 contextBridge.exposeInMainWorld('secureStorage', {

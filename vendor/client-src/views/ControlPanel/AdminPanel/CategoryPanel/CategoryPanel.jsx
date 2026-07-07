@@ -112,12 +112,11 @@ export const CategoryPanel = ({ user }) => {
     <Box
       sx={{
         width: "100%",
-        pb: 4,
         height: isElectronApp ? "calc(100vh - 112px)" : "auto",
         overflowY: isElectronApp ? "auto" : "visible",
         overflowX: isElectronApp ? "auto" : "visible",
         pr: isElectronApp ? 1 : 0,
-        pb: isElectronApp ? 3 : 0,
+        pb: isElectronApp ? 3 : 4,
       }}
     >
       {/* PANELNAVBAR DE LAS CATEGORIAS */}

@@ -360,8 +360,8 @@ export const CategorySalesReport = ({ monthlyStats }) => {
             VENTAS POR CATEGORIA
           </Typography>
 
-          <TableContainer>
-            <Table>
+          <TableContainer sx={{ overflowX: "auto" }}>
+            <Table sx={{ minWidth: 620 }}>
               <TableHead sx={{ bgcolor: "background.paper" }}>
                 <TableRow>
                   <TableCell sx={tableHeadStyle}>CATEGORIA</TableCell>
@@ -420,8 +420,8 @@ export const CategorySalesReport = ({ monthlyStats }) => {
             BEBIDAS POR TIPO
           </Typography>
 
-          <TableContainer>
-            <Table>
+          <TableContainer sx={{ overflowX: "auto" }}>
+            <Table sx={{ minWidth: 560 }}>
               <TableHead sx={{ bgcolor: "background.paper" }}>
                 <TableRow>
                   <TableCell sx={tableHeadStyle}>BEBIDA</TableCell>
@@ -624,8 +624,8 @@ export const CategorySalesReport = ({ monthlyStats }) => {
           TOP 10 EXTRAS / OPCIONES
         </Typography>
 
-        <TableContainer>
-          <Table>
+        <TableContainer sx={{ overflowX: "auto" }}>
+          <Table sx={{ minWidth: 640 }}>
             <TableHead sx={{ bgcolor: "background.paper" }}>
               <TableRow>
                 <TableCell sx={tableHeadStyle}>ITEM</TableCell>

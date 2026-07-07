@@ -185,6 +185,26 @@ const getTimePeriodLabel = (time) => {
   return `${formattedTime} hs · ${hour >= 12 ? "PM" : "AM"}`;
 };
 
+const normalizeExternalUrl = (value = "") => {
+  const trimmedValue = String(value || "").trim();
+
+  if (!trimmedValue) return "";
+
+  const urlWithProtocol = /^https?:\/\//i.test(trimmedValue)
+    ? trimmedValue
+    : `https://${trimmedValue}`;
+
+  try {
+    const url = new URL(urlWithProtocol);
+
+    if (!["http:", "https:"].includes(url.protocol)) return "";
+
+    return url.toString();
+  } catch {
+    return "";
+  }
+};
+
 export const LocalSettingsPanel = ({ user }) => {
   const isElectronApp =
     typeof window !== "undefined" && Boolean(window.electronAPI);
@@ -211,7 +231,7 @@ export const LocalSettingsPanel = ({ user }) => {
   const qrRef = useRef(null);
 
   const menuUrl = useMemo(() => {
-    return localData.businessUrl?.trim() || "";
+    return normalizeExternalUrl(localData.businessUrl);
   }, [localData.businessUrl]);
 
   const [businessLogoFile, setBusinessLogoFile] = useState(null);
@@ -258,8 +278,13 @@ export const LocalSettingsPanel = ({ user }) => {
   };
 
   const handleCopyBusinessUrl = async () => {
+    if (!menuUrl) {
+      showAlert("La URL del menÃº no es vÃ¡lida", "warning");
+      return;
+    }
+
     try {
-      await navigator.clipboard.writeText(localData.businessUrl || "");
+      await navigator.clipboard.writeText(menuUrl);
       showAlert("URL copiada correctamente", "success");
     } catch {
       showAlert("No se pudo copiar la URL", "error");
@@ -294,11 +319,19 @@ export const LocalSettingsPanel = ({ user }) => {
     }
   };
 
-  const handleOpenMenu = () => {
-    if (!menuUrl) return;
+  const handleOpenMenu = async () => {
+    if (!menuUrl) {
+      showAlert("La URL del menÃº no es vÃ¡lida", "warning");
+      return;
+    }
 
     if (window?.electronAPI?.openExternal) {
-      window.electronAPI.openExternal(menuUrl);
+      const result = await window.electronAPI.openExternal(menuUrl);
+
+      if (!result?.opened) {
+        showAlert("No se pudo abrir el menÃº en el navegador", "error");
+      }
+
       return;
     }
 

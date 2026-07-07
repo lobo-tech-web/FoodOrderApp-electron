@@ -391,12 +391,11 @@ export const RiderPanel = ({ user }) => {
     <Box
       sx={{
         width: "100%",
-        pb: 4,
         height: isElectronApp ? "calc(100vh - 112px)" : "auto",
         overflowY: isElectronApp ? "auto" : "visible",
         overflowX: isElectronApp ? "auto" : "visible",
         pr: isElectronApp ? 1 : 0,
-        pb: isElectronApp ? 3 : 0,
+        pb: isElectronApp ? 3 : 4,
       }}
     >
       {/* PANELNAVBAR DE LOS RIDERS */}
@@ -543,8 +542,11 @@ export const RiderPanel = ({ user }) => {
         </Stack>
       )}
 
-      <TableContainer component={Paper}>
-        <Table aria-label="collapsible table">
+      <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
+        <Table
+          aria-label="collapsible table"
+          sx={{ minWidth: activeTab !== 2 ? 760 : 520 }}
+        >
           <TableHead sx={{ bgcolor: "background.paper" }}>
             {activeTab !== 2 ? (
               <TableRow sx={{ textAlign: "center" }}>

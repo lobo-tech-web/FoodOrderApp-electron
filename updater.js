@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { autoUpdater } = require('electron-updater');
 
+const INITIAL_UPDATE_CHECK_DELAY_MS = 3000;
 const UPDATE_INTERVAL_MS = 4 * 60 * 60 * 1000;
 const UPDATE_FEED = {
   provider: 'github',
@@ -137,7 +138,15 @@ const setupAutoUpdater = (mainWindow) => {
 
   autoUpdater.on('update-downloaded', async (updateInfo) => {
     writeUpdateLog(`update downloaded. version=${updateInfo.version}`);
+    const wasManualCheck = manualCheck;
     manualCheck = false;
+
+    if (!wasManualCheck) {
+      writeUpdateLog('automatic update downloaded. installing now.');
+      autoUpdater.quitAndInstall(false, true);
+      return;
+    }
+
     const result = await showMessage(mainWindow, {
       type: 'info',
       title: 'Actualizacion lista',
@@ -155,7 +164,7 @@ const setupAutoUpdater = (mainWindow) => {
     }
   });
 
-  setTimeout(() => checkForUpdates(mainWindow), 10000);
+  setTimeout(() => checkForUpdates(mainWindow), INITIAL_UPDATE_CHECK_DELAY_MS);
   setInterval(() => checkForUpdates(mainWindow), UPDATE_INTERVAL_MS);
 };
 

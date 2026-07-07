@@ -1,5 +1,5 @@
 export const optionButtonStyle = (active) => ({
-    minHeight: { xs: 82, sm: 74 },
+    minHeight: { xs: 64, sm: 58 },
     borderRadius: '8px',
     borderWidth: '1px',
     borderStyle: 'solid',
@@ -8,16 +8,16 @@ export const optionButtonStyle = (active) => ({
     color: active ? 'primary.main' : 'text.primary',
     display: 'flex',
     flexDirection: 'column',
-    gap: 1,
+    gap: 0.55,
     justifyContent: 'center',
     textTransform: 'uppercase',
     fontFamily: 'fontFamily.primary',
-    fontSize: { xs: '11px', sm: '12px' },
+    fontSize: { xs: '10px', sm: '11px' },
     lineHeight: 1.15,
-    p: 1,
+    p: { xs: 0.65, sm: 0.75 },
     transition: 'border-color 160ms ease, background-color 160ms ease',
     '& .MuiSvgIcon-root': {
-        fontSize: { xs: 26, sm: 25 },
+        fontSize: { xs: 21, sm: 22 },
     },
     '&:hover': {
         borderColor: 'primary.main',

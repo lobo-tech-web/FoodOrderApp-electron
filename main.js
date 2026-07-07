@@ -4,6 +4,7 @@ const {
   ipcMain,
   safeStorage,
   session,
+  shell,
 } = require('electron');
 const fs = require('fs');
 const path = require('path');
@@ -138,6 +139,29 @@ ipcMain.handle('printers:print-html', async (event, payload) => {
     return { printed: false, reason: 'unauthorized' };
   }
   return printerManager.printHtml(payload || {});
+});
+
+ipcMain.handle('shell:open-external', async (event, rawUrl) => {
+  if (!isAuthorizedRenderer(event.sender)) {
+    return { opened: false, reason: 'unauthorized' };
+  }
+
+  try {
+    const url = new URL(String(rawUrl || '').trim());
+
+    if (!['http:', 'https:'].includes(url.protocol)) {
+      return { opened: false, reason: 'unsupported-protocol' };
+    }
+
+    await shell.openExternal(url.toString());
+    return { opened: true };
+  } catch (error) {
+    return {
+      opened: false,
+      reason: 'invalid-url',
+      message: error.message,
+    };
+  }
 });
 
 const createWindow = async () => {

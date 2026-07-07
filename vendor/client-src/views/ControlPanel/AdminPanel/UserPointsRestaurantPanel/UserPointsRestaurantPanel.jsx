@@ -229,8 +229,8 @@ export const UserPointsRestaurantPanel = ({ user }) => {
           showAlert={showAlert}
         />
         {allUserPoints?.length > 0 ? (
-          <TableContainer component={Paper}>
-            <Table>
+          <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
+            <Table sx={{ minWidth: 980 }}>
               <TableHead sx={{ bgcolor: "background.paper" }}>
                 <TableRow sx={{ textAlign: "center" }}>
                   <TableCell sx={tableHeadStyle}>N° DE USUARIO</TableCell>

@@ -223,8 +223,8 @@ export const ProductPanel = ({ user }) => {
         </Box> */}
 
         {allProducts.length > 0 ? (
-          <TableContainer component={Paper}>
-            <Table>
+          <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
+            <Table sx={{ minWidth: 1180 }}>
               <TableHead sx={{ bgcolor: "background.paper" }}>
                 <TableRow sx={{ textAlign: "center" }}>
                   <TableCell sx={tableHeadStyle}>NOMBRE</TableCell>
