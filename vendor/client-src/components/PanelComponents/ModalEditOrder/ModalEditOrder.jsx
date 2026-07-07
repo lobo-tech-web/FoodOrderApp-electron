@@ -521,11 +521,6 @@ export const ModalEditOrder = ({
       return;
     }
 
-    if (!order.contactPhone.trim()) {
-      showAlert("El teléfono de contacto es requerido", "warning");
-      return;
-    }
-
     setLoading(true);
     try {
       const updateData = buildOrderUpdateData();
