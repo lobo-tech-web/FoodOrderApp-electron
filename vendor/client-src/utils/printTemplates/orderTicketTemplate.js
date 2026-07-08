@@ -232,13 +232,13 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
           -webkit-print-color-adjust: exact;
         }
         body {
-          width: 72mm;
-          margin: 0 auto;
-          padding: 1mm 1mm 1mm 2mm;
+          width: 68mm;
+          margin: 0;
+          padding: 1mm 1mm 1mm 1.5mm;
           color: #000;
           background: #fff;
           font-family: "Courier New", Courier, monospace;
-          font-size: 10.8px;
+          font-size: 10.2px;
           line-height: 1.18;
           print-color-adjust: exact;
           -webkit-print-color-adjust: exact;
@@ -246,7 +246,7 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
         h1, h2, p { margin: 0; }
         .ticket {
           position: relative;
-          width: 69mm;
+          width: 66mm;
           min-height: 24mm;
           overflow: hidden;
         }
@@ -270,7 +270,7 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
           padding: 1.4mm 0 1.4mm;
         }
         .ticket-business {
-          font-size: 21px;
+          font-size: 18px;
           font-weight: 900;
           letter-spacing: 0;
           color: #000;
@@ -284,7 +284,7 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
           border: 2px solid #000;
           color: #000 !important;
           background: #fff !important;
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 900;
           line-height: 1.1;
           print-color-adjust: exact;
@@ -302,7 +302,7 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
           color: #000 !important;
           background: #fff !important;
           text-align: center;
-          font-size: 12px;
+          font-size: 10.5px;
           font-weight: 900;
           line-height: 1.1;
           print-color-adjust: exact;
@@ -318,13 +318,13 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
         .ticket-section h2 {
           padding-bottom: 0.7mm;
           border-bottom: 1.5px solid #000;
-          font-size: 15px;
+          font-size: 14px;
           font-weight: 900;
         }
         .ticket-info-row {
           display: grid;
-          grid-template-columns: 19mm minmax(0, 1fr);
-          column-gap: 1.2mm;
+          grid-template-columns: 17mm minmax(0, 1fr);
+          column-gap: 0.8mm;
           margin-top: 0.8mm;
           font-size: 11px;
           font-family: "Courier New", Courier, monospace;
@@ -345,34 +345,43 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
         }
         .ticket-product-line {
           display: grid;
-          grid-template-columns: 5mm minmax(0, 1fr) 22mm;
-          gap: 1mm;
+          grid-template-columns: 3.5mm minmax(0, 1fr) 20mm;
+          gap: 0.7mm;
           align-items: start;
-          font-size: 11px;
+          font-size: 10.4px;
         }
         .ticket-product-qty,
         .ticket-product-name,
         .ticket-product-price {
           font-weight: 700;
-          text-align: right;
           white-space: nowrap;
         }
+        .ticket-product-qty {
+          text-align: center;
+        }
         .ticket-product-name {
+          text-align: left;
           overflow-wrap: anywhere;
+          white-space: normal;
+          word-break: break-word;
+        }
+        .ticket-product-price {
+          text-align: right;
+          font-size: 10.2px;
         }
         .ticket-options {
-          margin: 0.6mm 0 0 6mm;
-          font-size: 10px;
+          margin: 0.6mm 0 0 4.4mm;
+          font-size: 9.8px;
           font-weight: 700;
           overflow-wrap: anywhere;
         }
         .ticket-points-row,
         .ticket-total-row {
           display: grid;
-          grid-template-columns: minmax(0, 1fr) 24mm;
-          gap: 1.5mm;
+          grid-template-columns: minmax(0, 1fr) 22mm;
+          gap: 1mm;
           margin-top: 1mm;
-          font-size: 11px;
+          font-size: 10.4px;
         }
         .ticket-total-row span:last-child {
           text-align: right;
@@ -390,15 +399,15 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
         }
         .ticket-grand-total {
           display: grid;
-          grid-template-columns: minmax(0, 1fr) 28mm;
+          grid-template-columns: minmax(0, 1fr) 24mm;
           align-items: baseline;
-          gap: 3mm;
+          gap: 1mm;
           padding: 1.6mm 0;
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 900;
         }
         .ticket-grand-total span:last-child {
-          font-size: 17px;
+          font-size: 15px;
           white-space: nowrap;
           text-align: right;
         }

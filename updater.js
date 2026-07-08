@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { autoUpdater } = require('electron-updater');
 
-const INITIAL_UPDATE_CHECK_DELAY_MS = 3000;
+const INITIAL_UPDATE_CHECK_DELAY_MS = 1000;
 const UPDATE_INTERVAL_MS = 4 * 60 * 60 * 1000;
 const UPDATE_FEED = {
   provider: 'github',
@@ -12,8 +12,8 @@ const UPDATE_FEED = {
   releaseType: 'release',
 };
 let initialized = false;
-let manualCheck = false;
 let checkingForUpdates = false;
+let activeCheckMode = 'background';
 
 autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
@@ -44,7 +44,15 @@ const showMessage = (mainWindow, options) => {
   return dialog.showMessageBox(mainWindow, options);
 };
 
-const checkForUpdates = async (mainWindow, { manual = false } = {}) => {
+const sendUpdateStatus = (mainWindow, payload) => {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  mainWindow.webContents.send('update-status', payload);
+};
+
+const checkForUpdates = async (
+  mainWindow,
+  { manual = false, mode = manual ? 'manual' : 'background' } = {}
+) => {
   if (!app.isPackaged) {
     if (manual) {
       await showMessage(mainWindow, {
@@ -57,21 +65,28 @@ const checkForUpdates = async (mainWindow, { manual = false } = {}) => {
     return null;
   }
 
-  manualCheck = manual;
-
   if (checkingForUpdates) {
     if (manual) {
-      await showMessage(mainWindow, {
-        type: 'info',
-        title: 'Actualizaciones',
+      sendUpdateStatus(mainWindow, {
+        status: 'checking',
+        mode,
         message: 'Ya hay una busqueda de actualizaciones en curso.',
       });
     }
     return null;
   }
 
+  activeCheckMode = mode;
   checkingForUpdates = true;
-  writeUpdateLog(`checking for updates. manual=${manual}`);
+  writeUpdateLog(`checking for updates. mode=${mode}`);
+
+  if (mode === 'startup' || manual) {
+    sendUpdateStatus(mainWindow, {
+      status: 'checking',
+      mode,
+      message: 'Buscando actualizaciones...',
+    });
+  }
 
   try {
     const result = await autoUpdater.checkForUpdates();
@@ -79,18 +94,25 @@ const checkForUpdates = async (mainWindow, { manual = false } = {}) => {
   } catch (error) {
     writeUpdateLog('check for updates failed.', error);
     if (manual) {
-      await showMessage(mainWindow, {
-        type: 'error',
-        title: 'No se pudo buscar actualizaciones',
-        message: 'Revisa tu conexion a Internet e intenta nuevamente.',
+      sendUpdateStatus(mainWindow, {
+        status: 'error',
+        mode,
+        message: 'No se pudo buscar actualizaciones.',
         detail: error.message,
       });
     }
-    manualCheck = false;
     return null;
   } finally {
     checkingForUpdates = false;
   }
+};
+
+const installDownloadedUpdate = () => {
+  writeUpdateLog('install update requested from renderer.');
+  if (!app.isPackaged) return { installing: false, reason: 'not-packaged' };
+
+  setTimeout(() => autoUpdater.quitAndInstall(false, true), 250);
+  return { installing: true };
 };
 
 const setupAutoUpdater = (mainWindow) => {
@@ -103,34 +125,50 @@ const setupAutoUpdater = (mainWindow) => {
 
   autoUpdater.on('update-not-available', async () => {
     writeUpdateLog('update not available.');
-    if (!manualCheck) return;
-    manualCheck = false;
-    await showMessage(mainWindow, {
-      type: 'info',
-      title: 'FoodOrderApp Admin',
+    const mode = activeCheckMode;
+    activeCheckMode = 'background';
+
+    if (mode === 'startup') {
+      sendUpdateStatus(mainWindow, { status: 'idle', mode });
+      return;
+    }
+
+    if (mode !== 'manual') return;
+
+    sendUpdateStatus(mainWindow, {
+      status: 'not-available',
+      mode,
       message: 'Ya tienes la version mas reciente.',
     });
   });
 
   autoUpdater.on('update-available', async (updateInfo) => {
     writeUpdateLog(`update available. version=${updateInfo.version}`);
-    if (manualCheck) {
-      await showMessage(mainWindow, {
-        type: 'info',
-        title: 'Actualizacion encontrada',
-        message: `Se encontro FoodOrderApp Admin ${updateInfo.version}.`,
-        detail: 'La descarga comenzara automaticamente.',
-      });
-    }
+    if (activeCheckMode === 'background') return;
+
+    sendUpdateStatus(mainWindow, {
+      status: 'downloading',
+      mode: activeCheckMode,
+      version: updateInfo.version,
+      message: `Descargando FoodOrderApp Admin ${updateInfo.version}...`,
+    });
   });
 
   autoUpdater.on('error', async (error) => {
     writeUpdateLog('updater error.', error);
-    if (!manualCheck) return;
-    manualCheck = false;
-    await showMessage(mainWindow, {
-      type: 'error',
-      title: 'Error de actualizacion',
+    const mode = activeCheckMode;
+    activeCheckMode = 'background';
+
+    if (mode === 'startup') {
+      sendUpdateStatus(mainWindow, { status: 'idle', mode });
+      return;
+    }
+
+    if (mode !== 'manual') return;
+
+    sendUpdateStatus(mainWindow, {
+      status: 'error',
+      mode,
       message: 'No se pudo completar la busqueda de actualizaciones.',
       detail: error.message,
     });
@@ -138,37 +176,42 @@ const setupAutoUpdater = (mainWindow) => {
 
   autoUpdater.on('update-downloaded', async (updateInfo) => {
     writeUpdateLog(`update downloaded. version=${updateInfo.version}`);
-    const wasManualCheck = manualCheck;
-    manualCheck = false;
+    const mode = activeCheckMode;
+    activeCheckMode = 'background';
 
-    if (!wasManualCheck) {
-      writeUpdateLog('automatic update downloaded. installing now.');
-      autoUpdater.quitAndInstall(false, true);
+    if (mode === 'startup') {
+      writeUpdateLog('startup update downloaded. installing now.');
+      sendUpdateStatus(mainWindow, {
+        status: 'installing',
+        mode,
+        version: updateInfo.version,
+        message:
+          'Actualizacion descargada. La aplicacion se reiniciara para instalarla.',
+      });
+      setTimeout(() => autoUpdater.quitAndInstall(false, true), 1200);
       return;
     }
 
-    const result = await showMessage(mainWindow, {
-      type: 'info',
-      title: 'Actualizacion lista',
+    sendUpdateStatus(mainWindow, {
+      status: 'ready',
+      mode,
+      version: updateInfo.version,
       message: `FoodOrderApp Admin ${updateInfo.version} esta listo para instalar.`,
-      detail:
-        'La aplicacion se cerrara y volvera a abrir con la nueva version.',
-      buttons: ['Actualizar ahora', 'Mas tarde'],
-      defaultId: 0,
-      cancelId: 1,
-      noLink: true,
+      detail: 'Puedes actualizar ahora o seguir trabajando y actualizar mas tarde.',
     });
-
-    if (result?.response === 0) {
-      autoUpdater.quitAndInstall(false, true);
-    }
   });
 
-  setTimeout(() => checkForUpdates(mainWindow), INITIAL_UPDATE_CHECK_DELAY_MS);
-  setInterval(() => checkForUpdates(mainWindow), UPDATE_INTERVAL_MS);
+  setTimeout(
+    () => checkForUpdates(mainWindow, { mode: 'startup' }),
+    INITIAL_UPDATE_CHECK_DELAY_MS
+  );
+  setInterval(() => {
+    checkForUpdates(mainWindow, { mode: 'background' });
+  }, UPDATE_INTERVAL_MS);
 };
 
 module.exports = {
   checkForUpdates,
+  installDownloadedUpdate,
   setupAutoUpdater,
 };

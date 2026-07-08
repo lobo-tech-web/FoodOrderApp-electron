@@ -10,7 +10,11 @@ const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const { setMainMenu } = require('./menu.js');
-const { setupAutoUpdater, checkForUpdates } = require('./updater.js');
+const {
+  setupAutoUpdater,
+  checkForUpdates,
+  installDownloadedUpdate,
+} = require('./updater.js');
 const { createPrinterManager } = require('./printer-manager.js');
 
 const devServerUrl = process.env.ELECTRON_RENDERER_URL;
@@ -162,6 +166,14 @@ ipcMain.handle('shell:open-external', async (event, rawUrl) => {
       message: error.message,
     };
   }
+});
+
+ipcMain.handle('updates:install', (event) => {
+  if (!isAuthorizedRenderer(event.sender)) {
+    return { installing: false, reason: 'unauthorized' };
+  }
+
+  return installDownloadedUpdate();
 });
 
 const createWindow = async () => {
