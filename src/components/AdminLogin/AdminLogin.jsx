@@ -40,6 +40,12 @@ import { useUser } from "@/context/Users.jsx";
 import { buttonStyle1 } from "../styles/buttonStyle.js";
 // ----------------
 
+const getPanelPathByRole = (role) => {
+  if (role === "dev") return "/dev-control-panel";
+  if (role === "admin") return "/control-panel";
+  return "";
+};
+
 export const AdminLogin = () => {
   const navigate = useNavigate();
   const { lobotechTheme } = useLobotechThemeContext();
@@ -75,13 +81,15 @@ export const AdminLogin = () => {
 
     if (!user.id) return;
 
-    if (user.role === "admin") {
-      navigate("/control-panel", { replace: true });
+    const panelPath = getPanelPathByRole(user.role);
+
+    if (panelPath) {
+      navigate(panelPath, { replace: true });
       return;
     }
 
     userLogOut();
-    setMessage("Este acceso es solo para administradores.");
+    setMessage("Este acceso es solo para administradores y desarrolladores.");
   }, [navigate, userLogOut, userState.user]);
 
   const handleInputChange = (event) => {

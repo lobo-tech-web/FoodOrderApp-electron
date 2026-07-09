@@ -141,7 +141,7 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
         body {
           width: 68mm;
           margin: 0;
-          padding: 1mm 1mm 1mm 1.5mm;
+          padding: 1mm 1mm 1mm 4mm;
           color: #000;
           background: #fff;
           font-family: Arial, Helvetica, sans-serif;
@@ -152,7 +152,7 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
         }
         h1, h2, p { margin: 0; }
         .cook-order-container {
-          width: 66mm;
+          width: 63.5mm;
         }
         .header {
           text-align: center;
@@ -209,7 +209,7 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
         }
         .item-name {
           flex: 1;
-          font-size: 13px;
+          font-size: 12.5px;
           font-weight: 900;
           overflow-wrap: anywhere;
         }

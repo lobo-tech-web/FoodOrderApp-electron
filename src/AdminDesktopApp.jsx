@@ -15,8 +15,15 @@ import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
 import { AdminLogin } from "./components/AdminLogin/AdminLogin.jsx";
 import { LocalOrders } from "./components/LocalOrders/LocalOrders.jsx";
 import { AdminPanel } from "@/views/ControlPanel/AdminPanel/AdminPanel.jsx";
+import { DevPanel } from "@/views/ControlPanel/DevPanel/DevPanel.jsx";
 import { PrinterConfigModal } from "@/components/PanelComponents/ModalEditOrder/PrinterConfig/PrinterConfigModal.jsx";
 import { useUser } from "@/context/Users.jsx";
+
+const getHomePathByRole = (role) => {
+  if (role === "dev") return "/dev-control-panel";
+  if (role === "admin") return "/control-panel";
+  return "/";
+};
 
 const ElectronBridge = ({ onOpenPrinterConfig }) => {
   const navigate = useNavigate();
@@ -27,7 +34,18 @@ const ElectronBridge = ({ onOpenPrinterConfig }) => {
 
     return window.electronAPI.onNavigate((path) => {
       const user = userState.user || {};
-      navigate(user.id && user.role === "admin" ? path : "/");
+
+      if (!user.id) {
+        navigate("/");
+        return;
+      }
+
+      if (user.role === "admin") {
+        navigate(path);
+        return;
+      }
+
+      navigate(getHomePathByRole(user.role));
     });
   }, [navigate, userState.user]);
 
@@ -92,6 +110,7 @@ export const AdminDesktopApp = () => {
       <Routes>
         <Route path="/" element={<AdminLogin />} />
         <Route path="/control-panel" element={<AdminPanel />} />
+        <Route path="/dev-control-panel" element={<DevPanel />} />
         <Route path="/local-orders" element={<LocalOrders />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
