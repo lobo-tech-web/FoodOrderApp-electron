@@ -1,77 +1,64 @@
-import { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 // ---- MATERIAL UI ----
-import { Typography, Box, Tab, Tabs, ThemeProvider } from '@mui/material';
+import {
+  Typography,
+  Box,
+  Drawer,
+  Toolbar,
+  CssBaseline,
+  AppBar,
+  IconButton,
+  ThemeProvider,
+} from "@mui/material";
+// ICONS
+import { Menu as MenuIcon } from "@mui/icons-material";
 // <--------------------
 
-// ---- THEME ----
-import { lobotechAppTheme } from '@/theme/main-theme.js';
-// <--------------
-
-// ---- CONTEXT ----
-import { useUser } from '@/context/Users.jsx';
-// <----------------
-
 // ---- COMPONENTS ----
-import { LoadingComponent } from '@/components/LoadingComponent/LoadingComponent.jsx';
-import { UserNavBar } from '@/components/PanelComponents/UserNavBar/UserNavBar.jsx';
-import { UsersPanel } from './UsersPanel/UsersPanel.jsx';
-import { GetInfoFromUser } from './GetInfoFromUser/GetInfoFromUser.jsx';
-import { UserPointsPanel } from './UserPointsPanel/UserPointsPanel.jsx';
-import { AllStatsPanel } from './AllStatsPanel/AllStatsPanel.jsx';
+import { DevDrawer } from "./DevDrawer/DevDrawer.jsx";
+import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
+import { UserProfile } from "@/views/UserProfile/UserProfile.jsx";
+import { UsersPanel } from "./UsersPanel/UsersPanel.jsx";
+import { GetInfoFromUser } from "./GetInfoFromUser/GetInfoFromUser.jsx";
+import { UserPointsPanel } from "./UserPointsPanel/UserPointsPanel.jsx";
+import { AllStatsPanel } from "./AllStatsPanel/AllStatsPanel.jsx";
 // --------------------
 
+// ---- CONTEXT ----
+import { useLobotechThemeContext } from "@/context/ThemeContext.jsx";
+import { useUser } from "@/context/Users.jsx";
+// -----------------
+
 // ---- STYLES ----
-const tabStyles = {
-  fontFamily: 'fontFamily.primary',
-  color: 'text.primary',
-  borderRadius: 1,
-  '&.Mui-selected': {
-    color: 'primary.main',
-    bgcolor: 'background.default',
-  },
-};
+const drawerWidth = 260;
 // ----------------
-
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
-}
 
 export const DevPanel = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
+  const [activeTab, setActiveTab] = useState(1);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
   // CONTEXT
+  const { lobotechTheme } = useLobotechThemeContext();
   const { userState, getAllUsers, userLogOut } = useUser();
   const user = useMemo(() => userState.user || {}, [userState.user]);
 
   const logoutUser = () => {
     userLogOut();
-    navigate('/');
-  };
-
-  const [value, setValue] = useState(0);
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
+    navigate("/");
   };
 
   useEffect(() => {
-    if (!user.id || user.role !== 'dev') {
-      navigate('/');
+    if (!user || !user.id || user.role !== "dev") {
+      navigate("/");
       return;
     }
     const fetchData = async () => {
@@ -79,76 +66,120 @@ export const DevPanel = () => {
       try {
         await getAllUsers();
       } catch (error) {
-        console.error('Error al obtener usuarios:', error);
+        console.error("Error al obtener usuarios:", error);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
-  }, [user.id, navigate, getAllUsers]);
+  }, [user, navigate, getAllUsers]);
 
   if (loading) return <LoadingComponent />;
 
   return (
-    <ThemeProvider theme={lobotechAppTheme}>
-      <Box
-        sx={{
-          width: '100%',
-          minHeight: '100vh',
-          bgcolor: 'background.main',
-          position: 'relative',
-        }}
-      >
-        <UserNavBar user={user} onLogout={logoutUser} />
-        <Typography
-          variant="h4"
+    <ThemeProvider theme={lobotechTheme}>
+      <Box sx={{ display: "flex" }}>
+        <CssBaseline />
+
+        {/* NAVBAR SUPERIOR: Ahora mucho más limpia, solo título y botón menú */}
+        <AppBar
+          position="fixed"
+          elevation={0}
           sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            fontFamily: 'fontFamily.primary',
-            color: 'primary.main',
-            pt: 3,
+            width: { md: `calc(100% - ${drawerWidth}px)` },
+            ml: { md: `${drawerWidth}px` },
+            bgcolor: "background.paper",
+            borderBottom: "1px solid",
+            borderColor: "divider",
           }}
         >
-          PANEL DEVELOPER
-        </Typography>
+          <Toolbar>
+            <IconButton
+              color="inherit"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2, display: { md: "none" }, color: "primary.main" }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography
+              variant="h6"
+              noWrap
+              sx={{ fontFamily: "fontFamily.primary", color: "text.primary" }}
+            >
+              {activeTab === 0 && "GESTIÓN MI CUENTA"}
+              {activeTab === 1 && "GESTIÓN DE USUARIOS"}
+              {activeTab === 11 && "INFORMACIÓN DE USUARIO"}
+              {activeTab === 2 && "FIDELIZACIÓN DE USUARIOS"}
+              {activeTab === 3 && "STATS GLOBALES"}
+            </Typography>
+          </Toolbar>
+        </AppBar>
+
         <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            flexWrap: 'wrap',
-            gap: 5,
-            borderBottom: 1,
-            borderColor: 'divider',
-            mt: 2,
-          }}
+          component="nav"
+          sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
         >
-          <Tabs
-            value={value}
-            onChange={handleChange}
-            aria-label="user panel tabs"
+          {/* Móvil */}
+          <Drawer
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            ModalProps={{ keepMounted: true }}
             sx={{
-              '& .MuiTabs-indicator': { backgroundColor: 'text.secondary' },
+              display: { xs: "block", md: "none" },
+              "& .MuiDrawer-paper": { width: drawerWidth },
             }}
           >
-            <Tab label="Usuarios" sx={tabStyles} />
-            <Tab label="Info. User" sx={tabStyles} />
-            <Tab label="Ptos. Usuarios" sx={tabStyles} />
-            <Tab label="Stats globales" sx={tabStyles} />
-          </Tabs>
+            <DevDrawer
+              user={user}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              onLogout={logoutUser}
+              onCloseMobile={() => setMobileOpen(false)}
+            />
+          </Drawer>
+
+          {/* Desktop */}
+          <Drawer
+            variant="permanent"
+            sx={{
+              display: { xs: "none", md: "block" },
+              "& .MuiDrawer-paper": {
+                width: drawerWidth,
+                borderRight: "1px solid",
+                borderColor: "divider",
+              },
+            }}
+            open
+          >
+            <DevDrawer
+              user={user}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              onLogout={logoutUser}
+            />
+          </Drawer>
         </Box>
-        <TabPanel value={value} index={0}>
-          <UsersPanel />
-        </TabPanel>
-        <TabPanel value={value} index={1}>
-          <GetInfoFromUser />
-        </TabPanel>
-        <TabPanel value={value} index={2}>
-          <UserPointsPanel />
-        </TabPanel>
-        <TabPanel value={value} index={3}>
-          <AllStatsPanel />
-        </TabPanel>
+
+        {/* CONTENIDO PRINCIPAL CENTRAL */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: 3,
+            width: { md: `calc(100% - ${drawerWidth}px)` },
+            bgcolor: "background.default",
+          }}
+        >
+          <Toolbar /> {/* Espaciador */}
+          {activeTab === 0 && <UserProfile />}
+          {activeTab === 1 && <UsersPanel user={user} />}
+          {activeTab === 11 && <GetInfoFromUser user={user} />}
+          {activeTab === 2 && <UserPointsPanel user={user} />}
+          {activeTab === 3 && <AllStatsPanel user={user} />}
+        </Box>
       </Box>
     </ThemeProvider>
   );

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from "react";
 
 // ---- MATERIAL UI ----
 import {
@@ -13,44 +13,57 @@ import {
   TableRow,
   Paper,
   TablePagination,
-} from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import CheckIcon from '@mui/icons-material/Check';
-import ClearIcon from '@mui/icons-material/Clear';
-import RestoreIcon from '@mui/icons-material/Restore';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+} from "@mui/material";
+//  Icons
+import {
+  Edit as EditIcon,
+  Check as CheckIcon,
+  Clear as ClearIcon,
+  Restore as RestoreIcon,
+  ContentCopy as ContentCopyIcon,
+  AlternateEmail as AlternateEmailIcon,
+  Tag as TagIcon,
+  Person as PersonIcon,
+  Smartphone as SmartphoneIcon,
+  Badge as BadgeIcon,
+  Home as HomeIcon,
+  FmdGood as FmdGoodIcon,
+  Public as PublicIcon,
+} from "@mui/icons-material";
 // ------------------
 
 // ------ COMPONENTS ----->
-import { LoadingComponent } from '@/components/LoadingComponent/LoadingComponent.jsx';
-import { ModalEditUser } from '@/components/PanelComponents/ModalEditUser/ModalEditUser.jsx';
-import { RestoreUserPassword } from '@/components/PanelComponents/RestoreUserPassword/RestoreUserPassword.jsx';
-import { DevPanelNavBar } from '@/components/PanelComponents/DevPanelNavBar/DevPanelNavBar.jsx';
+import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
+import { ModalEditUser } from "@/components/PanelComponents/ModalEditUser/ModalEditUser.jsx";
+import { RestoreUserPassword } from "@/components/PanelComponents/RestoreUserPassword/RestoreUserPassword.jsx";
+import { DevPanelNavBar } from "@/components/PanelComponents/DevPanelNavBar/DevPanelNavBar.jsx";
 // <-----------------------
 
 // ---- CONTEXT ----
-import { useUser } from '@/context/Users.jsx';
+import { useUser } from "@/context/Users.jsx";
 // <----------------
 
 // ---- HOOKS ----
-import { useAlert } from '@/hooks/Alert.jsx';
+import { useAlert } from "@/hooks/Alert.jsx";
 // ---------------
 
 // ---- STYLES ----
 const tableHeadStyle = {
-  color: 'primary.main',
-  textAlign: 'center',
-  fontFamily: 'fontFamily.primary',
+  color: "primary.main",
+  textAlign: "center",
+  fontFamily: "fontFamily.primary",
 };
 
 const tableCellStyle = {
-  color: 'text.primary',
-  textAlign: 'center',
-  fontFamily: 'fontFamily.secondary',
+  color: "text.primary",
+  textAlign: "center",
+  fontFamily: "fontFamily.secondary",
 };
 // ----------------
 
 export const UsersPanel = () => {
+  const isElectronApp =
+    typeof window !== "undefined" && Boolean(window.electronAPI);
   const { AlertComponent, showAlert } = useAlert();
   const [loading, setLoading] = useState(false);
 
@@ -72,10 +85,10 @@ export const UsersPanel = () => {
     navigator.clipboard
       .writeText(text)
       .then(() => {
-        showAlert(`Copiado: ${text}`, 'success');
+        showAlert(`Copiado: ${text}`, "success");
       })
       .catch((err) => {
-        showAlert(`Error al copiar al portapapeles: ${err}`, 'error');
+        showAlert(`Error al copiar al portapapeles: ${err}`, "error");
       });
   };
 
@@ -85,7 +98,7 @@ export const UsersPanel = () => {
   // ME TRAIGO A TODOS LOS USUARIOS
   const allUsers = useMemo(
     () => userState?.showUsers || [],
-    [userState?.showUsers]
+    [userState?.showUsers],
   );
 
   // ESTADO PARA MODAL EDIT USER
@@ -121,38 +134,43 @@ export const UsersPanel = () => {
   if (loading) return <LoadingComponent />;
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-      <Box sx={{ maxWidth: 'auto', width: '100%' }}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        height: isElectronApp ? "calc(100vh - 112px)" : "auto",
+        overflowY: isElectronApp ? "auto" : "visible",
+        overflowX: isElectronApp ? "auto" : "visible",
+        pr: isElectronApp ? 1 : 0,
+        pb: isElectronApp ? 3 : 0,
+      }}
+    >
+      <Box sx={{ maxWidth: "auto", width: "100%" }}>
         <DevPanelNavBar isUsersPanel={true} refreshUsers={fetchUsers} />
         {allUsers && allUsers?.length > 0 ? (
           <Paper
-            sx={{ width: '100%', mb: 2, borderRadius: 2, overflow: 'hidden' }}
+            sx={{ width: "100%", mb: 2, borderRadius: 2, overflow: "hidden" }}
           >
             <TableContainer>
               <Table>
-                <TableHead sx={{ bgcolor: 'background.paper' }}>
-                  <TableRow sx={{ textAlign: 'center' }}>
+                <TableHead sx={{ bgcolor: "background.paper" }}>
+                  <TableRow sx={{ textAlign: "center" }}>
                     <TableCell sx={tableHeadStyle}>RESET PASS</TableCell>
                     <TableCell sx={tableHeadStyle}>ID</TableCell>
-                    <TableCell sx={tableHeadStyle}>N° USUARIO</TableCell>
                     <TableCell sx={tableHeadStyle}>EMAIL</TableCell>
-                    <TableCell sx={tableHeadStyle}>NOMBRE</TableCell>
+                    <TableCell sx={tableHeadStyle}>DATOS</TableCell>
                     <TableCell sx={tableHeadStyle}>CUIT</TableCell>
-                    <TableCell sx={tableHeadStyle}>TEL.</TableCell>
-                    <TableCell sx={tableHeadStyle}>DIRECCIÓN</TableCell>
-                    <TableCell sx={tableHeadStyle}>CIUDAD</TableCell>
-                    <TableCell sx={tableHeadStyle}>PROVINCIA</TableCell>
-                    <TableCell sx={tableHeadStyle}>CP</TableCell>
-                    <TableCell sx={tableHeadStyle}>ROLE</TableCell>
-                    <TableCell sx={tableHeadStyle}>ESTADO</TableCell>
+                    <TableCell sx={tableHeadStyle}>UBICACIÓN</TableCell>
+                    <TableCell sx={tableHeadStyle}>STATUS/ROLE</TableCell>
+                    <TableCell sx={tableHeadStyle}>ULT. CONEX.</TableCell>
                     <TableCell sx={tableHeadStyle}>MODIFICAR</TableCell>
                   </TableRow>
                 </TableHead>
-                <TableBody sx={{ fontFamily: 'fontFamily.terciary' }}>
+                <TableBody sx={{ fontFamily: "fontFamily.terciary" }}>
                   {(rowsPerPage > 0
                     ? allUsers.slice(
                         page * rowsPerPage,
-                        page * rowsPerPage + rowsPerPage
+                        page * rowsPerPage + rowsPerPage,
                       )
                     : allUsers
                   ).map((user) => (
@@ -161,10 +179,10 @@ export const UsersPanel = () => {
                         <Button onClick={() => handleOpenRestorePassword(user)}>
                           <RestoreIcon
                             sx={{
-                              color: 'primary.main',
-                              textAlign: 'center',
-                              '&:hover': {
-                                color: 'primary.main',
+                              color: "primary.main",
+                              textAlign: "center",
+                              "&:hover": {
+                                color: "primary.main",
                               },
                             }}
                           />
@@ -173,17 +191,26 @@ export const UsersPanel = () => {
                       <TableCell component="th" scope="row" sx={tableCellStyle}>
                         <Box
                           sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
-                          {user.id}
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontFamily: "fontFamily.secondary",
+                              fontSize: "0.80rem",
+                              color: "text.primary",
+                            }}
+                          >
+                            USER ID
+                          </Typography>
                           <Button
                             onClick={() => copyToClipboard(user.id)}
                             sx={{
-                              color: 'primary.main',
-                              minWidth: 'auto',
+                              color: "primary.main",
+                              minWidth: "auto",
                               ml: 1,
                             }}
                           >
@@ -193,24 +220,46 @@ export const UsersPanel = () => {
                             />
                           </Button>
                         </Box>
-                      </TableCell>
-                      <TableCell component="th" scope="row" sx={tableCellStyle}>
-                        {user.userNumber}
                       </TableCell>
                       <TableCell component="th" scope="row" sx={tableCellStyle}>
                         <Box
                           sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
-                          {user.email}
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              textAlign: "center",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              flexDirection: "row",
+                              gap: 0.5,
+                            }}
+                          >
+                            <AlternateEmailIcon
+                              sx={{ color: "primary.main", fontSize: "1.2rem" }}
+                            />
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontFamily: "fontFamily.secondary",
+                                fontSize: "0.85rem",
+                                color: "text.primary",
+                              }}
+                            >
+                              {user.email}
+                            </Typography>
+                          </Box>
+
                           <Button
                             onClick={() => copyToClipboard(user.email)}
                             sx={{
-                              color: 'text.secondary',
-                              minWidth: 'auto',
+                              color: "text.secondary",
+                              minWidth: "auto",
                               ml: 1,
                             }}
                           >
@@ -222,53 +271,318 @@ export const UsersPanel = () => {
                         </Box>
                       </TableCell>
                       <TableCell component="th" scope="row" sx={tableCellStyle}>
-                        {user.name}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              textAlign: "center",
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 0.5,
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                textAlign: "center",
+                                flexDirection: "row",
+                                gap: 0.5,
+                              }}
+                            >
+                              <TagIcon
+                                sx={{ color: "primary.main", fontSize: "1rem" }}
+                              />
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  fontFamily: "fontFamily.secondary",
+                                  fontSize: "0.85rem",
+                                  color: "text.primary",
+                                }}
+                              >
+                                {user?.userNumber}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              textAlign: "center",
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 0.5,
+                            }}
+                          >
+                            <PersonIcon
+                              sx={{ color: "primary.main", fontSize: "1rem" }}
+                            />
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontFamily: "fontFamily.secondary",
+                                fontSize: "0.85rem",
+                                color: "text.primary",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
+                              {user?.name}
+                            </Typography>
+                          </Box>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              textAlign: "center",
+                              alignItems: "center",
+                              flexDirection: "row",
+                              gap: 0.5,
+                            }}
+                          >
+                            <SmartphoneIcon
+                              sx={{ color: "primary.main", fontSize: "1rem" }}
+                            />
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontFamily: "fontFamily.secondary",
+                                fontSize: "0.85rem",
+                                color: "text.primary",
+                              }}
+                            >
+                              {user?.phone}
+                            </Typography>
+                          </Box>
+                        </Box>
                       </TableCell>
                       <TableCell component="th" scope="row" sx={tableCellStyle}>
-                        {user.cuit}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              textAlign: "center",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              flexDirection: "row",
+                              gap: 0.5,
+                            }}
+                          >
+                            <BadgeIcon
+                              sx={{ color: "primary.main", fontSize: "1.3rem" }}
+                            />
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontFamily: "fontFamily.secondary",
+                                fontSize: "0.85rem",
+                                color: "text.primary",
+                              }}
+                            >
+                              {user.cuit}
+                            </Typography>
+                          </Box>
+                        </Box>
                       </TableCell>
                       <TableCell component="th" scope="row" sx={tableCellStyle}>
-                        {user.phone}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            flexDirection: "column",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              textAlign: "center",
+                              flexDirection: "row",
+                              gap: 0.5,
+                            }}
+                          >
+                            <HomeIcon
+                              sx={{ color: "primary.main", fontSize: "1rem" }}
+                            />
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontFamily: "fontFamily.secondary",
+                                fontSize: "0.85rem",
+                                color: "text.primary",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
+                              {user.address}
+                            </Typography>
+                          </Box>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              textAlign: "center",
+                              flexDirection: "row",
+                              gap: 0.5,
+                            }}
+                          >
+                            <FmdGoodIcon
+                              sx={{ color: "primary.main", fontSize: "1rem" }}
+                            />
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontFamily: "fontFamily.secondary",
+                                fontSize: "0.75rem",
+                                color: "text.primary",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
+                              {user.city}
+                            </Typography>
+                          </Box>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              textAlign: "center",
+                              flexDirection: "row",
+                              gap: 0.5,
+                            }}
+                          >
+                            <PublicIcon
+                              sx={{ color: "primary.main", fontSize: "1rem" }}
+                            />
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontFamily: "fontFamily.secondary",
+                                fontSize: "0.75rem",
+                                color: "text.primary",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
+                              {user.state}
+                            </Typography>
+                          </Box>
+                        </Box>
                       </TableCell>
                       <TableCell component="th" scope="row" sx={tableCellStyle}>
-                        {user.address}
-                      </TableCell>
-                      <TableCell component="th" scope="row" sx={tableCellStyle}>
-                        {user.city}
-                      </TableCell>
-                      <TableCell component="th" scope="row" sx={tableCellStyle}>
-                        {user.state}
-                      </TableCell>
-                      <TableCell component="th" scope="row" sx={tableCellStyle}>
-                        {user.postalCode}
-                      </TableCell>
-                      <TableCell component="th" scope="row" sx={tableCellStyle}>
-                        {user.role}
-                      </TableCell>
-                      <TableCell>
-                        {user.status ? (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "center",
+                            alignContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
                           <Typography
                             variant="body2"
                             sx={{
-                              fontFamily: 'fontFamily.terciary',
-                              color: 'success.main',
-                              textAlign: 'center',
+                              fontFamily: "fontFamily.terciary",
+                              color: "text.primary",
+                              textAlign: "center",
+                              textTransform: "uppercase",
                             }}
                           >
-                            ACTIVO
-                            <CheckIcon />
+                            {user.role}
                           </Typography>
+                          {user.status ? (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                gap: 0.5,
+                              }}
+                            >
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontFamily: "fontFamily.terciary",
+                                  color: "success.main",
+                                }}
+                              >
+                                ACTIVO
+                              </Typography>
+                              <CheckIcon
+                                sx={{
+                                  color: "success.main",
+                                  fontSize: "0.85rem",
+                                }}
+                              />
+                            </Box>
+                          ) : (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                gap: 0.5,
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  fontFamily: "fontFamily.terciary",
+                                  color: "error.main",
+                                  textAlign: "center",
+                                }}
+                              >
+                                DESACTIVADO
+                              </Typography>
+                              <ClearIcon
+                                sx={{
+                                  color: "error.main",
+                                  fontSize: "0.85rem",
+                                }}
+                              />
+                            </Box>
+                          )}
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        {user?.lastLoginAt && user.lastLoginAt?.day ? (
+                          <Box>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontFamily: "fontFamily.terciary",
+                                color: "text.primary",
+                                textAlign: "center",
+                              }}
+                            >
+                              {`${user.lastLoginAt?.day}/${user.lastLoginAt?.month}/${user.lastLoginAt?.year}`}
+                            </Typography>
+                          </Box>
                         ) : (
                           <Typography
                             variant="body2"
                             sx={{
-                              fontFamily: 'fontFamily.terciary',
-                              color: 'error.main',
-                              textAlign: 'center',
+                              fontFamily: "fontFamily.terciary",
+                              color: "text.primary",
+                              textAlign: "center",
                             }}
                           >
-                            DESACTIVADO
-                            <ClearIcon />
+                            SIN DATOS
                           </Typography>
                         )}
                       </TableCell>
@@ -276,8 +590,8 @@ export const UsersPanel = () => {
                         <Button onClick={() => handleOpenEditUser(user)}>
                           <EditIcon
                             sx={{
-                              color: 'primary.main',
-                              textAlign: 'center',
+                              color: "primary.main",
+                              textAlign: "center",
                             }}
                           />
                         </Button>
@@ -300,9 +614,9 @@ export const UsersPanel = () => {
                     `${from}–${to} de ${count !== -1 ? count : `más de ${to}`}`
                   }
                   sx={{
-                    fontFamily: 'fontFamily.primary',
-                    bgcolor: 'background.paper',
-                    color: 'text.primary',
+                    fontFamily: "fontFamily.primary",
+                    bgcolor: "background.paper",
+                    color: "text.primary",
                   }}
                 />
               )}
@@ -311,13 +625,13 @@ export const UsersPanel = () => {
         ) : (
           <Typography
             sx={{
-              display: 'flex',
-              alignContent: 'center',
-              justifyContent: 'center',
-              width: '100%',
-              paddingTop: '10rem',
-              fontFamily: 'fontFamily.primary',
-              color: 'text.primary',
+              display: "flex",
+              alignContent: "center",
+              justifyContent: "center",
+              width: "100%",
+              paddingTop: "10rem",
+              fontFamily: "fontFamily.primary",
+              color: "text.primary",
             }}
           >
             NO HAY USUARIOS DISPONIBLES.

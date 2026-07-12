@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from "react";
 
 // ---- MATERIAL UI ----
 import {
@@ -14,54 +14,56 @@ import {
   Paper,
   TableSortLabel,
   TablePagination,
-} from '@mui/material';
+} from "@mui/material";
 // ICONS
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 // ------------------
 
 // ------ COMPONENTS ------
-import { LoadingComponent } from '@/components/LoadingComponent/LoadingComponent.jsx';
-import { DevPanelNavBar } from '@/components/PanelComponents/DevPanelNavBar/DevPanelNavBar.jsx';
+import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
+import { DevPanelNavBar } from "@/components/PanelComponents/DevPanelNavBar/DevPanelNavBar.jsx";
 // <-----------------------
 
 // ---- HOOKS ----
-import { useAlert } from '@/hooks/Alert.jsx';
+import { useAlert } from "@/hooks/Alert.jsx";
 // ---------------
 
 // ---- CONTEXT ----
-import { useUser } from '@/context/Users.jsx';
+import { useUser } from "@/context/Users.jsx";
 // <----------------
 
 // ---- STYLES ----
 const tableSortLabelStyle = {
-  color: 'primary.main',
-  '&:hover': { color: 'text.primary' },
-  '& .MuiTableSortLabel-icon': {
+  color: "primary.main",
+  "&:hover": { color: "text.primary" },
+  "& .MuiTableSortLabel-icon": {
     opacity: 1,
-    color: 'primary.main',
+    color: "primary.main",
   },
-  '&.Mui-active': {
-    color: 'primary.main',
-    '& .MuiTableSortLabel-icon': {
-      color: 'primary.main',
+  "&.Mui-active": {
+    color: "primary.main",
+    "& .MuiTableSortLabel-icon": {
+      color: "primary.main",
     },
   },
 };
 
 const tableHeadStyle = {
-  color: 'primary.main',
-  textAlign: 'center',
-  fontFamily: 'fontFamily.primary',
+  color: "primary.main",
+  textAlign: "center",
+  fontFamily: "fontFamily.primary",
 };
 
 const tableBodyStyle = {
-  color: 'text.primary',
-  textAlign: 'center',
-  fontFamily: 'fontFamily.secondary',
+  color: "text.primary",
+  textAlign: "center",
+  fontFamily: "fontFamily.secondary",
 };
 // ----------------
 
 export const UserPointsPanel = () => {
+  const isElectronApp =
+    typeof window !== "undefined" && Boolean(window.electronAPI);
   const { AlertComponent, showAlert } = useAlert();
   const [loading, setLoading] = useState(false);
 
@@ -84,58 +86,58 @@ export const UserPointsPanel = () => {
   // ME TRAIGO A TODOS LOS USUARIOS
   const allUserPoints = useMemo(
     () => userState?.userPoints || [],
-    [userState?.userPoints]
+    [userState?.userPoints],
   );
 
-  const [order, setOrder] = useState('desc');
-  const [orderBy, setOrderBy] = useState('points');
+  const [order, setOrder] = useState("desc");
+  const [orderBy, setOrderBy] = useState("points");
 
   // FUNCIÓN PARA COPIAR TEXTO
   const copyToClipboard = (text) => {
     navigator.clipboard
       .writeText(text)
       .then(() => {
-        showAlert(`Copiado: ${text}`, 'success');
+        showAlert(`Copiado: ${text}`, "success");
       })
       .catch((err) => {
-        showAlert(`Error al copiar al portapapeles: ${err}`, 'error');
+        showAlert(`Error al copiar al portapapeles: ${err}`, "error");
       });
   };
 
   const handleRequestSort = (property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
 
   const descendingComparator = (a, b, orderBy) => {
     const aValue =
-      orderBy === 'name'
-        ? a.user?.name || ''
-        : orderBy === 'email'
-        ? a.user?.email || ''
-        : a[orderBy];
+      orderBy === "name"
+        ? a.user?.name || ""
+        : orderBy === "email"
+          ? a.user?.email || ""
+          : a[orderBy];
 
     const bValue =
-      orderBy === 'name'
-        ? b.user?.name || ''
-        : orderBy === 'email'
-        ? b.user?.email || ''
-        : b[orderBy];
+      orderBy === "name"
+        ? b.user?.name || ""
+        : orderBy === "email"
+          ? b.user?.email || ""
+          : b[orderBy];
 
     // Para strings
-    if (typeof aValue === 'string' && typeof bValue === 'string')
+    if (typeof aValue === "string" && typeof bValue === "string")
       return bValue.localeCompare(aValue);
 
     // Para números (como points)
-    if (typeof aValue === 'number' && typeof bValue === 'number')
+    if (typeof aValue === "number" && typeof bValue === "number")
       return bValue - aValue;
 
     return 0;
   };
 
   const getComparator = (order, orderBy) => {
-    return order === 'desc'
+    return order === "desc"
       ? (a, b) => descendingComparator(a, b, orderBy)
       : (a, b) => -descendingComparator(a, b, orderBy);
   };
@@ -169,8 +171,18 @@ export const UserPointsPanel = () => {
   if (loading) return <LoadingComponent />;
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-      <Box sx={{ maxWidth: 'auto', width: '100%' }}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        height: isElectronApp ? "calc(100vh - 112px)" : "auto",
+        overflowY: isElectronApp ? "auto" : "visible",
+        overflowX: isElectronApp ? "auto" : "visible",
+        pr: isElectronApp ? 1 : 0,
+        pb: isElectronApp ? 3 : 0,
+      }}
+    >
+      <Box sx={{ maxWidth: "auto", width: "100%" }}>
         <DevPanelNavBar
           showAlert={showAlert}
           isUserPointsPanel={true}
@@ -179,32 +191,32 @@ export const UserPointsPanel = () => {
         {allUserPoints?.length > 0 ? (
           <TableContainer component={Paper}>
             <Table>
-              <TableHead sx={{ bgcolor: 'background.default' }}>
-                <TableRow sx={{ fontFamily: 'fontFamily.primary' }}>
+              <TableHead sx={{ bgcolor: "background.main" }}>
+                <TableRow sx={{ fontFamily: "fontFamily.primary" }}>
                   <TableCell sx={tableHeadStyle}>USERPOINTS ID</TableCell>
                   <TableCell sx={tableHeadStyle}>CLIENTE ID</TableCell>
                   <TableCell
                     sx={tableHeadStyle}
-                    sortDirection={orderBy === 'email' ? order : false}
+                    sortDirection={orderBy === "email" ? order : false}
                   >
                     <TableSortLabel
                       sx={tableSortLabelStyle}
-                      active={orderBy === 'email'}
-                      direction={orderBy === 'email' ? order : 'asc'}
-                      onClick={() => handleRequestSort('email')}
+                      active={orderBy === "email"}
+                      direction={orderBy === "email" ? order : "asc"}
+                      onClick={() => handleRequestSort("email")}
                     >
                       EMAIL DEL CLIENTE
                     </TableSortLabel>
                   </TableCell>
                   <TableCell
                     sx={tableHeadStyle}
-                    sortDirection={orderBy === 'name' ? order : false}
+                    sortDirection={orderBy === "name" ? order : false}
                   >
                     <TableSortLabel
                       sx={tableSortLabelStyle}
-                      active={orderBy === 'name'}
-                      direction={orderBy === 'name' ? order : 'asc'}
-                      onClick={() => handleRequestSort('name')}
+                      active={orderBy === "name"}
+                      direction={orderBy === "name" ? order : "asc"}
+                      onClick={() => handleRequestSort("name")}
                     >
                       NOMBRE DEL CLIENTE
                     </TableSortLabel>
@@ -212,13 +224,13 @@ export const UserPointsPanel = () => {
                   <TableCell sx={tableHeadStyle}>RESTAURANT ID</TableCell>
                   <TableCell
                     sx={tableHeadStyle}
-                    sortDirection={orderBy === 'restaurantName' ? order : false}
+                    sortDirection={orderBy === "restaurantName" ? order : false}
                   >
                     <TableSortLabel
                       sx={tableSortLabelStyle}
-                      active={orderBy === 'restaurantName'}
-                      direction={orderBy === 'restaurantName' ? order : 'asc'}
-                      onClick={() => handleRequestSort('restaurantName')}
+                      active={orderBy === "restaurantName"}
+                      direction={orderBy === "restaurantName" ? order : "asc"}
+                      onClick={() => handleRequestSort("restaurantName")}
                     >
                       NOMBRE DEL LOCAL
                     </TableSortLabel>
@@ -226,20 +238,20 @@ export const UserPointsPanel = () => {
                   <TableCell sx={tableHeadStyle}>DUEÑO DEL LOCAL</TableCell>
                   <TableCell
                     sx={tableHeadStyle}
-                    sortDirection={orderBy === 'points' ? order : false}
+                    sortDirection={orderBy === "points" ? order : false}
                   >
                     <TableSortLabel
                       sx={tableSortLabelStyle}
-                      active={orderBy === 'points'}
-                      direction={orderBy === 'points' ? order : 'asc'}
-                      onClick={() => handleRequestSort('points')}
+                      active={orderBy === "points"}
+                      direction={orderBy === "points" ? order : "asc"}
+                      onClick={() => handleRequestSort("points")}
                     >
                       PUNTOS
                     </TableSortLabel>
                   </TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody sx={{ fontFamily: 'fontFamily.terciary' }}>
+              <TableBody sx={{ fontFamily: "fontFamily.terciary" }}>
                 {stableSort(allUserPoints, getComparator(order, orderBy))
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((userPoints) => (
@@ -247,16 +259,25 @@ export const UserPointsPanel = () => {
                       <TableCell component="th" scope="row" sx={tableBodyStyle}>
                         <Box
                           sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
-                          {userPoints.id}
-                          <Button
-                            onClick={() => copyToClipboard(userPoints.id)}
+                          <Typography
+                            variant="caption"
                             sx={{
-                              minWidth: 'auto',
+                              fontFamily: "fontFamily.secondary",
+                              fontSize: "0.80rem",
+                              color: "text.primary",
+                            }}
+                          >
+                            USERPOINTS ID
+                          </Typography>
+                          <Button
+                            onClick={() => copyToClipboard(userPoints?.id)}
+                            sx={{
+                              minWidth: "auto",
                               ml: 1,
                             }}
                           >
@@ -268,14 +289,43 @@ export const UserPointsPanel = () => {
                         </Box>
                       </TableCell>
                       <TableCell component="th" scope="row" sx={tableBodyStyle}>
-                        {userPoints?.userId}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontFamily: "fontFamily.secondary",
+                              fontSize: "0.80rem",
+                              color: "text.primary",
+                            }}
+                          >
+                            USER ID
+                          </Typography>
+                          <Button
+                            onClick={() => copyToClipboard(userPoints?.userId)}
+                            sx={{
+                              minWidth: "auto",
+                              ml: 1,
+                            }}
+                          >
+                            <ContentCopyIcon
+                              color="primary"
+                              sx={{ fontSize: 16 }}
+                            />
+                          </Button>
+                        </Box>
                       </TableCell>
                       <TableCell component="th" scope="row" sx={tableBodyStyle}>
                         <Box
                           sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
                           {userPoints?.user?.email}
@@ -284,7 +334,7 @@ export const UserPointsPanel = () => {
                               copyToClipboard(userPoints?.user?.email)
                             }
                             sx={{
-                              minWidth: 'auto',
+                              minWidth: "auto",
                               ml: 1,
                             }}
                           >
@@ -299,7 +349,38 @@ export const UserPointsPanel = () => {
                         {userPoints?.user?.name}
                       </TableCell>
                       <TableCell component="th" scope="row" sx={tableBodyStyle}>
-                        {userPoints?.restaurantId}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontFamily: "fontFamily.secondary",
+                              fontSize: "0.80rem",
+                              color: "text.primary",
+                            }}
+                          >
+                            RESTAURANT ID
+                          </Typography>
+                          <Button
+                            onClick={() =>
+                              copyToClipboard(userPoints?.restaurantId)
+                            }
+                            sx={{
+                              minWidth: "auto",
+                              ml: 1,
+                            }}
+                          >
+                            <ContentCopyIcon
+                              color="primary"
+                              sx={{ fontSize: 16 }}
+                            />
+                          </Button>
+                        </Box>
                       </TableCell>
                       <TableCell component="th" scope="row" sx={tableBodyStyle}>
                         {userPoints?.restaurantName}
@@ -327,22 +408,22 @@ export const UserPointsPanel = () => {
                 `${from}–${to} de ${count !== -1 ? count : `más de ${to}`}`
               }
               sx={{
-                fontFamily: 'fontFamily.primary',
-                bgcolor: 'background.paper',
-                color: 'text.primary',
+                fontFamily: "fontFamily.primary",
+                bgcolor: "background.paper",
+                color: "text.primary",
               }}
             />
           </TableContainer>
         ) : (
           <Typography
             sx={{
-              display: 'flex',
-              alignContent: 'center',
-              justifyContent: 'center',
-              width: '100%',
-              paddingTop: '10rem',
-              fontFamily: 'fontFamily.primary',
-              color: 'text.primary',
+              display: "flex",
+              alignContent: "center",
+              justifyContent: "center",
+              width: "100%",
+              paddingTop: "10rem",
+              fontFamily: "fontFamily.primary",
+              color: "text.primary",
             }}
           >
             NO HAY INFORMACIÓN SOBRE PUNTOS ACUMULADOS POR USUARIOS.

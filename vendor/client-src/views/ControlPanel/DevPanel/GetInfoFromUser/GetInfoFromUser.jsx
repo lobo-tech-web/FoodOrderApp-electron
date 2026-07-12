@@ -1,32 +1,32 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from "react";
 
 // ---- MATERIAL UI ----
-import { Box, Tab, Tabs } from '@mui/material';
+import { Box, Tab, Tabs } from "@mui/material";
 // ------------------
 
 // ---- COMPONENTS ----
-import { DevPanelNavBar } from '@/components/PanelComponents/DevPanelNavBar/DevPanelNavBar.jsx';
-import { ModalEditProduct } from '@/components/PanelComponents/ModalEditProduct/ModalEditProduct.jsx';
-import { ModalEditCategory } from '@/components/PanelComponents/ModalEditCategory/ModalEditCategory.jsx';
-import { ProductsTable } from './ProductsTable/ProductsTable.jsx';
-import { UserTable } from './UserTable/UserTable.jsx';
-import { CategoryTable } from './CategoryTable/CategoryTable.jsx';
-import { OrderTable } from './OrderTable/OrderTable.jsx';
+import { DevPanelNavBar } from "@/components/PanelComponents/DevPanelNavBar/DevPanelNavBar.jsx";
+import { ModalEditProduct } from "@/components/PanelComponents/ModalEditProduct/ModalEditProduct.jsx";
+import { ModalEditCategory } from "@/components/PanelComponents/ModalEditCategory/ModalEditCategory.jsx";
+import { ProductsTable } from "./ProductsTable/ProductsTable.jsx";
+import { UserTable } from "./UserTable/UserTable.jsx";
+import { CategoryTable } from "./CategoryTable/CategoryTable.jsx";
+import { OrderTable } from "./OrderTable/OrderTable.jsx";
 // --------------------
 
 // ----- CONTEXT --------
-import { useProducts } from '@/context/Products.jsx';
-import { useUser } from '@/context/Users.jsx';
+import { useProducts } from "@/context/Products.jsx";
+import { useUser } from "@/context/Users.jsx";
 // ----------------------
 
 // ---- STYLES ----
 const tabStyles = {
-  fontFamily: 'fontFamily.primary',
-  color: 'text.primary',
+  fontFamily: "fontFamily.primary",
+  color: "text.primary",
   borderRadius: 1,
-  '&.Mui-selected': {
-    color: 'primary.main',
-    backgroundColor: 'background.default',
+  "&.Mui-selected": {
+    color: "primary.main",
+    backgroundColor: "background.default",
   },
 };
 // ----------------
@@ -48,6 +48,8 @@ function TabPanel(props) {
 }
 
 export const GetInfoFromUser = () => {
+  const isElectronApp =
+    typeof window !== "undefined" && Boolean(window.electronAPI);
   const { productState, getAllCategorys, clearAllProductContext } =
     useProducts();
   const { userState, clearAllUserInfo } = useUser();
@@ -55,13 +57,13 @@ export const GetInfoFromUser = () => {
   // TRAEMOS LOS PRODUCTS DEL CONTEXT
   const getAllUserInfo = useMemo(
     () => userState.userInfo || [],
-    [userState.userInfo]
+    [userState.userInfo],
   );
 
   // TRAEMOS LAS CATEGORIAS DEL CONTEXT
   const allCategorys = useMemo(
     () => productState.categorys || [],
-    [productState.categorys]
+    [productState.categorys],
   );
 
   const refreshGetInfoFromUser = () => {
@@ -100,21 +102,31 @@ export const GetInfoFromUser = () => {
   }, [userState.userInfo, getAllCategorys]);
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-      <Box sx={{ maxWidth: 'auto', width: '100%' }}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        height: isElectronApp ? "calc(100vh - 112px)" : "auto",
+        overflowY: isElectronApp ? "auto" : "visible",
+        overflowX: isElectronApp ? "auto" : "visible",
+        pr: isElectronApp ? 1 : 0,
+        pb: isElectronApp ? 3 : 0,
+      }}
+    >
+      <Box sx={{ maxWidth: "auto", width: "100%" }}>
         <DevPanelNavBar
           isAllInfoFromUser={true}
           refreshGetInfoFromUser={refreshGetInfoFromUser}
         />
 
         {/* Tabs */}
-        <Box sx={{ borderBottom: 1, borderColor: 'primary.main', mt: 2 }}>
+        <Box sx={{ borderBottom: 1, borderColor: "primary.main", mt: 2 }}>
           <Tabs
             value={tabValue}
             onChange={handleTabChange}
             aria-label="info-from-user panel tabs"
             sx={{
-              '& .MuiTabs-indicator': { bgcolor: 'primary.main' },
+              "& .MuiTabs-indicator": { bgcolor: "primary.main" },
             }}
           >
             <Tab label="Usuario" sx={tabStyles} />

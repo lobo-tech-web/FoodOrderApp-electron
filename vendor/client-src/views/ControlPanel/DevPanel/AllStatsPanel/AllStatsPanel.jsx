@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from "react";
 
 // ---- MATERIAL UI ----
 import {
@@ -15,42 +15,44 @@ import {
   Tab,
   TablePagination,
   Card,
-} from '@mui/material';
+} from "@mui/material";
 // ICONS
-import TodayIcon from '@mui/icons-material/Today';
-import HistoryIcon from '@mui/icons-material/History';
+import TodayIcon from "@mui/icons-material/Today";
+import HistoryIcon from "@mui/icons-material/History";
 // ---------------------
 
 // ---- COMPONENTS ----
-import { LoadingComponent } from '@/components/LoadingComponent/LoadingComponent.jsx';
-import { DevPanelNavBar } from '@/components/PanelComponents/DevPanelNavBar/DevPanelNavBar.jsx';
+import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
+import { DevPanelNavBar } from "@/components/PanelComponents/DevPanelNavBar/DevPanelNavBar.jsx";
 // --------------------
 
 // ---- CONTEXT ----
-import { useOrders } from '@/context/Orders.jsx';
+import { useOrders } from "@/context/Orders.jsx";
 // -----------------
 
 // ---- STYLES ----
 const tabStyles = {
-  fontFamily: 'fontFamily.primary',
-  color: 'text.primary',
+  fontFamily: "fontFamily.primary",
+  color: "text.primary",
   borderRadius: 1,
 };
 
 const tableHeadStyle = {
-  color: 'primary.main',
-  textAlign: 'center',
-  fontFamily: 'fontFamily.primary',
+  color: "primary.main",
+  textAlign: "center",
+  fontFamily: "fontFamily.primary",
 };
 
 const tableBodyStyle = {
-  color: 'text.primary',
-  textAlign: 'center',
-  fontFamily: 'fontFamily.secondary',
+  color: "text.primary",
+  textAlign: "center",
+  fontFamily: "fontFamily.secondary",
 };
 // ----------------
 
 export const AllStatsPanel = () => {
+  const isElectronApp =
+    typeof window !== "undefined" && Boolean(window.electronAPI);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [page, setPage] = useState(0);
@@ -74,7 +76,7 @@ export const AllStatsPanel = () => {
   const { orderState, getMonthlyOrderStats } = useOrders();
   const orderStats = useMemo(
     () => orderState.orderStats || [],
-    [orderState.orderStats]
+    [orderState.orderStats],
   );
 
   const fetchStats = async () => {
@@ -83,7 +85,7 @@ export const AllStatsPanel = () => {
       await getMonthlyOrderStats();
       setPage(0);
     } catch (error) {
-      console.error('Error al obtener las estadisticas:', error);
+      console.error("Error al obtener las estadisticas:", error);
     } finally {
       setLoading(false);
     }
@@ -93,27 +95,36 @@ export const AllStatsPanel = () => {
     fetchStats();
   }, []);
 
-  if (loading) return <LoadingComponent message={'Cargando estadisticas...'} />;
+  if (loading) return <LoadingComponent message={"Cargando estadisticas..."} />;
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box
+      sx={{
+        width: "100%",
+        height: isElectronApp ? "calc(100vh - 112px)" : "auto",
+        overflowY: isElectronApp ? "auto" : "visible",
+        overflowX: isElectronApp ? "auto" : "visible",
+        pr: isElectronApp ? 1 : 0,
+        pb: isElectronApp ? 3 : 0,
+      }}
+    >
       {/* PANELNAVBAR DE LOS PEDIDOS */}
       <DevPanelNavBar
         isAllStatsOrders={true}
         refreshAllStatsOrders={fetchStats}
       />
 
-      <Card sx={{ mb: 2, borderRadius: 2, overflow: 'hidden' }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <Card sx={{ mb: 2, borderRadius: 2, overflow: "hidden" }}>
+        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Tabs
             value={activeTab}
             onChange={handleTabChange}
-            variant={'standard'}
+            variant={"standard"}
             sx={{
               px: 2,
               pt: 1,
-              '& .MuiTabs-indicator': {
-                bgcolor: 'primary.main',
+              "& .MuiTabs-indicator": {
+                bgcolor: "primary.main",
               },
             }}
           >
@@ -123,9 +134,9 @@ export const AllStatsPanel = () => {
               label={
                 <Box
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: 'text.primary',
+                    display: "flex",
+                    alignItems: "center",
+                    color: "text.primary",
                   }}
                 >
                   PEDIDOS MENSUALES
@@ -140,9 +151,9 @@ export const AllStatsPanel = () => {
               label={
                 <Box
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: 'text.primary',
+                    display: "flex",
+                    alignItems: "center",
+                    color: "text.primary",
                   }}
                 >
                   PEDIDOS DIARIOS ( POR LOCAL )
@@ -156,27 +167,27 @@ export const AllStatsPanel = () => {
 
       {orderStats.length > 0 ? (
         <Paper
-          sx={{ width: '100%', mb: 2, borderRadius: 2, overflow: 'hidden' }}
+          sx={{ width: "100%", mb: 2, borderRadius: 2, overflow: "hidden" }}
         >
           <Typography
             variant="h6"
             sx={{
-              fontFamily: 'fontFamily.primary',
-              display: 'flex',
-              justifyContent: 'center',
-              color: 'text.primary',
+              fontFamily: "fontFamily.primary",
+              display: "flex",
+              justifyContent: "center",
+              color: "text.primary",
               m: 2,
             }}
           >
             {activeTab === 0
-              ? 'PEDIDOS MENSUALES'
-              : 'PEDIDOS DIARIOS ( POR LOCAL )'}
+              ? "PEDIDOS MENSUALES"
+              : "PEDIDOS DIARIOS ( POR LOCAL )"}
           </Typography>
 
           <TableContainer>
             <Table aria-label="collapsible table">
-              <TableHead sx={{ bgcolor: 'background.paper' }}>
-                <TableRow sx={{ textAlign: 'center' }}>
+              <TableHead sx={{ bgcolor: "background.paper" }}>
+                <TableRow sx={{ textAlign: "center" }}>
                   <TableCell sx={tableHeadStyle}>ID RESTAURANT</TableCell>
                   <TableCell sx={tableHeadStyle}>RESTAURANT NAME</TableCell>
                   <TableCell sx={tableHeadStyle}>FECHA</TableCell>
@@ -188,7 +199,7 @@ export const AllStatsPanel = () => {
                 {(rowsPerPage > 0
                   ? orderStats.slice(
                       page * rowsPerPage,
-                      page * rowsPerPage + rowsPerPage
+                      page * rowsPerPage + rowsPerPage,
                     )
                   : orderStats
                 ).map((elem) =>
@@ -207,10 +218,10 @@ export const AllStatsPanel = () => {
                         {stat.totalOrders}
                       </TableCell>
                       <TableCell sx={tableBodyStyle}>
-                        ${stat.totalAmount?.toLocaleString('es-AR')}
+                        ${stat.totalAmount?.toLocaleString("es-AR")}
                       </TableCell>
                     </TableRow>
-                  ))
+                  )),
                 )}
               </TableBody>
             </Table>
@@ -228,9 +239,9 @@ export const AllStatsPanel = () => {
                   `${from}–${to} de ${count !== -1 ? count : `más de ${to}`}`
                 }
                 sx={{
-                  fontFamily: 'fontFamily.primary',
-                  bgcolor: 'background.paper',
-                  color: 'text.primary',
+                  fontFamily: "fontFamily.primary",
+                  bgcolor: "background.paper",
+                  color: "text.primary",
                 }}
               />
             )}
@@ -239,13 +250,13 @@ export const AllStatsPanel = () => {
       ) : (
         <Typography
           sx={{
-            display: 'flex',
-            alignContent: 'center',
-            justifyContent: 'center',
-            width: '100%',
-            paddingTop: '10rem',
-            fontFamily: 'fontFamily.primary',
-            color: 'text.primary',
+            display: "flex",
+            alignContent: "center",
+            justifyContent: "center",
+            width: "100%",
+            paddingTop: "10rem",
+            fontFamily: "fontFamily.primary",
+            color: "text.primary",
           }}
         >
           NO HAY ESTADÍSTICAS DISPONIBLES.
