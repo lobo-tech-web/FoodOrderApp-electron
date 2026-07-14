@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from "react";
 
 // ---- MATERIAL UI ----
 import {
@@ -10,16 +10,15 @@ import {
   DialogActions,
   TextField,
   InputAdornment,
-  FormControl,
-  Select,
-  MenuItem,
   Typography,
   Chip,
   IconButton,
   Tooltip,
   Paper,
   Divider,
-} from '@mui/material';
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 // ICONS
 import {
   Close as CloseIcon,
@@ -32,63 +31,105 @@ import {
   Save as SaveIcon,
   AddCircleOutline as AddCircleOutlineIcon,
   Moped as MopedIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 // ---------------------
 
+// ---- Components ----
+import { SelectOptionCard } from "./shared/SelectOptionCard.jsx";
+// --------------------
+
 // ---- CONTEXT ----
-import { useOrders } from '@/context/Orders.jsx';
-import { useUser } from '@/context/Users.jsx';
+import { useOrders } from "@/context/Orders.jsx";
+import { useUser } from "@/context/Users.jsx";
 // -----------------
 
 // ---- SERVICES ----
-import { updateArrayOrderServices } from '@/services/orders.js';
+import { updateArrayOrderServices } from "@/services/orders.js";
 // ------------------
 
 // ---- STYLES ----
 const fieldStyles = {
-  '& .MuiInputBase-root': {
-    fontFamily: 'fontFamily.primary',
-    fontSize: { xs: '14px', sm: '16px', md: '16px' },
-    minHeight: { xs: '48px', sm: '56px', md: '56px' },
-    color: 'text.primary',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: { xs: '8px', sm: '12px' },
+  "& .MuiInputBase-root": {
+    fontFamily: "fontFamily.primary",
+    fontSize: { xs: "14px", sm: "16px", md: "16px" },
+    minHeight: { xs: "48px", sm: "56px", md: "56px" },
+    color: "text.primary",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderRadius: { xs: "8px", sm: "12px" },
   },
-  '& .MuiOutlinedInput-root': {
-    '& fieldset': {
-      borderColor: 'rgba(184, 182, 186, 0.3)',
-      borderWidth: '1px',
+  "& .MuiOutlinedInput-root": {
+    "& fieldset": {
+      borderColor: "rgba(184, 182, 186, 0.3)",
+      borderWidth: "1px",
     },
-    '&:hover fieldset': {
-      borderColor: 'primary.main',
-      borderWidth: '1px',
+    "&:hover fieldset": {
+      borderColor: "primary.main",
+      borderWidth: "1px",
     },
-    '&.Mui-focused fieldset': {
-      borderColor: 'primary.main',
-      borderWidth: '2px',
-      boxShadow: '0 0 0 3px rgba(245, 166, 35, 0.2)',
+    "&.Mui-focused fieldset": {
+      borderColor: "primary.main",
+      borderWidth: "2px",
+      boxShadow: "0 0 0 3px rgba(245, 166, 35, 0.2)",
     },
   },
-  width: '100%',
-  marginBottom: { xs: '16px', sm: '20px', md: '20px' },
+  width: "100%",
+  marginBottom: { xs: "16px", sm: "20px", md: "20px" },
 };
 
 const labelStyle = {
-  fontFamily: 'fontFamily.primary',
-  color: 'primary.main',
-  fontWeight: 'bold',
-  fontSize: { xs: '14px', sm: '16px', md: '16px' },
+  fontFamily: "fontFamily.primary",
+  color: "primary.main",
+  fontWeight: "bold",
+  fontSize: { xs: "14px", sm: "16px", md: "16px" },
   lineHeight: 1,
   margin: 0,
 };
 
 const labelContainerStyle = {
-  display: 'flex',
-  alignItems: 'center',
+  display: "flex",
+  alignItems: "center",
   gap: { xs: 1, sm: 1.5, md: 1.5 },
   mb: { xs: 1, sm: 1.5, md: 1 },
 };
 // ----------------
+
+const statusDisplay = [
+  {
+    value: "PENDIENTE A CONFIRMAR",
+    label: "PENDIENTE",
+    description: "El pedido todavía necesita confirmación.",
+    color: "#ff9800",
+    icon: <PendingIcon />,
+  },
+  {
+    value: "EN PREPARACIÓN",
+    label: "EN PREPARACIÓN",
+    description: "El pedido ya está siendo preparado.",
+    color: "#2196f3",
+    icon: <FactCheckIcon />,
+  },
+  {
+    value: "EN ENVIO",
+    label: "EN ENVÍO",
+    description: "El pedido está asignado para entrega.",
+    color: "#9c27b0",
+    icon: <DeliveryDiningIcon />,
+  },
+  {
+    value: "FINALIZADO",
+    label: "FINALIZADO",
+    description: "El pedido ya fue entregado o cerrado.",
+    color: "#4caf50",
+    icon: <CheckCircleIcon />,
+  },
+  {
+    value: "CANCELADO",
+    label: "CANCELADO",
+    description: "El pedido no será completado.",
+    color: "#f44336",
+    icon: <CancelIcon />,
+  },
+];
 
 export const ModalEditArrayOrders = ({
   show,
@@ -97,9 +138,12 @@ export const ModalEditArrayOrders = ({
   showOrders = [],
   refreshOrders,
 }) => {
+  const theme = useTheme();
+  const isXsScreen = useMediaQuery(theme.breakpoints.down("xs"));
+
   const [loading, setLoading] = useState(false);
   const [extraPoints, setExtraPoints] = useState(0);
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState("");
   const [rider, setRider] = useState(undefined);
 
   const { orderState, getRidersByRestaurant } = useOrders();
@@ -107,55 +151,27 @@ export const ModalEditArrayOrders = ({
 
   const availableRiders = useMemo(
     () => orderState?.riders || [],
-    [orderState?.riders]
+    [orderState?.riders],
   );
 
   const handlePointsChange = (e) => {
     // Solo permitir números positivos
     const value = e.target.value;
-    if (value === '' || /^[0-9]+$/.test(value)) {
+    if (value === "" || /^[0-9]+$/.test(value)) {
       setExtraPoints(value);
     }
   };
 
-  const statusDisplay = [
-    {
-      value: 'PENDIENTE A CONFIRMAR',
-      label: 'PENDIENTE A CONFIRMAR',
-      icon: <PendingIcon sx={{ color: '#ff9800' }} />,
-    },
-    {
-      value: 'EN PREPARACIÓN',
-      label: 'EN PREPARACIÓN',
-      icon: <FactCheckIcon sx={{ color: '#2196f3' }} />,
-    },
-    {
-      value: 'EN ENVIO',
-      label: 'EN ENVIO',
-      icon: <DeliveryDiningIcon sx={{ color: '#9c27b0' }} />,
-    },
-    {
-      value: 'FINALIZADO',
-      label: 'FINALIZADO',
-      icon: <CheckCircleIcon sx={{ color: '#4caf50' }} />,
-    },
-    {
-      value: 'CANCELADO',
-      label: 'CANCELADO',
-      icon: <CancelIcon sx={{ color: '#f44336' }} />,
-    },
-  ];
-
   const handleSaveChanges = useCallback(async () => {
     if (!showOrders || showOrders.length === 0)
       return showAlert(
-        'No hay pedidos para actualizar, por favor seleccione los pedidos para actualizar',
-        'warning'
+        "No hay pedidos para actualizar, por favor seleccione los pedidos para actualizar",
+        "warning",
       );
     if (!status)
       return showAlert(
-        'Debe seleccionar un estado de orden para el pedido',
-        'warning'
+        "Debe seleccionar un estado de orden para el pedido",
+        "warning",
       );
 
     setLoading(true);
@@ -168,15 +184,15 @@ export const ModalEditArrayOrders = ({
       };
 
       await updateArrayOrderServices(ordersData);
-      showAlert('Pedido/s actualizado/s Correctamente!', 'success');
+      showAlert("Pedido/s actualizado/s Correctamente!", "success");
       handleClose();
     } catch (error) {
       const errorMessage =
         error ||
         error?.message ||
         error?.status?.message ||
-        'Error al actualizar los pedidos';
-      showAlert(errorMessage, 'error');
+        "Error al actualizar los pedidos";
+      showAlert(errorMessage, "error");
     } finally {
       setLoading(false);
       setTimeout(async () => {
@@ -189,11 +205,11 @@ export const ModalEditArrayOrders = ({
     const fetchRiders = async () => {
       try {
         if (!show || !userState?.user?.id) return;
-        setStatus('');
+        setStatus("");
         setRider(undefined);
         await getRidersByRestaurant(userState.user.id);
       } catch (error) {
-        console.error('Error al obtener los riders:', error);
+        console.error("Error al obtener los riders:", error);
       }
     };
     fetchRiders();
@@ -203,40 +219,42 @@ export const ModalEditArrayOrders = ({
     <Dialog
       open={show}
       onClose={handleClose}
-      maxWidth="sm"
+      maxWidth="md"
       fullWidth
+      fullScreen={isXsScreen}
       PaperProps={{
         elevation: 3,
         sx: {
           borderRadius: 2,
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
         },
       }}
     >
       <DialogTitle
         sx={{
-          fontFamily: 'fontFamily.terciary',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          fontFamily: "fontFamily.terciary",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
           px: 3,
           py: 2,
-          color: 'primary.main',
-          borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
+          bgcolor: "background.main",
+          color: "primary.main",
+          borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
         }}
       >
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: "flex", gap: 1 }}>
           <EditIcon color="primary" />
           <Typography
             variant="h5"
             component="span"
-            sx={{ display: 'flex', justifyContent: 'flex-start' }}
+            sx={{ display: "flex", justifyContent: "flex-start" }}
           >
             EDITAR PEDIDOS
           </Typography>
           <Chip
             label={`${showOrders.length} ${
-              showOrders.length === 1 ? 'PEDIDO' : 'PEDIDOS'
+              showOrders.length === 1 ? "PEDIDO" : "PEDIDOS"
             }`}
             color="primary"
             size="medium"
@@ -252,17 +270,21 @@ export const ModalEditArrayOrders = ({
 
       <DialogContent
         dividers
-        sx={{ maxHeight: '65vh', overflowY: 'auto', p: 3 }}
+        sx={{
+          maxHeight: { xs: "calc(100vh - 160px)", sm: "72vh" },
+          overflowY: "auto",
+          p: { xs: 1.5, sm: 2.5, md: 3 },
+        }}
       >
         <Box component="form" noValidate sx={{ mt: 1 }}>
           <>
             <Typography
               variant="h6"
               sx={{
-                fontFamily: 'fontFamily.terciary',
-                textAlign: 'center',
+                fontFamily: "fontFamily.terciary",
+                textAlign: "center",
                 mb: 2,
-                color: 'text.primary',
+                color: "text.primary",
               }}
             >
               PEDIDOS SELECCIONADOS
@@ -272,13 +294,13 @@ export const ModalEditArrayOrders = ({
               sx={{
                 p: 2,
                 mb: 3,
-                backgroundColor: 'background.paper',
+                backgroundColor: "background.paper",
                 borderRadius: 2,
-                display: 'flex',
-                justifyContent: 'center',
-                alignContent: 'center',
-                alignItems: 'center',
-                flexWrap: 'wrap',
+                display: "flex",
+                justifyContent: "center",
+                alignContent: "center",
+                alignItems: "center",
+                flexWrap: "wrap",
                 gap: 1,
               }}
             >
@@ -289,11 +311,11 @@ export const ModalEditArrayOrders = ({
                   label={`PEDIDO-ID ${order.id}`}
                   variant="outlined"
                   sx={{
-                    fontFamily: 'fontFamily.terciary',
-                    color: 'primary.main',
-                    borderColor: 'text.primary',
-                    fontSize: '1rem',
-                    textAlign: 'center',
+                    fontFamily: "fontFamily.terciary",
+                    color: "primary.main",
+                    borderColor: "text.primary",
+                    fontSize: "1rem",
+                    textAlign: "center",
                     mt: 1,
                     mb: 1,
                   }}
@@ -301,15 +323,15 @@ export const ModalEditArrayOrders = ({
               ))}
             </Paper>
 
-            <Divider sx={{ bgcolor: 'primary.main', my: 3 }} />
+            <Divider sx={{ bgcolor: "primary.main", my: 3 }} />
 
             <Typography
               variant="subtitle1"
               sx={{
-                fontFamily: 'fontFamily.terciary',
+                fontFamily: "fontFamily.terciary",
                 mb: 2,
-                color: 'text.primary',
-                fontWeight: 'bold',
+                color: "text.primary",
+                fontWeight: "bold",
               }}
             >
               ACTUALIZAR INFORMACIÓN
@@ -330,7 +352,7 @@ export const ModalEditArrayOrders = ({
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <AddCircleOutlineIcon sx={{ color: 'success.main' }} />
+                      <AddCircleOutlineIcon sx={{ color: "success.main" }} />
                     </InputAdornment>
                   ),
                   inputProps: { min: 0 },
@@ -339,134 +361,100 @@ export const ModalEditArrayOrders = ({
             </Box>
 
             {/* STATUS DEL PEDIDO */}
-            <Box>
+            <Box sx={{ mb: { xs: 2.5, sm: 3 } }}>
               <Box sx={labelContainerStyle}>
                 <Typography sx={labelStyle}>ESTADO DEL PEDIDO</Typography>
               </Box>
-              <FormControl fullWidth sx={fieldStyles}>
-                <Select
-                  name="status"
-                  value={status || ''}
-                  onChange={(e) => setStatus(e.target.value)}
-                  sx={{ color: 'text.primary' }}
-                  displayEmpty
-                  renderValue={(selected) => {
-                    if (!selected) {
-                      return (
-                        <Typography sx={{ color: 'text.secondary' }}>
-                          Estado del pedido
-                        </Typography>
-                      );
-                    }
-                    return selected;
-                  }}
-                >
-                  <MenuItem
-                    value={''}
-                    sx={{
-                      fontFamily: 'fontFamily.secondary',
-                    }}
-                  >
-                    No cambiar estado del pedido
-                  </MenuItem>
-                  {statusDisplay.map((status) => (
-                    <MenuItem
-                      key={status.value}
-                      value={status.value}
-                      sx={{
-                        fontFamily: 'fontFamily.terciary',
-                        color: 'text.secondary',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                      }}
-                    >
-                      <Box
-                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                      >
-                        {status.icon}
-                        <Typography
-                          sx={{
-                            fontFamily: 'fontFamily.terciary',
-                            color: 'text.secondary',
-                          }}
-                        >
-                          {status.value}
-                        </Typography>
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+
+              <Typography
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  color: "text.primary",
+                  fontSize: { xs: 12, sm: 13 },
+                  mb: 1.2,
+                }}
+              >
+                Tocá una opción para aplicar el mismo estado a todos los pedidos
+                seleccionados.
+              </Typography>
+
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, minmax(0, 1fr))",
+                  },
+                  gap: { xs: 1, sm: 1.2 },
+                }}
+              >
+                {statusDisplay.map((item) => (
+                  <SelectOptionCard
+                    key={item.value}
+                    selected={status === item.value}
+                    icon={item.icon}
+                    title={item.label}
+                    description={item.description}
+                    color={item.color}
+                    onClick={() => setStatus(item.value)}
+                  />
+                ))}
+              </Box>
             </Box>
 
             {availableRiders.length > 0 && (
-              <Box>
+              <Box sx={{ mb: { xs: 2.5, sm: 3 } }}>
                 <Box sx={labelContainerStyle}>
                   <Typography sx={labelStyle}>
                     ASIGNAR RIDER (CADETE)
                   </Typography>
                 </Box>
-                <FormControl fullWidth sx={fieldStyles}>
-                  <Select
-                    name="rider"
-                    value={rider || ''}
-                    onChange={(e) => setRider(e.target.value)}
-                    sx={{ color: 'text.primary' }}
-                    displayEmpty
-                    renderValue={(selected) => {
-                      if (!selected) {
-                        return (
-                          <Typography sx={{ color: 'text.secondary' }}>
-                            Asignar rider
-                          </Typography>
-                        );
-                      }
 
-                      const selectedRider = availableRiders.find(
-                        (r) => r.id === selected
-                      );
-                      return selectedRider
-                        ? `${selectedRider.name} ${selectedRider.phone ? `(${selectedRider.phone})` : ''}`
-                        : 'Rider seleccionado';
-                    }}
-                  >
-                    <MenuItem
-                      value={undefined}
-                      sx={{
-                        fontFamily: 'fontFamily.secondary',
-                      }}
-                    >
-                      No cambiar rider
-                    </MenuItem>
-                    {availableRiders.map((rider) => (
-                      <MenuItem
-                        key={rider.id}
-                        value={rider.id}
-                        sx={{ fontFamily: 'fontFamily.terciary' }}
-                      >
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                          }}
-                        >
-                          <MopedIcon color="primary" />
-                          <Typography
-                            variant="body1"
-                            sx={{
-                              fontFamily: 'fontFamily.terciary',
-                            }}
-                          >
-                            {rider.name.toUpperCase()}{' '}
-                            {rider.phone && `(${rider.phone})`}
-                          </Typography>
-                        </Box>
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <Typography
+                  sx={{
+                    fontFamily: "fontFamily.secondary",
+                    color: "text.primary",
+                    fontSize: { xs: 12, sm: 13 },
+                    mb: 1.2,
+                  }}
+                >
+                  Podés asignar un cadete a todos los pedidos seleccionados o
+                  dejarlo sin cambios.
+                </Typography>
+
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: {
+                      xs: "1fr",
+                      sm: "repeat(2, minmax(0, 1fr))",
+                    },
+                    gap: { xs: 1, sm: 1.2 },
+                  }}
+                >
+                  <SelectOptionCard
+                    selected={rider === undefined}
+                    icon={<MopedIcon />}
+                    title="NO CAMBIAR RIDER"
+                    description="Mantiene el cadete actual de cada pedido."
+                    color="primary.main"
+                    onClick={() => setRider(undefined)}
+                  />
+
+                  {availableRiders.map((availableRider) => (
+                    <SelectOptionCard
+                      key={availableRider.id}
+                      selected={rider === availableRider.id}
+                      icon={<MopedIcon />}
+                      title={availableRider.name?.toUpperCase() || "RIDER"}
+                      description={
+                        availableRider.phone || "Sin teléfono cargado"
+                      }
+                      color="primary.main"
+                      onClick={() => setRider(availableRider.id)}
+                    />
+                  ))}
+                </Box>
               </Box>
             )}
           </>
@@ -475,10 +463,13 @@ export const ModalEditArrayOrders = ({
 
       <DialogActions
         sx={{
-          justifyContent: 'flex-end',
-          px: 3,
-          py: 2,
-          borderTop: '1px solid rgba(0, 0, 0, 0.12)',
+          justifyContent: "flex-end",
+          px: { xs: 1.5, sm: 3 },
+          py: { xs: 1.5, sm: 2 },
+          borderTop: "1px solid rgba(0, 0, 0, 0.12)",
+          gap: 1,
+          flexDirection: { xs: "column-reverse", sm: "row" },
+          alignItems: { xs: "stretch", sm: "center" },
         }}
       >
         <Button
@@ -487,7 +478,7 @@ export const ModalEditArrayOrders = ({
           color="error"
           onClick={handleClose}
           disabled={loading}
-          sx={{ fontFamily: 'fontFamily.primary' }}
+          sx={{ fontFamily: "fontFamily.primary", minHeight: 44 }}
         >
           Cancelar
         </Button>
@@ -498,7 +489,11 @@ export const ModalEditArrayOrders = ({
           startIcon={<SaveIcon />}
           onClick={handleSaveChanges}
           disabled={showOrders.length === 0 || loading}
-          sx={{ fontFamily: 'fontFamily.primary', minWidth: 120 }}
+          sx={{
+            fontFamily: "fontFamily.primary",
+            minHeight: 44,
+            minWidth: { xs: "100%", sm: 160 },
+          }}
         >
           Guardar Cambios
         </Button>
