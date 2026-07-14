@@ -141,10 +141,11 @@ export const ProductPanel = ({ user }) => {
     setCatalogModalOpen(true);
   };
 
-  const handleGenerateCatalog = async (restaurantName) => {
+  const handleGenerateCatalog = async (pdfOptions = {}) => {
     setLoading(true);
     try {
-      await generateProductCatalogPDF(allProducts, restaurantName);
+      const businessLogo = user?.businessLogoUrl || "";
+      await generateProductCatalogPDF(allProducts, businessLogo, pdfOptions);
       showAlert("Catálogo PDF generado exitosamente", "success");
     } catch (error) {
       console.error("Error al generar el catálogo:", error);
