@@ -1,0 +1,10 @@
+{
+  "javascript.validate.enable": true,
+  "typescript.validate.enable": true,
+  "javascript.suggestionActions.enabled": true,
+  "typescript.suggestionActions.enabled": true,
+  "editor.showUnused": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  }
+}

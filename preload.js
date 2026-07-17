@@ -25,6 +25,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   printHtml: (type, html) =>
     ipcRenderer.invoke('printers:print-html', { type, html }),
   openExternal: (url) => ipcRenderer.invoke('shell:open-external', url),
+  writeClipboardText: (text) =>
+    ipcRenderer.invoke('clipboard:write-text', text),
 });
 
 contextBridge.exposeInMainWorld('secureStorage', {

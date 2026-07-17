@@ -51,6 +51,7 @@ import { CustomQRCode } from "@/components/CustomQRCode/CustomQRCode.jsx";
 
 // ---- Utils ----
 import { buildLocalSettingsPayload } from "@/utils/userUtils";
+import { writeClipboardText } from "@/utils/clipboard.js";
 import { orderTypeOptions } from "@/utils/components/OrderTypeUtils.jsx";
 import { paymentMethods } from "@/utils/components/PaymentUtils.jsx";
 import { toPng } from "html-to-image";
@@ -284,10 +285,10 @@ export const LocalSettingsPanel = ({ user }) => {
     }
 
     try {
-      await navigator.clipboard.writeText(menuUrl);
+      await writeClipboardText(menuUrl);
       showAlert("URL copiada correctamente", "success");
-    } catch {
-      showAlert("No se pudo copiar la URL", "error");
+    } catch (error) {
+      showAlert(`No se pudo copiar la URL. ${error.message}`, "error");
     }
   };
 

@@ -30,6 +30,7 @@ import { useProducts } from '@/context/Products.jsx';
 import { WorkingHours } from './WorkingHours/WorkingHours.jsx';
 import { QRCodeHover } from '../CustomQRCode/QRCodeHover.jsx';
 import { generateProductCatalogPDF } from '@/views/ControlPanel/AdminPanel/ProductPanel/CreateCatalog/CreateCatalog.jsx';
+import { writeClipboardText } from '@/utils/clipboard.js';
 // --------------------
 
 export const ClientProfileBanner = ({
@@ -44,7 +45,7 @@ export const ClientProfileBanner = ({
     window.open(url, '_blank', 'noopener noreferrer');
   };
 
-  const handleShare = (restaurantURL) => {
+  const handleShare = async (restaurantURL) => {
     const pageTitle = document.title;
     if (navigator.share) {
       navigator
@@ -54,10 +55,12 @@ export const ClientProfileBanner = ({
         })
         .catch((error) => console.log('Error al compartir:', error));
     } else {
-      navigator.clipboard
-        .writeText(restaurantURL)
-        .then(() => alert('Enlace copiado al portapapeles'))
-        .catch((err) => console.error('Error al copiar: ', err));
+      try {
+        await writeClipboardText(restaurantURL);
+        alert('Enlace copiado al portapapeles');
+      } catch (error) {
+        console.error('Error al copiar: ', error);
+      }
     }
   };
 

@@ -1,6 +1,7 @@
 const {
   app,
   BrowserWindow,
+  clipboard,
   ipcMain,
   safeStorage,
   session,
@@ -21,7 +22,9 @@ const devServerUrl = process.env.ELECTRON_RENDERER_URL;
 const isDevelopment = Boolean(devServerUrl);
 const SECURE_STORAGE_KEYS = new Set(['token', 'user', 'loginCredentials']);
 let mainWindow;
-const printerManager = createPrinterManager(app, BrowserWindow);
+const printerManager = createPrinterManager(app, BrowserWindow, {
+  onKitchenPrint: () => shell.beep(),
+});
 
 app.setAppUserModelId('com.lobotech.foodorderapp.admin');
 
@@ -166,6 +169,21 @@ ipcMain.handle('shell:open-external', async (event, rawUrl) => {
       message: error.message,
     };
   }
+});
+
+ipcMain.handle('clipboard:write-text', async (event, text) => {
+  if (!isAuthorizedRenderer(event.sender)) {
+    return { copied: false, reason: 'unauthorized' };
+  }
+
+  const value = String(text ?? '').trim();
+
+  if (!value) {
+    return { copied: false, reason: 'empty-text' };
+  }
+
+  clipboard.writeText(value);
+  return { copied: true };
 });
 
 ipcMain.handle('updates:install', (event) => {

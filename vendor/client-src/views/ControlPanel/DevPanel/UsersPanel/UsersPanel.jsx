@@ -47,6 +47,10 @@ import { useUser } from "@/context/Users.jsx";
 import { useAlert } from "@/hooks/Alert.jsx";
 // ---------------
 
+// ---- Utils ----
+import { writeClipboardText } from "@/utils/clipboard.js";
+// ---------------
+
 // ---- STYLES ----
 const tableHeadStyle = {
   color: "primary.main",
@@ -81,15 +85,13 @@ export const UsersPanel = () => {
   };
 
   // FUNCIÓN PARA COPIAR TEXTO
-  const copyToClipboard = (text) => {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        showAlert(`Copiado: ${text}`, "success");
-      })
-      .catch((err) => {
-        showAlert(`Error al copiar al portapapeles: ${err}`, "error");
-      });
+  const copyToClipboard = async (text) => {
+    try {
+      const copiedText = await writeClipboardText(text);
+      showAlert(`Copiado: ${copiedText}`, "success");
+    } catch (error) {
+      showAlert(`Error al copiar al portapapeles: ${error.message}`, "error");
+    }
   };
 
   // CONTEXT

@@ -4,7 +4,7 @@ const path = require('path');
 const PRINTER_TYPES = new Set(['ticket', 'kitchen']);
 const MAX_PRINT_HTML_LENGTH = 500000;
 
-const createPrinterManager = (app, BrowserWindow) => {
+const createPrinterManager = (app, BrowserWindow, options = {}) => {
   const configPath = () =>
     path.join(app.getPath('userData'), 'printer-config.json');
 
@@ -111,6 +111,10 @@ const createPrinterManager = (app, BrowserWindow) => {
           }
         );
       });
+
+      if (type === 'kitchen' && typeof options.onKitchenPrint === 'function') {
+        options.onKitchenPrint();
+      }
 
       return {
         printed: true,

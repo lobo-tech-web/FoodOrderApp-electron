@@ -1,24 +1,24 @@
-import { Paper, Box, Typography, Divider } from '@mui/material';
-import { BarChart as BarChartIcon } from '@mui/icons-material';
-import { cleanMoneyValue, formatCurrency } from '@/utils/orderCalculations.js';
+import { Paper, Box, Typography, Divider } from "@mui/material";
+import { BarChart as BarChartIcon } from "@mui/icons-material";
+import { cleanMoneyValue, formatCurrency } from "@/utils/orderCalculations.js";
 
 const SummaryRow = ({ label, value, strong = false }) => (
   <Box
     sx={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
       gap: 1.5,
       py: 1.35,
-      borderBottom: '1px dashed',
-      borderColor: 'rgba(184, 182, 186, 0.18)',
+      borderBottom: "1px dashed",
+      borderColor: "rgba(184, 182, 186, 0.18)",
     }}
   >
     <Typography
       sx={{
-        fontFamily: 'fontFamily.primary',
-        color: 'text.primary',
-        fontSize: { xs: '12px', md: '13px' },
+        fontFamily: "fontFamily.primary",
+        color: "text.primary",
+        fontSize: { xs: "12px", md: "13px" },
         lineHeight: 1,
       }}
     >
@@ -26,13 +26,13 @@ const SummaryRow = ({ label, value, strong = false }) => (
     </Typography>
     <Typography
       sx={{
-        fontFamily: 'fontFamily.terciary',
-        color: 'primary.main',
+        fontFamily: "fontFamily.terciary",
+        color: "primary.main",
         fontSize: strong
-          ? { xs: '17px', md: '20px' }
-          : { xs: '15px', md: '17px' },
+          ? { xs: "17px", md: "20px" }
+          : { xs: "15px", md: "17px" },
         lineHeight: 1,
-        whiteSpace: 'nowrap',
+        whiteSpace: "nowrap",
       }}
     >
       {value}
@@ -48,35 +48,35 @@ export const OrderSummary = ({
 }) => {
   const discountLabel =
     calculatedDiscount.discountPercentage > 0
-      ? 'DESCUENTO (' + calculatedDiscount.discountPercentage + '%)'
-      : 'DESCUENTO';
+      ? "DESCUENTO (" + calculatedDiscount.discountPercentage + "%)"
+      : "DESCUENTO";
   const discountValue =
     calculatedDiscount.discountamount > 0
-      ? '-' + formatCurrency(calculatedDiscount.discountamount)
+      ? "-" + formatCurrency(calculatedDiscount.discountamount)
       : formatCurrency(0);
 
   return (
     <Paper
       elevation={0}
       sx={{
-        bgcolor: 'background.paper',
-        border: '1px solid',
-        borderColor: 'rgba(184, 182, 186, 0.22)',
-        borderRadius: '8px',
+        bgcolor: "background.paper",
+        border: "1px solid",
+        borderColor: "rgba(184, 182, 186, 0.22)",
+        borderRadius: "8px",
         p: { xs: 1.75, md: 2.25 },
         minHeight: { lg: 520 },
-        position: { lg: 'sticky' },
+        position: { lg: "sticky" },
         top: 16,
-        boxShadow: '0 18px 50px rgba(0, 0, 0, 0.24)',
+        boxShadow: "0 18px 50px rgba(0, 0, 0, 0.24)",
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 2.5 }}>
-        <BarChartIcon sx={{ color: 'primary.main', fontSize: 26 }} />
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.2, mb: 2.5 }}>
+        <BarChartIcon sx={{ color: "primary.main", fontSize: 26 }} />
         <Typography
           sx={{
-            fontFamily: 'fontFamily.primary',
-            color: 'text.primary',
-            fontSize: { xs: '18px', sm: '21px' },
+            fontFamily: "fontFamily.primary",
+            color: "text.primary",
+            fontSize: { xs: "18px", sm: "21px" },
             lineHeight: 1,
           }}
         >
@@ -98,21 +98,21 @@ export const OrderSummary = ({
         value={formatCurrency(cleanMoneyValue(order.deliverycost))}
       />
 
-      <Divider sx={{ my: 2.25, borderColor: 'rgba(184, 182, 186, 0.18)' }} />
+      <Divider sx={{ my: 2.25, borderColor: "rgba(184, 182, 186, 0.18)" }} />
 
       <Box
         sx={{
-          display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'space-between',
+          display: "flex",
+          alignItems: "flex-end",
+          justifyContent: "space-between",
           gap: 1.5,
         }}
       >
         <Typography
           sx={{
-            fontFamily: 'fontFamily.primary',
-            color: 'text.primary',
-            fontSize: { xs: '18px', md: '20px' },
+            fontFamily: "fontFamily.primary",
+            color: "text.primary",
+            fontSize: { xs: "18px", md: "20px" },
             lineHeight: 1,
           }}
         >
@@ -120,33 +120,33 @@ export const OrderSummary = ({
         </Typography>
         <Typography
           sx={{
-            fontFamily: 'fontFamily.terciary',
-            color: 'primary.main',
-            fontSize: { xs: '26px', md: '30px' },
+            fontFamily: "fontFamily.terciary",
+            color: "primary.main",
+            fontSize: { xs: "26px", md: "30px" },
             lineHeight: 0.9,
-            whiteSpace: 'nowrap',
+            whiteSpace: "nowrap",
           }}
         >
           {formatCurrency(finalOrderTotal)}
         </Typography>
       </Box>
 
-      <Divider sx={{ my: 2.25, borderColor: 'rgba(184, 182, 186, 0.18)' }} />
+      <Divider sx={{ my: 2.25, borderColor: "rgba(184, 182, 186, 0.18)" }} />
 
       {calculatedProductTotals.totalRewardPoints > 0 && (
         <Box
           sx={{
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'space-between',
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
             gap: 1.5,
           }}
         >
           <Typography
             sx={{
-              fontFamily: 'fontFamily.primary',
-              color: 'text.secondary',
-              fontSize: { xs: '10px', md: '12px' },
+              fontFamily: "fontFamily.primary",
+              color: "text.secondary",
+              fontSize: { xs: "10px", md: "12px" },
               lineHeight: 1,
             }}
           >
@@ -154,11 +154,11 @@ export const OrderSummary = ({
           </Typography>
           <Typography
             sx={{
-              fontFamily: 'fontFamily.terciary',
-              color: 'success.main',
-              fontSize: { xs: '10px', md: '15px' },
+              fontFamily: "fontFamily.terciary",
+              color: "success.main",
+              fontSize: { xs: "10px", md: "15px" },
               lineHeight: 0.9,
-              whiteSpace: 'nowrap',
+              whiteSpace: "nowrap",
             }}
           >
             +{calculatedProductTotals.totalRewardPoints} pts
@@ -166,21 +166,21 @@ export const OrderSummary = ({
         </Box>
       )}
 
-      <Divider sx={{ my: 1, borderColor: 'transparent' }} />
+      <Divider sx={{ my: 1, borderColor: "transparent" }} />
       {calculatedProductTotals.totalRedeemPoints > 0 && (
         <Box
           sx={{
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'space-between',
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
             gap: 1.5,
           }}
         >
           <Typography
             sx={{
-              fontFamily: 'fontFamily.primary',
-              color: 'text.secondary',
-              fontSize: { xs: '10px', md: '12px' },
+              fontFamily: "fontFamily.primary",
+              color: "text.secondary",
+              fontSize: { xs: "10px", md: "12px" },
               lineHeight: 1,
             }}
           >
@@ -188,11 +188,11 @@ export const OrderSummary = ({
           </Typography>
           <Typography
             sx={{
-              fontFamily: 'fontFamily.terciary',
-              color: 'error.main',
-              fontSize: { xs: '10px', md: '15px' },
+              fontFamily: "fontFamily.terciary",
+              color: "error.main",
+              fontSize: { xs: "10px", md: "15px" },
               lineHeight: 0.9,
-              whiteSpace: 'nowrap',
+              whiteSpace: "nowrap",
             }}
           >
             -{calculatedProductTotals.totalRedeemPoints} pts

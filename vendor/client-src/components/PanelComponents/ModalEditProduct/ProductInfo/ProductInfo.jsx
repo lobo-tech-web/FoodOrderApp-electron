@@ -13,77 +13,77 @@ import {
   Switch,
   Stack,
   Chip,
-} from '@mui/material';
-import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
+} from "@mui/material";
+import { CloudUpload as CloudUploadIcon } from "@mui/icons-material";
 // ---------------------
 
 // ---- UTILS ----
-import { handleInputChange } from '@/utils/productUtils.js';
+import { handleInputChange } from "@/utils/productUtils.js";
 // ---------------
 
 // ---- STYLES ----
 const textFieldStyle = {
-  '& .MuiInputBase-root': {
-    fontFamily: 'fontFamily.primary',
-    fontSize: { xs: '14px', sm: '16px', md: '16px' },
-    minHeight: { xs: '48px', sm: '56px', md: '56px' },
-    color: 'text.primary',
-    bgcolor: 'background.default',
-    borderRadius: { xs: '8px', sm: '12px' },
+  "& .MuiInputBase-root": {
+    fontFamily: "fontFamily.primary",
+    fontSize: { xs: "14px", sm: "16px", md: "16px" },
+    minHeight: { xs: "48px", sm: "56px", md: "56px" },
+    color: "text.primary",
+    bgcolor: "background.default",
+    borderRadius: { xs: "8px", sm: "12px" },
   },
-  '& .MuiOutlinedInput-root': {
-    '& fieldset': {
-      borderColor: 'rgba(184, 182, 186, 0.3)',
-      borderWidth: '1px',
+  "& .MuiOutlinedInput-root": {
+    "& fieldset": {
+      borderColor: "rgba(184, 182, 186, 0.3)",
+      borderWidth: "1px",
     },
-    '&:hover fieldset': {
-      borderColor: 'primary.main',
-      borderWidth: '1px',
+    "&:hover fieldset": {
+      borderColor: "primary.main",
+      borderWidth: "1px",
     },
-    '&.Mui-focused fieldset': {
-      borderColor: 'primary.main',
-      borderWidth: '2px',
-      boxShadow: '0 0 0 3px rgba(245, 166, 35, 0.2)',
+    "&.Mui-focused fieldset": {
+      borderColor: "primary.main",
+      borderWidth: "2px",
+      boxShadow: "0 0 0 3px rgba(245, 166, 35, 0.2)",
     },
   },
-  width: '100%',
-  marginBottom: { xs: '16px', sm: '20px', md: '20px' },
+  width: "100%",
+  marginBottom: { xs: "16px", sm: "20px", md: "20px" },
 };
 
 const labelStyle = {
-  fontFamily: 'fontFamily.primary',
-  color: 'primary.main',
-  fontWeight: 'bold',
-  fontSize: { xs: '14px', sm: '16px', md: '16px' },
+  fontFamily: "fontFamily.primary",
+  color: "primary.main",
+  fontWeight: "bold",
+  fontSize: { xs: "14px", sm: "16px", md: "16px" },
   lineHeight: 1,
   mb: 0,
 };
 
 const labelContainerStyle = {
-  display: 'flex',
-  alignItems: 'center',
+  display: "flex",
+  alignItems: "center",
   gap: { xs: 1, sm: 1.5, md: 1.5 },
   mb: { xs: 1, sm: 1.5, md: 1 },
 };
 
 const switchCardStyle = {
   p: 2,
-  border: '1px solid',
-  borderColor: 'rgba(184, 182, 186, 0.22)',
+  border: "1px solid",
+  borderColor: "rgba(184, 182, 186, 0.22)",
   borderRadius: 2,
-  bgcolor: 'background.default',
+  bgcolor: "background.default",
 };
 
 const switchLabelStyle = {
-  fontFamily: 'fontFamily.secondary',
-  color: 'text.primary',
-  fontSize: { xs: '14px', sm: '15px' },
+  fontFamily: "fontFamily.secondary",
+  color: "text.primary",
+  fontSize: { xs: "14px", sm: "15px" },
 };
 
 const switchDescriptionStyle = {
-  fontFamily: 'fontFamily.secondary',
-  color: 'text.secondary',
-  fontSize: { xs: '12px', sm: '13px' },
+  fontFamily: "fontFamily.secondary",
+  color: "text.secondary",
+  fontSize: { xs: "12px", sm: "13px" },
 };
 
 const BooleanSwitchRow = ({
@@ -101,9 +101,9 @@ const BooleanSwitchRow = ({
     <Paper elevation={0} sx={switchCardStyle}>
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
           gap: 2,
         }}
       >
@@ -118,11 +118,11 @@ const BooleanSwitchRow = ({
             <Chip
               size="small"
               label={isActive ? activeLabel : inactiveLabel}
-              color={isActive ? 'success' : 'default'}
-              variant={isActive ? 'filled' : 'outlined'}
+              color={isActive ? "success" : "default"}
+              variant={isActive ? "filled" : "outlined"}
               sx={{
                 mt: 1,
-                fontFamily: 'fontFamily.secondary',
+                fontFamily: "fontFamily.secondary",
               }}
             />
           )}
@@ -149,31 +149,31 @@ export const ProductInfo = ({
 }) => {
   // ---- OPCIONES PARA TÍTULOS ESPECIALES ----
   const specialTitleExamples = [
-    'Limitado',
-    'Oferta',
-    'Oferta del mes',
-    'Especial',
-    'Nuevo',
-    'Sugerencia',
-    'Popular',
+    "LIMITADO",
+    "OFERTA",
+    "OFERTA DEL MES",
+    "ESPECIAL",
+    "NUEVO",
+    "SUGERENCIA",
+    "POPULAR",
   ];
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
       <Paper
         elevation={0}
         sx={{
           p: 3,
-          backgroundColor: 'background.paper',
+          backgroundColor: "background.paper",
           borderRadius: 2,
         }}
       >
         <Typography
           variant="subtitle1"
           sx={{
-            fontFamily: 'fontFamily.primary',
-            textAlign: 'center',
-            color: 'primary.main',
+            fontFamily: "fontFamily.primary",
+            textAlign: "center",
+            color: "primary.main",
             mb: 2,
           }}
         >
@@ -189,7 +189,7 @@ export const ProductInfo = ({
           required
           name="name"
           placeholder="Ej: Empanada de Carne"
-          value={product.name || ''}
+          value={product.name || ""}
           onChange={(e) => handleInputChange(setProduct, e)}
           sx={textFieldStyle}
         />
@@ -200,19 +200,19 @@ export const ProductInfo = ({
         </Box>
         <FormControl fullWidth sx={textFieldStyle}>
           <Select
-            value={product.specialTitle || ''}
+            value={product.specialTitle || ""}
             onChange={(e) =>
               setProduct((prev) => ({ ...prev, specialTitle: e.target.value }))
             }
-            sx={{ fontFamily: 'fontFamily.terciary', color: 'text.primary' }}
+            sx={{ fontFamily: "fontFamily.terciary", color: "text.primary" }}
             displayEmpty
             renderValue={(selected) => {
               if (!selected) {
                 return (
                   <Typography
                     sx={{
-                      fontFamily: 'fontFamily.secondary',
-                      color: 'text.secondary',
+                      fontFamily: "fontFamily.secondary",
+                      color: "text.secondary",
                     }}
                   >
                     Etiquetas especiales para tu producto
@@ -225,8 +225,8 @@ export const ProductInfo = ({
             <MenuItem
               value=""
               sx={{
-                fontFamily: 'fontFamily.terciary',
-                color: 'primary.main',
+                fontFamily: "fontFamily.terciary",
+                color: "primary.main",
               }}
             >
               SIN ETIQUETA
@@ -236,8 +236,8 @@ export const ProductInfo = ({
                 key={title}
                 value={title}
                 sx={{
-                  fontFamily: 'fontFamily.terciary',
-                  color: 'text.primary',
+                  fontFamily: "fontFamily.terciary",
+                  color: "text.primary",
                 }}
               >
                 {title.toUpperCase()}
@@ -255,7 +255,7 @@ export const ProductInfo = ({
           name="description"
           multiline
           rows={3}
-          value={product.description || ''}
+          value={product.description || ""}
           onChange={(e) => handleInputChange(setProduct, e)}
           sx={textFieldStyle}
         />
@@ -266,11 +266,11 @@ export const ProductInfo = ({
           </Box>
           <FormControl fullWidth required sx={textFieldStyle}>
             <Select
-              value={product.category || ''}
-              sx={{ fontFamily: 'fontFamily.terciary', color: 'text.primary' }}
+              value={product.category || ""}
+              sx={{ fontFamily: "fontFamily.terciary", color: "text.primary" }}
               onChange={(e) => {
                 const selectedCategory = allCategories.find(
-                  (category) => category?.name === e.target.value
+                  (category) => category?.name === e.target.value,
                 );
                 if (selectedCategory) {
                   setProduct((prev) => ({
@@ -281,12 +281,12 @@ export const ProductInfo = ({
                 }
               }}
               error={!product.category}
-              helperText={!product.category ? 'Seleccione una categoría' : ''}
+              helperText={!product.category ? "Seleccione una categoría" : ""}
               displayEmpty
               renderValue={(selected) => {
                 if (!selected) {
                   return (
-                    <Typography sx={{ color: 'text.secondary' }}>
+                    <Typography sx={{ color: "text.secondary" }}>
                       Selecciona una categoria
                     </Typography>
                   );
@@ -299,8 +299,8 @@ export const ProductInfo = ({
                   key={category?.id}
                   value={category?.name}
                   sx={{
-                    fontFamily: 'fontFamily.terciary',
-                    color: 'text.primary',
+                    fontFamily: "fontFamily.terciary",
+                    color: "text.primary",
                   }}
                 >
                   {category?.name?.toUpperCase()}
@@ -315,39 +315,39 @@ export const ProductInfo = ({
         elevation={0}
         sx={{
           p: 3,
-          backgroundColor: 'background.paper',
+          backgroundColor: "background.paper",
           borderRadius: 2,
         }}
       >
         <Typography
           variant="subtitle1"
           sx={{
-            fontFamily: 'fontFamily.primary',
-            textAlign: 'center',
-            color: 'primary.main',
+            fontFamily: "fontFamily.primary",
+            textAlign: "center",
+            color: "primary.main",
             mb: 2,
           }}
         >
           PRECIO / DESCUENTO / PUNTOS
         </Typography>
         {[
-          { label: 'PRECIO', name: 'price', type: 'text', required: true },
+          { label: "PRECIO", name: "price", type: "text", required: true },
           {
-            label: 'DESCUENTO %',
-            name: 'discount',
-            type: 'text',
+            label: "DESCUENTO %",
+            name: "discount",
+            type: "text",
             inputProps: { min: 0, max: 100 },
             required: true,
           },
           {
-            label: 'PTOS. RECOMPENSA',
-            name: 'rewardPoints',
-            type: 'text',
+            label: "PTOS. RECOMPENSA",
+            name: "rewardPoints",
+            type: "text",
           },
           {
-            label: 'PTOS. CANJE',
-            name: 'redeemPoints',
-            type: 'text',
+            label: "PTOS. CANJE",
+            name: "redeemPoints",
+            type: "text",
           },
         ].map((field) => (
           <Box key={field.name}>
@@ -417,25 +417,25 @@ export const ProductInfo = ({
         elevation={0}
         sx={{
           p: 3,
-          bgcolor: 'background.paper',
+          bgcolor: "background.paper",
           borderRadius: 2,
-          border: '1px dashed #f5a623',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'all 0.2s ease',
+          border: "1px dashed #f5a623",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "all 0.2s ease",
         }}
       >
         <Typography
           variant="h6"
           sx={{
-            fontFamily: 'fontFamily.primary',
-            color: 'primary.main',
+            fontFamily: "fontFamily.primary",
+            color: "primary.main",
             mb: 2,
-            fontWeight: 'bold',
-            display: 'flex',
-            alignItems: 'center',
+            fontWeight: "bold",
+            display: "flex",
+            alignItems: "center",
             gap: 1,
           }}
         >
@@ -444,10 +444,10 @@ export const ProductInfo = ({
         {imagePreview ? (
           <Box
             sx={{
-              position: 'relative',
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'center',
+              position: "relative",
+              width: "100%",
+              display: "flex",
+              justifyContent: "center",
               mb: 2,
             }}
           >
@@ -455,33 +455,33 @@ export const ProductInfo = ({
               src={imagePreview}
               alt="Vista previa"
               style={{
-                maxWidth: '100%',
-                maxHeight: '200px',
-                borderRadius: '8px',
+                maxWidth: "100%",
+                maxHeight: "200px",
+                borderRadius: "8px",
               }}
             />
           </Box>
         ) : (
           <Box
             sx={{
-              width: '100%',
-              height: '150px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'background.default',
-              borderRadius: '8px',
+              width: "100%",
+              height: "150px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "background.default",
+              borderRadius: "8px",
               mb: 2,
             }}
           >
-            <Typography sx={{ color: 'text.primary' }}>
+            <Typography sx={{ color: "text.primary" }}>
               No hay imagen seleccionada
             </Typography>
           </Box>
         )}
         <input
           accept="image/*"
-          style={{ display: 'none' }}
+          style={{ display: "none" }}
           id="raised-button-file"
           type="file"
           onChange={handleImageUpload}
@@ -492,9 +492,9 @@ export const ProductInfo = ({
             variant="contained"
             component="span"
             startIcon={<CloudUploadIcon />}
-            sx={{ fontFamily: 'fontFamily.primary' }}
+            sx={{ fontFamily: "fontFamily.primary" }}
           >
-            {imagePreview ? 'Cambiar Imagen' : 'Subir Imagen'}
+            {imagePreview ? "Cambiar Imagen" : "Subir Imagen"}
           </Button>
         </label>
       </Paper>

@@ -1,15 +1,15 @@
-import { Box, Paper, Divider } from '@mui/material';
+import { Box, Paper, Divider } from "@mui/material";
 
 // ---- SECTIONS ----
-import { PaymentSection } from './sections/PaymentSection.jsx';
-import { DeliverySection } from './sections/DeliverySection.jsx';
-import { DiscountSection } from './sections/DiscountSection.jsx';
-import { TaxSection } from './sections/TaxSection.jsx';
-import { CartProductSection } from './sections/CartProductSection.jsx';
+import { PaymentSection } from "./sections/PaymentSection.jsx";
+import { DeliverySection } from "./sections/DeliverySection.jsx";
+import { DiscountSection } from "./sections/DiscountSection.jsx";
+import { TaxSection } from "./sections/TaxSection.jsx";
+import { CartProductSection } from "./sections/CartProductSection.jsx";
 // ------------------
 
 // ---- STYLES ----
-import { sectionCardStyle } from '../styles/modalCreateOrder.styles.js';
+import { sectionCardStyle } from "../styles/modalCreateOrder.styles.js";
 // ----------------
 
 export const OrderDetailsTab = ({
@@ -31,7 +31,7 @@ export const OrderDetailsTab = ({
       <Paper elevation={0} sx={sectionCardStyle}>
         <PaymentSection order={order} setOrder={setOrder} />
 
-        <Divider sx={{ my: 2.2, borderColor: 'text.secondary' }} />
+        <Divider sx={{ my: 2.2, borderColor: "text.secondary" }} />
 
         <DeliverySection
           order={order}
@@ -39,7 +39,7 @@ export const OrderDetailsTab = ({
           handleInputChange={handleInputChange}
         />
 
-        <Divider sx={{ my: 2.2, borderColor: 'text.secondary' }} />
+        <Divider sx={{ my: 2.2, borderColor: "text.secondary" }} />
 
         <DiscountSection
           order={order}

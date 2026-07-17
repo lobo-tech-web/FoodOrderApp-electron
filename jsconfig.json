@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2022",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["vendor/client-src/*"]
+    },
+    "noEmit": true,
+    "strict": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false
+  },
+  "include": [
+    "src/**/*",
+    "vendor/client-src/**/*",
+    "main.js",
+    "menu.js",
+    "preload.js",
+    "printer-manager.js",
+    "updater.js",
+    "scripts/**/*",
+    "vite.config.mjs"
+  ],
+  "exclude": ["node_modules", "dist", "release"]
+}

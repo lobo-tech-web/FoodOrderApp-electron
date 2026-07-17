@@ -32,6 +32,10 @@ import { RestaurantUserPoints } from "./RestaurantUserPoints/RestaurantUserPoint
 import { useAlert } from "@/hooks/Alert.jsx";
 // ---------------
 
+// ---- Utils ----
+import { writeClipboardText } from "@/utils/clipboard.js";
+// ---------------
+
 // ---- CONTEXT ----
 import { useUser } from "@/context/Users.jsx";
 // <----------------
@@ -129,15 +133,13 @@ export const UserPointsRestaurantPanel = ({ user }) => {
   // ----------------------------------------------------------------
 
   // FUNCIÓN PARA COPIAR TEXTO
-  const copyToClipboard = (text) => {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        showAlert(`Copiado: ${text}`, "success");
-      })
-      .catch((err) => {
-        showAlert(`No se pudo copiar al portapapeles. ${err}`, "error");
-      });
+  const copyToClipboard = async (text) => {
+    try {
+      const copiedText = await writeClipboardText(text);
+      showAlert(`Copiado: ${copiedText}`, "success");
+    } catch (error) {
+      showAlert(`No se pudo copiar al portapapeles. ${error.message}`, "error");
+    }
   };
 
   const [order, setOrder] = useState("desc");
