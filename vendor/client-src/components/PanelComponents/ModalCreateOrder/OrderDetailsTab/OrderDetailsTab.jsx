@@ -1,11 +1,10 @@
-import { Box, Paper, Divider } from "@mui/material";
+import { Box, Divider, Paper } from "@mui/material";
 
 // ---- SECTIONS ----
-import { PaymentSection } from "./sections/PaymentSection.jsx";
 import { DeliverySection } from "./sections/DeliverySection.jsx";
 import { DiscountSection } from "./sections/DiscountSection.jsx";
+import { PaymentSection } from "./sections/PaymentSection.jsx";
 import { TaxSection } from "./sections/TaxSection.jsx";
-import { CartProductSection } from "./sections/CartProductSection.jsx";
 // ------------------
 
 // ---- STYLES ----
@@ -21,10 +20,6 @@ export const OrderDetailsTab = ({
   calculatedDiscount,
   addServiceTax,
   setAddServiceTax,
-  handleQuantityChange,
-  handleRemoveProduct,
-  handleEditProduct,
-  setShowProductSelector,
 }) => {
   return (
     <Box>
@@ -54,14 +49,6 @@ export const OrderDetailsTab = ({
           setAddServiceTax={setAddServiceTax}
         />
       </Paper>
-
-      <CartProductSection
-        order={order}
-        handleQuantityChange={handleQuantityChange}
-        handleRemoveProduct={handleRemoveProduct}
-        handleEditProduct={handleEditProduct}
-        setShowProductSelector={setShowProductSelector}
-      />
     </Box>
   );
 };

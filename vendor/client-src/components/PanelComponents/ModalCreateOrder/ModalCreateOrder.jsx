@@ -1,64 +1,64 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import _ from "lodash";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 // ---- MATERIAL UI ----
 import {
   Box,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  FormControl,
-  Select,
-  MenuItem,
-  Typography,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
   IconButton,
+  MenuItem,
+  Select,
+  Typography,
   useTheme,
 } from "@mui/material";
 // ICONS
 import {
-  Close as CloseIcon,
   Add as AddIcon,
-  Pending as PendingIcon,
-  FactCheck as FactCheckIcon,
-  DeliveryDining as DeliveryDiningIcon,
-  CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
+  CheckCircle as CheckCircleIcon,
+  Close as CloseIcon,
+  DeliveryDining as DeliveryDiningIcon,
+  FactCheck as FactCheckIcon,
+  Pending as PendingIcon,
 } from "@mui/icons-material";
 // ----------------------
 
 // ---- CONTEXT ----
-import { useUser } from "@/context/Users.jsx";
 import { useOrders } from "@/context/Orders.jsx";
 import { useProducts } from "@/context/Products.jsx";
+import { useUser } from "@/context/Users.jsx";
 // -----------------
 
 // ---- COMPONENTS ----
-import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
 import { ConfirmDialogClose } from "@/components/ConfirmDialogClose/ConfirmDialogClose.jsx";
-import { useThermalPrinter } from "../ModalEditOrder/PrinterConfig/useThermalPrinter.js";
+import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
 import { ModalSelectProducts } from "../ModalEditOrder/ModalSelectProducts/ModalSelectProducts.jsx";
-import { OrderSummary } from "./OrderSummary/OrderSummary.jsx";
-import { ClientSearchModal } from "./ClientSearchModal/ClientSearchModal.jsx";
+import { useThermalPrinter } from "../ModalEditOrder/PrinterConfig/useThermalPrinter.js";
 import { ClientInfoTab } from "./ClientInfoTab/ClientInfoTab.jsx";
+import { ClientSearchModal } from "./ClientSearchModal/ClientSearchModal.jsx";
+import { OrderSummary } from "./OrderSummary/OrderSummary.jsx";
 
 // ---- TABS ----
 import { OrderDetailsTab } from "./OrderDetailsTab/OrderDetailsTab.jsx";
 // ------------------
 
 // ---- UTILS ----
-import { taxAmount } from "@/utils/lobotechUtils.js"; // TARIFA DE SERVICIO
-import {
-  cleanMoneyValue,
-  calculateFinalProductPrice,
-  calculateProductTotals,
-  calculateDiscount,
-  calculateFinalTotal,
-} from "@/utils/orderCalculations.js";
 import { getDateNowDayjs } from "@/utils/clientWorking.js";
+import { taxAmount } from "@/utils/lobotechUtils.js"; // TARIFA DE SERVICIO
 import { getProductOptionsForUI } from "@/utils/migrateCustomOptions.js";
+import {
+  calculateDiscount,
+  calculateFinalProductPrice,
+  calculateFinalTotal,
+  calculateProductTotals,
+  cleanMoneyValue,
+} from "@/utils/orderCalculations.js";
 import { buildOrderKitchenPrinterHtml } from "@/utils/printTemplates/orderKitchenTemplate.js";
 import { buildOrderTicketPrinterHtml } from "@/utils/printTemplates/orderTicketTemplate.js";
 // ---------------
@@ -510,8 +510,10 @@ export const ModalCreateOrder = ({
   // ✅ EDITAR PRODUCTO DEL PEDIDO
   const handleEditProduct = (item, index) => {
     const originalProduct = availableProducts.find(
-      (p) =>
-        p.id === item.productId || p.id === item.id || p.name === item.name,
+      (product) =>
+        product.id === item.productId ||
+        product.id === item.id ||
+        product.name === item.name,
     );
 
     if (!originalProduct) {
@@ -524,14 +526,18 @@ export const ModalCreateOrder = ({
 
     const productOptions = getProductOptionsForUI(originalProduct);
 
-    if (productOptions.length === 0) {
-      showAlert("Este producto no tiene opciones personalizadas", "info");
+    if (productOptions.length === 0 && !originalProduct.allowComment) {
+      showAlert("Este producto no se puede modificar", "info");
       return;
     }
 
     setEditingProductIndex(index);
     setEditingProduct({
       ...originalProduct,
+      productId: originalProduct.id,
+      customOptions: _.cloneDeep(item.customOptions || []),
+      productComment: item.productComment || "",
+      quantity: Number(item.quantity) || 1,
     });
     setProductSelectorFirstStep(false);
     setShowProductSelector(true);
@@ -798,7 +804,7 @@ export const ModalCreateOrder = ({
         PaperProps={{
           elevation: 0,
           sx: {
-            width: "min(1180px, calc(100vw - 28px))",
+            width: "min(1360px, calc(100vw - 28px))",
             maxHeight: "calc(100vh - 28px)",
             borderRadius: "10px",
             overflow: "hidden",
@@ -1006,7 +1012,10 @@ export const ModalCreateOrder = ({
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1fr) 304px" },
+              gridTemplateColumns: {
+                xs: "1fr",
+                lg: "minmax(0, 1fr) minmax(360px, 420px)",
+              },
               gap: 2,
               alignItems: "start",
             }}
@@ -1032,10 +1041,6 @@ export const ModalCreateOrder = ({
                   calculatedDiscount={calculatedDiscount}
                   addServiceTax={addServiceTax}
                   setAddServiceTax={setAddServiceTax}
-                  handleQuantityChange={handleQuantityChange}
-                  handleRemoveProduct={handleRemoveProduct}
-                  handleEditProduct={handleEditProduct}
-                  setShowProductSelector={handleOpenProductSelector}
                 />
               </Box>
 
@@ -1055,6 +1060,10 @@ export const ModalCreateOrder = ({
               calculatedProductTotals={calculatedProductTotals}
               calculatedDiscount={calculatedDiscount}
               finalOrderTotal={finalOrderTotal}
+              onAddProduct={handleOpenProductSelector}
+              onEditProduct={handleEditProduct}
+              onQuantityChange={handleQuantityChange}
+              onRemoveProduct={handleRemoveProduct}
             />
           </Box>
         </DialogContent>

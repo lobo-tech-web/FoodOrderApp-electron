@@ -1,51 +1,52 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
-import _ from 'lodash';
+import _ from "lodash";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 // ---- MATERIAL UI ----
+import { Add as AddIcon, Close as CloseIcon } from "@mui/icons-material";
 import {
-  Modal,
-  TextField,
   Box,
-  Paper,
-  Typography,
   Button,
-  Stack,
-  IconButton,
-  Fade,
   CircularProgress,
+  Fade,
+  IconButton,
+  Modal,
+  Paper,
+  Stack,
+  TextField,
+  ThemeProvider,
+  Typography,
   useMediaQuery,
   useTheme,
-  ThemeProvider,
-} from '@mui/material';
-import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
+} from "@mui/material";
 // ---------------------
 
 // ---- COMPONENTS ----
-import { ConfirmDialogClose } from '../ConfirmDialogClose/ConfirmDialogClose.jsx';
-import { ProductImageHero } from './ProductImageHero/ProductImageHero.jsx';
-import { RenderCustomLabels } from './RenderCustomLabel/RenderCustomLabel.jsx';
-import { RenderCustomOptions } from './RenderCustomOptions/RenderCustomOptions.jsx';
+import { ConfirmDialogClose } from "../ConfirmDialogClose/ConfirmDialogClose.jsx";
+import { ProductImageHero } from "./ProductImageHero/ProductImageHero.jsx";
+import { RenderCustomLabels } from "./RenderCustomLabel/RenderCustomLabel.jsx";
+import { RenderCustomOptions } from "./RenderCustomOptions/RenderCustomOptions.jsx";
 // --------------------
 
 // ---- HOOKS ----
-import { useAlert } from '@/hooks/Alert.jsx';
-import { useCustomizations } from './hooks/useCustomizations.js';
-import { usePriceCalculation } from './hooks/usePriceCalculation.js';
+import { useAlert } from "@/hooks/Alert.jsx";
+import { useCustomizations } from "./hooks/useCustomizations.js";
+import { usePriceCalculation } from "./hooks/usePriceCalculation.js";
 // ---------------
 
 // ---- USE CONTEXT ----
-import { useCart } from '@/context/Cart.jsx';
-import { useUser } from '@/context/Users.jsx';
+import { useCart } from "@/context/Cart.jsx";
+import { useUser } from "@/context/Users.jsx";
 // <------------------
 
 // ---- UTILS ----
 import {
-  getProductOptionsForUI,
-  getSelectedOptionItems,
+  getCustomizationsFromSelectedItems,
+  getExceededMaxOptions,
   getMissingRequiredOptions,
   getOptionKey,
-  getExceededMaxOptions,
-} from '@/utils/migrateCustomOptions.js';
+  getProductOptionsForUI,
+  getSelectedOptionItems,
+} from "@/utils/migrateCustomOptions.js";
 // ---------------
 
 export const FoodDetailModal = ({
@@ -57,13 +58,14 @@ export const FoodDetailModal = ({
   customTheme,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const modalRef = useRef(null);
 
   const { AlertComponent, showAlert } = useAlert();
   // CREAMOS UNA COPIA DE LAS CUSTOM PARA VER SI HAY CAMBIOS DEL ESTADO INICIAL
   const [initialCustomizations, setInitialCustomizations] = useState({});
-  const [productComment, setProductComment] = useState('');
+  const [initialProductComment, setInitialProductComment] = useState("");
+  const [productComment, setProductComment] = useState("");
   const [showConfirmClose, setShowConfirmClose] = useState(false);
 
   const optionRefs = useRef({});
@@ -73,7 +75,7 @@ export const FoodDetailModal = ({
     if (confirmation) {
       setIsAdding(false);
       setCustomizations({});
-      setProductComment('');
+      setProductComment("");
       onClose();
     }
     setShowConfirmClose(false);
@@ -82,20 +84,26 @@ export const FoodDetailModal = ({
   const handleClose = () => {
     if (isAdding) return;
 
-    const hasChanges =
-      !_.isEqual(customizations, initialCustomizations) ||
-      productComment.trim().length > 0;
+    const customizationsChanged = !_.isEqual(
+      customizations,
+      initialCustomizations,
+    );
+
+    const commentChanged =
+      productComment.trim() !== initialProductComment.trim();
+
+    const hasChanges = customizationsChanged || commentChanged;
 
     if (hasChanges) {
       setShowConfirmClose(true);
-    } else {
-      onClose();
+      return;
     }
+    onClose();
   };
 
   const productOptions = useMemo(
     () => getProductOptionsForUI(product),
-    [product]
+    [product],
   );
 
   const sortedProductOptions = useMemo(() => {
@@ -115,7 +123,7 @@ export const FoodDetailModal = ({
     return sortedProductOptions.find((option) => {
       const minSelected = Number(option.minSelected ?? 0);
       const isRequired =
-        option.required || minSelected > 0 || option.type === 'unique';
+        option.required || minSelected > 0 || option.type === "unique";
 
       if (!isRequired) return false;
 
@@ -124,7 +132,7 @@ export const FoodDetailModal = ({
 
       const totalSelected = Object.values(selectedMap).reduce(
         (sum, value) => sum + Number(value || 0),
-        0
+        0,
       );
 
       const requiredMin = Number(option.minSelected || 1);
@@ -141,8 +149,8 @@ export const FoodDetailModal = ({
 
     if (optionElement) {
       optionElement.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
+        behavior: "smooth",
+        block: "center",
       });
 
       setHighlightedOptionKey(optionKey);
@@ -157,7 +165,7 @@ export const FoodDetailModal = ({
   const { userState } = useUser();
   const isUserLoggedIn = useMemo(
     () => Boolean(userState?.user?.id),
-    [userState?.user?.id]
+    [userState?.user?.id],
   );
 
   // Estado para animación de agregar al carrito
@@ -170,14 +178,14 @@ export const FoodDetailModal = ({
   const { totalPrice, formattedTotalPrice } = usePriceCalculation(
     product,
     customizations,
-    sortedProductOptions
+    sortedProductOptions,
   );
 
   // HANDLE PARA ENVIAR EL PRODUCTO AL CARRITO
   const handleAddToCart = () => {
     const missingSelections = getMissingRequiredOptions(
       sortedProductOptions,
-      customizations
+      customizations,
     );
 
     if (missingSelections.length > 0) {
@@ -186,24 +194,24 @@ export const FoodDetailModal = ({
       // Mostrar alerta si falta alguna selección
       showAlert(
         `Por favor, selecciona una opción para: ${missingSelections.join(
-          ', '
+          ", ",
         )}`,
-        'warning',
-        theme
+        "warning",
+        theme,
       );
       return;
     }
 
     const exceededMaxSelections = getExceededMaxOptions(
       sortedProductOptions,
-      customizations
+      customizations,
     );
 
     if (exceededMaxSelections.length > 0) {
       showAlert(
-        `Revisa el máximo permitido en: ${exceededMaxSelections.join(', ')}`,
-        'warning',
-        theme
+        `Revisa el máximo permitido en: ${exceededMaxSelections.join(", ")}`,
+        "warning",
+        theme,
       );
       return;
     }
@@ -211,9 +219,9 @@ export const FoodDetailModal = ({
     // ✅ VERIFICAR PRODUCTOS DE CANJE
     if (product.redeemPoints > 0 && !isUserLoggedIn) {
       showAlert(
-        'El producto seleccionado es de CANJE y no te encuentras logueado',
-        'warning',
-        theme
+        "El producto seleccionado es de CANJE y no te encuentras logueado",
+        "warning",
+        theme,
       );
       return;
     }
@@ -225,7 +233,7 @@ export const FoodDetailModal = ({
       setTimeout(() => {
         const finalCustomizations = getSelectedOptionItems(
           sortedProductOptions,
-          customizations
+          customizations,
         );
 
         const { productCustomOptions, ...productWithoutFullOptions } = product;
@@ -233,7 +241,7 @@ export const FoodDetailModal = ({
         const itemToAdd = {
           ...productWithoutFullOptions,
           customOptions: finalCustomizations,
-          productComment: product?.allowComment ? productComment.trim() : '',
+          productComment: product?.allowComment ? productComment.trim() : "",
         };
 
         // ✅ Si se proporciona el callback, lo usamos
@@ -242,11 +250,11 @@ export const FoodDetailModal = ({
         } else {
           // ✅ Si no, usamos la lógica original de añadir al carrito
           addItemToCart(itemToAdd);
-          showAlert('Producto agregado al pedido', 'success', theme);
+          showAlert("Producto agregado al pedido", "success", theme);
         }
 
         setCustomizations({});
-        setProductComment('');
+        setProductComment("");
         setIsAdding(false);
         onClose();
       }, 800);
@@ -255,27 +263,20 @@ export const FoodDetailModal = ({
 
   // Efecto para inicializar las personalizaciones cuando el producto cambia
   useEffect(() => {
-    if (open && product) {
-      const initialState = sortedProductOptions
-        .filter((option) => option.status !== false)
-        .reduce((acc, option) => {
-          const optionKey = getOptionKey(option);
+    if (!open || !product) return;
 
-          acc[optionKey] = {};
+    const initialState = getCustomizationsFromSelectedItems(
+      sortedProductOptions,
+      product.customOptions || [],
+    );
 
-          (option.items || [])
-            .filter((item) => item.status !== false)
-            .forEach((item) => {
-              acc[optionKey][item.id || item.name] = 0;
-            });
+    const initialComment = product.productComment || "";
 
-          return acc;
-        }, {});
+    setCustomizations(_.cloneDeep(initialState));
+    setInitialCustomizations(_.cloneDeep(initialState));
 
-      setCustomizations(initialState);
-      setInitialCustomizations(initialState);
-      setProductComment('');
-    }
+    setProductComment(initialComment);
+    setInitialProductComment(initialComment);
   }, [open, product, sortedProductOptions, setCustomizations]);
 
   // Efecto para hacer scroll al inicio cuando cambia el paso
@@ -300,33 +301,33 @@ export const FoodDetailModal = ({
           <Box
             id="food-detail-modal"
             sx={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: { xs: '100%', sm: '92%', md: '560px' },
-              height: { xs: '100%', sm: 'auto' },
-              maxHeight: { xs: '100vh', sm: '92vh' },
-              border: { xs: 'none', sm: '2px solid' },
-              borderColor: 'primary.main',
-              bgcolor: 'background.default',
-              color: 'text.terciary',
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: { xs: "100%", sm: "92%", md: "560px" },
+              height: { xs: "100%", sm: "auto" },
+              maxHeight: { xs: "100vh", sm: "92vh" },
+              border: { xs: "none", sm: "2px solid" },
+              borderColor: "primary.main",
+              bgcolor: "background.default",
+              color: "text.terciary",
               borderRadius: { xs: 0, sm: 4 },
-              outline: 'none',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
+              outline: "none",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
               boxShadow: 24,
               p: 0,
-              '&::-webkit-scrollbar': {
-                width: '8px',
+              "&::-webkit-scrollbar": {
+                width: "8px",
               },
-              '&::-webkit-scrollbar-track': {
-                background: 'rgba(0,0,0,0.1)',
+              "&::-webkit-scrollbar-track": {
+                background: "rgba(0,0,0,0.1)",
               },
-              '&::-webkit-scrollbar-thumb': {
-                background: 'rgba(0,0,0,0.2)',
-                borderRadius: '4px',
+              "&::-webkit-scrollbar-thumb": {
+                background: "rgba(0,0,0,0.2)",
+                borderRadius: "4px",
               },
             }}
           >
@@ -334,28 +335,28 @@ export const FoodDetailModal = ({
               ref={modalRef}
               sx={{
                 flex: 1,
-                overflowY: 'auto',
-                '&::-webkit-scrollbar': {
-                  width: '8px',
+                overflowY: "auto",
+                "&::-webkit-scrollbar": {
+                  width: "8px",
                 },
-                '&::-webkit-scrollbar-track': {
-                  background: 'rgba(0,0,0,0.1)',
+                "&::-webkit-scrollbar-track": {
+                  background: "rgba(0,0,0,0.1)",
                 },
-                '&::-webkit-scrollbar-thumb': {
-                  background: 'rgba(0,0,0,0.2)',
-                  borderRadius: '4px',
+                "&::-webkit-scrollbar-thumb": {
+                  background: "rgba(0,0,0,0.2)",
+                  borderRadius: "4px",
                 },
               }}
             >
               <Stack spacing={1.5}>
                 <Box
                   sx={{
-                    position: 'sticky',
+                    position: "sticky",
                     top: 0,
-                    backgroundColor: 'transparent',
+                    backgroundColor: "transparent",
                     zIndex: 2, // Para asegurarse de que esté por encima del contenido
-                    display: 'flex',
-                    justifyContent: 'flex-end',
+                    display: "flex",
+                    justifyContent: "flex-end",
                     padding: 1,
                   }}
                 >
@@ -365,14 +366,14 @@ export const FoodDetailModal = ({
                     onClick={handleClose}
                     disabled={isAdding}
                     sx={{
-                      position: 'absolute',
+                      position: "absolute",
                       top: 8,
                       right: 8,
                       zIndex: 10,
-                      color: 'text.primary',
-                      bgcolor: 'rgba(0,0,0,0.35)',
-                      '&:hover': {
-                        bgcolor: 'rgba(0,0,0,0.55)',
+                      color: "text.primary",
+                      bgcolor: "rgba(0,0,0,0.35)",
+                      "&:hover": {
+                        bgcolor: "rgba(0,0,0,0.55)",
                       },
                     }}
                   >
@@ -400,9 +401,9 @@ export const FoodDetailModal = ({
                     sx={{
                       mt: 2,
                       mb: 2,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
                       gap: 1,
                       px: { xs: 0, sm: 1 },
                     }}
@@ -413,12 +414,12 @@ export const FoodDetailModal = ({
                       variant="h4"
                       component="h2"
                       sx={{
-                        fontFamily: 'fontFamily.primary',
-                        color: 'text.primary',
-                        fontSize: { xs: '1.6rem', sm: '2rem' },
+                        fontFamily: "fontFamily.primary",
+                        color: "text.primary",
+                        fontSize: { xs: "1.6rem", sm: "2rem" },
                         lineHeight: 1.1,
-                        textAlign: 'center',
-                        wordBreak: 'break-word',
+                        textAlign: "center",
+                        wordBreak: "break-word",
                       }}
                     >
                       {product.name}
@@ -426,9 +427,9 @@ export const FoodDetailModal = ({
                     {(product.isVeggie || product.isSinTacc) && (
                       <Box
                         sx={{
-                          display: 'flex',
-                          flexWrap: 'wrap',
-                          justifyContent: 'center',
+                          display: "flex",
+                          flexWrap: "wrap",
+                          justifyContent: "center",
                           gap: 1,
                         }}
                       >
@@ -451,11 +452,11 @@ export const FoodDetailModal = ({
 
                   <Typography
                     id="product-modal-description"
-                    variant={isMobile ? 'body2' : 'body1'}
+                    variant={isMobile ? "body2" : "body1"}
                     sx={{
-                      fontFamily: 'fontFamily.secondary',
-                      color: 'text.primary',
-                      textAlign: 'center',
+                      fontFamily: "fontFamily.secondary",
+                      color: "text.primary",
+                      textAlign: "center",
                       mb: 3,
                       lineHeight: 1.6,
                     }}
@@ -480,13 +481,13 @@ export const FoodDetailModal = ({
                               sx={{
                                 borderRadius: 2,
                                 outline: isHighlighted
-                                  ? '2px solid'
-                                  : '2px solid transparent',
+                                  ? "2px solid"
+                                  : "2px solid transparent",
                                 outlineColor: isHighlighted
-                                  ? 'warning.main'
-                                  : 'transparent',
-                                transition: 'outline-color 200ms ease',
-                                scrollMarginTop: '24px',
+                                  ? "warning.main"
+                                  : "transparent",
+                                transition: "outline-color 200ms ease",
+                                scrollMarginTop: "24px",
                               }}
                             >
                               <RenderCustomOptions
@@ -508,9 +509,9 @@ export const FoodDetailModal = ({
                     <Box sx={{ mt: 3 }}>
                       <Typography
                         sx={{
-                          fontFamily: 'fontFamily.terciary',
-                          color: 'text.primary',
-                          fontSize: { xs: '0.85rem', sm: '1rem' },
+                          fontFamily: "fontFamily.terciary",
+                          color: "text.primary",
+                          fontSize: { xs: "0.85rem", sm: "1rem" },
                         }}
                       >
                         Comentarios para este producto
@@ -525,25 +526,25 @@ export const FoodDetailModal = ({
                         placeholder="Ej: Sin cebolla, sin tomate, otros..."
                         disabled={isAdding}
                         sx={{
-                          '& .MuiInputBase-root': {
-                            fontFamily: 'fontFamily.secondary',
-                            color: '#000',
-                            bgcolor: '#fff',
+                          "& .MuiInputBase-root": {
+                            fontFamily: "fontFamily.secondary",
+                            color: "#000",
+                            bgcolor: "#fff",
                             borderRadius: 2,
                           },
-                          '& .MuiInputLabel-root': {
-                            fontFamily: 'fontFamily.secondary',
-                            color: 'text.secondary',
+                          "& .MuiInputLabel-root": {
+                            fontFamily: "fontFamily.secondary",
+                            color: "text.secondary",
                           },
-                          '& .MuiOutlinedInput-root': {
-                            '& fieldset': {
-                              borderColor: 'primary.main',
+                          "& .MuiOutlinedInput-root": {
+                            "& fieldset": {
+                              borderColor: "primary.main",
                             },
-                            '&:hover fieldset': {
-                              borderColor: 'primary.main',
+                            "&:hover fieldset": {
+                              borderColor: "primary.main",
                             },
-                            '&.Mui-focused fieldset': {
-                              borderColor: 'primary.main',
+                            "&.Mui-focused fieldset": {
+                              borderColor: "primary.main",
                             },
                           },
                         }}
@@ -558,14 +559,14 @@ export const FoodDetailModal = ({
             <Paper
               elevation={10}
               sx={{
-                position: 'sticky',
+                position: "sticky",
                 bottom: 0,
                 zIndex: 5,
                 mt: 2,
                 p: { xs: 1.5, sm: 2 },
-                bgcolor: 'background.default',
-                borderTop: '1px solid',
-                borderColor: 'divider',
+                bgcolor: "background.default",
+                borderTop: "1px solid",
+                borderColor: "divider",
                 borderRadius: 2,
               }}
             >
@@ -585,35 +586,35 @@ export const FoodDetailModal = ({
                   )
                 }
                 sx={{
-                  fontFamily: 'fontFamily.secondary',
-                  color: 'text.secondary',
-                  fontWeight: 'bold',
-                  fontSize: { xs: '0.95rem', sm: '1.1rem' },
+                  fontFamily: "fontFamily.secondary",
+                  color: "text.secondary",
+                  fontWeight: "bold",
+                  fontSize: { xs: "0.95rem", sm: "1.1rem" },
                   py: { xs: 1.3, sm: 1.6 },
-                  borderRadius: '12px',
-                  boxShadow: '0px 4px 14px rgba(0, 0, 0, 0.15)',
+                  borderRadius: "12px",
+                  boxShadow: "0px 4px 14px rgba(0, 0, 0, 0.15)",
                   // mt: 3,
-                  '&.Mui-disabled': {
-                    bgcolor: 'grey.500',
-                    color: '#000',
-                    cursor: 'not-allowed',
+                  "&.Mui-disabled": {
+                    bgcolor: "grey.500",
+                    color: "#000",
+                    cursor: "not-allowed",
                   },
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
+                  "&:hover": {
+                    transform: "translateY(-2px)",
                     boxShadow: 4,
                   },
-                  transition: 'all 0.2s ease',
+                  transition: "all 0.2s ease",
                 }}
               >
                 {isAdding
-                  ? 'Agregando...'
+                  ? "Agregando..."
                   : totalPrice > 0 && product.redeemPoints > 0
                     ? `$${formattedTotalPrice} + ${product.redeemPoints} PTS.`
                     : totalPrice > 0
                       ? `$${formattedTotalPrice} - Agregar`
                       : product.redeemPoints > 0
                         ? `Canjear por ${product.redeemPoints} PTS.`
-                        : 'Agregar al carrito'}
+                        : "Agregar al carrito"}
               </Button>
             </Paper>
           </Box>

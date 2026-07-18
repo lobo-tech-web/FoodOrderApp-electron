@@ -1,24 +1,24 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
 import _ from "lodash";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 // ---- MATERIAL UI ----
 import {
   Box,
   Button,
   Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions,
-  Typography,
-  IconButton,
+  DialogContent,
+  DialogTitle,
   Divider,
+  IconButton,
+  Typography,
 } from "@mui/material";
 // ICONS
 import {
+  AccessTime as AccessTimeIcon,
   Close as CloseIcon,
   Edit as EditIcon,
   Save as SaveIcon,
-  AccessTime as AccessTimeIcon,
 } from "@mui/icons-material";
 // ---------------------
 
@@ -33,27 +33,29 @@ import { deleteOrderService } from "@/services/orders.js";
 // ------------------
 
 // ---- COMPONENTS ----
+import { ConfirmDialogClose } from "@/components/ConfirmDialogClose/ConfirmDialogClose.jsx";
 import { LoadingInModal } from "@/components/LoadingInModal/LoadingInModal.jsx";
 import { SavingOverlay } from "@/components/LoadingInModal/SavingOverlay.jsx";
-import { ConfirmDialogClose } from "@/components/ConfirmDialogClose/ConfirmDialogClose.jsx";
-import { PrinterConfigModal } from "./PrinterConfig/PrinterConfigModal.jsx";
 import { ModalSelectProducts } from "./ModalSelectProducts/ModalSelectProducts.jsx";
-import { QuickEditOrder } from "./QuickEditOrder/QuickEditOrder.jsx";
 import { OrderManagementPanel } from "./OrderDetails/OrderManagementPanel.jsx";
 import { OrderSummaryPanel } from "./OrderDetails/OrderSummaryPanel.jsx";
+import { PrinterConfigModal } from "./PrinterConfig/PrinterConfigModal.jsx";
+import { QuickEditOrder } from "./QuickEditOrder/QuickEditOrder.jsx";
 // --------------------
 
 // ---- UTILS ----
-import { initialUpdateOrderState } from "@/utils/orderUtils.js";
-import {
-  cleanMoneyValue,
-  calculateFinalProductPrice,
-  calculateProductTotals,
-  calculateDiscount,
-  calculateFinalTotal,
-} from "@/utils/orderCalculations.js";
 import { getProductOptionsForUI } from "@/utils/migrateCustomOptions.js";
-import { normalizeOrderForCompare } from "@/utils/orderUtils.js";
+import {
+  calculateDiscount,
+  calculateFinalProductPrice,
+  calculateFinalTotal,
+  calculateProductTotals,
+  cleanMoneyValue,
+} from "@/utils/orderCalculations.js";
+import {
+  initialUpdateOrderState,
+  normalizeOrderForCompare,
+} from "@/utils/orderUtils.js";
 // ---------------
 
 export const ModalEditOrder = ({
@@ -351,45 +353,57 @@ export const ModalEditOrder = ({
   };
 
   const handleProductModified = (modifiedProduct) => {
-    if (editingProductIndex !== null) {
-      const updatedCartItems = [...order.cartItems];
+    if (editingProductIndex === null) return;
 
-      const finalPrice = calculateFinalProductPrice(modifiedProduct);
+    const currentItem = order.cartItems[editingProductIndex];
 
-      const newItemModified = {
-        ...modifiedProduct,
-        productId: modifiedProduct.productId || modifiedProduct.id,
-        price: finalPrice,
-        quantity:
-          modifiedProduct.quantity ||
-          updatedCartItems[editingProductIndex].quantity,
-      };
-
-      updatedCartItems[editingProductIndex] = {
-        ...updatedCartItems[editingProductIndex],
-        ...newItemModified,
-      };
-
-      setOrder((prev) => ({
-        ...prev,
-        cartItems: updatedCartItems,
-      }));
-
-      // Reset editing states
-      setEditingProductIndex(null);
-      setEditingProduct(null);
-      setShowProductSelector(false);
-
-      showAlert("Producto modificado en el pedido", "success");
+    if (!currentItem) {
+      showAlert(
+        "No se encontró el producto que se estaba modificando",
+        "warning",
+      );
+      return;
     }
+
+    const finalPrice = calculateFinalProductPrice(modifiedProduct);
+
+    const newItemModified = {
+      ...currentItem,
+      ...modifiedProduct,
+      productId:
+        modifiedProduct.productId ||
+        modifiedProduct.id ||
+        currentItem.productId,
+      price: finalPrice,
+      quantity:
+        Number(modifiedProduct.quantity) || Number(currentItem.quantity) || 1,
+      customOptions: _.cloneDeep(modifiedProduct.customOptions || []),
+      productComment: modifiedProduct.productComment || "",
+    };
+
+    setOrder((prev) => ({
+      ...prev,
+      cartItems: prev.cartItems.map((item, index) =>
+        index === editingProductIndex ? newItemModified : item,
+      ),
+    }));
+
+    // Reset editing states
+    setEditingProductIndex(null);
+    setEditingProduct(null);
+    setShowProductSelector(false);
+
+    showAlert("Producto modificado en el pedido", "success");
   };
 
   // ✅ EDITAR PRODUCTO DEL PEDIDO
   const handleEditProduct = (item, index) => {
     // Find the original product from productState to get full product data including customOptions
     const originalProduct = productState.allProducts.find(
-      (p) =>
-        p.id === item.productId || p.id === item.id || p.name === item.name,
+      (product) =>
+        product.id === item.productId ||
+        product.id === item.id ||
+        product.name === item.name,
     );
 
     if (!originalProduct) {
@@ -402,14 +416,19 @@ export const ModalEditOrder = ({
 
     const productOptions = getProductOptionsForUI(originalProduct);
 
-    if (productOptions.length === 0) {
-      showAlert("Este producto no tiene opciones personalizadas", "info");
+    if (productOptions.length === 0 && !originalProduct.allowComment) {
+      showAlert("Este producto no se puede modificar", "info");
       return;
     }
 
     setEditingProductIndex(index);
     setEditingProduct({
       ...originalProduct,
+      id: originalProduct.id,
+      productId: originalProduct.id,
+      customOptions: _.cloneDeep(item.customOptions || []),
+      productComment: item.productComment || "",
+      quantity: Number(item.quantity) || 1,
     });
     setShowProductSelector(true);
   };

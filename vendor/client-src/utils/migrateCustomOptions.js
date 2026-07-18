@@ -97,6 +97,113 @@ export const getSelectedOptionItems = (productOptions, customizations) => {
         }, []);
 };
 
+export const getCustomizationsFromSelectedItems = (
+    productOptions = [],
+    selectedCustomOptions = []
+) => {
+    const selectedItems = Array.isArray(selectedCustomOptions)
+        ? selectedCustomOptions
+        : [];
+
+    return [...(productOptions || [])]
+        .filter((option) => option.status !== false)
+        .reduce((acc, option) => {
+            const optionKey = getOptionKey(option);
+
+            acc[optionKey] = {};
+
+            const availableItems = (option.items || []).filter(
+                (item) => item.status !== false
+            );
+
+            availableItems.forEach((item) => {
+                const itemKey = item.id || item.name;
+
+                const selectedItem = selectedItems.find((selected) => {
+                    // -------------------------------------------------
+                    // COMPARAR LA OPCIÓN PADRE
+                    // -------------------------------------------------
+
+                    const hasOptionId =
+                        selected.optionId !== undefined &&
+                        selected.optionId !== null &&
+                        option.id !== undefined &&
+                        option.id !== null;
+
+                    const hasOptionName =
+                        Boolean(selected.optionName) &&
+                        Boolean(option.name);
+
+                    const matchesOptionById =
+                        hasOptionId &&
+                        String(selected.optionId) === String(option.id);
+
+                    const matchesOptionByName =
+                        hasOptionName &&
+                        String(selected.optionName)
+                            .trim()
+                            .toLowerCase() ===
+                        String(option.name)
+                            .trim()
+                            .toLowerCase();
+
+                    /*
+                     * Para datos legacy puede ocurrir que no exista
+                     * optionId ni optionName.
+                     *
+                     * En ese caso permitimos buscar directamente
+                     * el item por ID o nombre.
+                     */
+                    const hasOptionIdentity =
+                        selected.optionId !== undefined ||
+                        Boolean(selected.optionName);
+
+                    const matchesOption =
+                        !hasOptionIdentity ||
+                        matchesOptionById ||
+                        matchesOptionByName;
+
+                    if (!matchesOption) return false;
+
+                    // -------------------------------------------------
+                    // COMPARAR EL ITEM
+                    // -------------------------------------------------
+
+                    const hasItemId =
+                        selected.itemId !== undefined &&
+                        selected.itemId !== null &&
+                        item.id !== undefined &&
+                        item.id !== null;
+
+                    const matchesItemById =
+                        hasItemId &&
+                        String(selected.itemId) === String(item.id);
+
+                    const matchesItemByName =
+                        Boolean(selected.name) &&
+                        Boolean(item.name) &&
+                        String(selected.name)
+                            .trim()
+                            .toLowerCase() ===
+                        String(item.name)
+                            .trim()
+                            .toLowerCase();
+
+                    return matchesItemById || matchesItemByName;
+                });
+
+                acc[optionKey][itemKey] = selectedItem
+                    ? Math.max(
+                        1,
+                        Number(selectedItem.quantity) || 1
+                    )
+                    : 0;
+            });
+
+            return acc;
+        }, {});
+};
+
 export const getMissingRequiredOptions = (productOptions = [], customizations) => {
     return productOptions
         .filter((option) => option.status !== false)

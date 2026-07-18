@@ -1,16 +1,16 @@
 // ---- MATERIAL UI ----
-import { Box } from '@mui/material';
+import { Box } from "@mui/material";
 // ICONS
-import { AccountBalanceWallet as WalletIcon } from '@mui/icons-material';
+import { AccountBalanceWallet as WalletIcon } from "@mui/icons-material";
 // ----------------------
 
 // ---- SHARED ----
-import { SectionHeading } from '../../shared/SectionHeading.jsx';
-import { OptionTile } from '../../shared/OptionTile.jsx';
+import { OptionTile } from "../../shared/OptionTile.jsx";
+import { SectionHeading } from "../../shared/SectionHeading.jsx";
 // ----------------
 
 // ---- Utils ----
-import { paymentMethods } from '@/utils/components/PaymentUtils.jsx';
+import { paymentMethods } from "@/utils/components/PaymentUtils.jsx";
 // ---------------
 
 export const PaymentSection = ({ order, setOrder }) => {
@@ -19,10 +19,10 @@ export const PaymentSection = ({ order, setOrder }) => {
       <SectionHeading icon={<WalletIcon />} title="METODO DE PAGO" />
       <Box
         sx={{
-          display: 'grid',
+          display: "grid",
           gridTemplateColumns: {
-            xs: 'repeat(2, minmax(0, 1fr))',
-            md: 'repeat(4, minmax(0, 1fr))',
+            xs: "repeat(2, minmax(0, 1fr))",
+            md: "repeat(4, minmax(0, 1fr))",
           },
           gap: 1.5,
         }}
