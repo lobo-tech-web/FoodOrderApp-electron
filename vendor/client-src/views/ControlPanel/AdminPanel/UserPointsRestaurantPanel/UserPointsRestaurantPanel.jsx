@@ -1,29 +1,34 @@
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 // ---- MATERIAL UI ----
 import {
   Box,
   Button,
-  Typography,
+  IconButton,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,
-  Paper,
-  TableSortLabel,
-  IconButton,
-  Tooltip,
   TablePagination,
+  TableRow,
+  TableSortLabel,
+  Tooltip,
+  Typography,
 } from "@mui/material";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
+// Icons
+import {
+  AddCircleOutline as AddCircleOutlineIcon,
+  ContentCopy as ContentCopyIcon,
+  History as HistoryIcon,
+  RemoveCircleOutline as RemoveCircleOutlineIcon,
+} from "@mui/icons-material";
 // ------------------
 
 // ------ COMPONENTS ----->
 import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
+import { ModalUserPointsHistory } from "@/components/PanelComponents/ModalUserPointsHistory/ModalUserPointsHistory.jsx";
 import { PanelNavBar } from "@/components/PanelComponents/PanelNavBar/PanelNavBar.jsx";
 import { RestaurantUserPoints } from "./RestaurantUserPoints/RestaurantUserPoints.jsx";
 // <-----------------------
@@ -90,6 +95,24 @@ export const UserPointsRestaurantPanel = ({ user }) => {
   );
 
   const [selectedUserPoints, setSelectedUserPoints] = useState(null);
+  const [historyModalState, setHistoryModalState] = useState({
+    open: false,
+    selectedUserPoints: null,
+  });
+
+  const handleOpenHistoryModal = (userPoints) => {
+    setHistoryModalState({
+      open: true,
+      selectedUserPoints: userPoints,
+    });
+  };
+
+  const handleCloseHistoryModal = () => {
+    setHistoryModalState({
+      open: false,
+      selectedUserPoints: null,
+    });
+  };
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(50);
@@ -280,6 +303,7 @@ export const UserPointsRestaurantPanel = ({ user }) => {
                     </TableSortLabel>
                   </TableCell>
                   <TableCell sx={tableHeadStyle}>ACCIONES</TableCell>
+                  <TableCell sx={tableHeadStyle}>CONSULTAS</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody sx={{ bgcolor: "background.default" }}>
@@ -398,6 +422,17 @@ export const UserPointsRestaurantPanel = ({ user }) => {
                           </IconButton>
                         </Tooltip>
                       </TableCell>
+                      <TableCell sx={tableBodyStyle}>
+                        <Tooltip title="Ver historial de puntos" arrow>
+                          <IconButton
+                            onClick={() => handleOpenHistoryModal(userPoints)}
+                            size="small"
+                            sx={{ ml: 1 }}
+                          >
+                            <HistoryIcon sx={{ color: "primary.main" }} />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
                     </TableRow>
                   ))}
               </TableBody>
@@ -446,6 +481,12 @@ export const UserPointsRestaurantPanel = ({ user }) => {
         selectedUserPoints={selectedUserPoints}
         isAddingPoints={popoverState.isAddingPoints}
         refreshUserPoints={fetchUserPoints}
+      />
+      <ModalUserPointsHistory
+        open={historyModalState.open}
+        onClose={handleCloseHistoryModal}
+        selectedUserPoints={historyModalState.selectedUserPoints}
+        restaurantId={user?.id}
       />
     </Box>
   );
