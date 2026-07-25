@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 // ---- MATERIAL UI ----
 import {
@@ -22,11 +22,11 @@ import {
 import {
   Add as AddIcon,
   CardGiftcard as CardGiftcardIcon,
+  ShoppingCart as CartIcon,
   Close as CloseIcon,
   DeleteOutline as DeleteIcon,
   Remove as RemoveIcon,
   Search as SearchIcon,
-  ShoppingCart as CartIcon,
 } from "@mui/icons-material";
 // ---------------------
 
@@ -34,17 +34,13 @@ import {
 import mainLogo from "@/assets/main/logo-white.png";
 // -----------------------------
 
-// ---- THEME ----
-import { lobotechAppFoodDetailTheme } from "@/theme/main-theme.js";
-// ---------------
-
 // ---- COMPONENTS ----
-import { FoodDetailModal } from "@/components/FoodDetailModal/FoodDetailModal.jsx";
+import { ModalProductCustomization } from "@/components/PanelComponents/ModalProductCustomization/ModalProductCustomization.jsx";
 // --------------------
 
 // ---- UTILS ----
-import { formatCurrency } from "@/utils/orderCalculations.js";
 import { getProductOptionsForUI } from "@/utils/migrateCustomOptions.js";
+import { formatCurrency } from "@/utils/orderCalculations.js";
 // ---------------
 
 const getProductDisplayPrice = (product) =>
@@ -175,7 +171,7 @@ export const ModalSelectProducts = ({
 
     const productOptions = getProductOptionsForUI(products[0]);
 
-    if (productOptions.length > 0) {
+    if (productOptions.length > 0 || products[0].allowComment) {
       handleSelectProduct(products[0]);
     }
   }, [editingProduct, products]);
@@ -210,7 +206,12 @@ export const ModalSelectProducts = ({
             borderColor: "divider",
           }}
         >
-          <Typography variant="h6" sx={{ fontFamily: "fontFamily.primary" }}>
+          <Typography
+            sx={{
+              fontFamily: "fontFamily.primary",
+              fontSize: { xs: "1rem", sm: "1.2rem" },
+            }}
+          >
             {editingProduct
               ? "MODIFICAR PRODUCTO"
               : initialSelectionMode
@@ -689,13 +690,13 @@ export const ModalSelectProducts = ({
       </Dialog>
 
       {foodDetailModalState.product && (
-        <FoodDetailModal
+        <ModalProductCustomization
           open={foodDetailModalState.isOpen}
           onClose={handleCloseFoodDetailModal}
           product={foodDetailModalState.product}
           imageDefault={mainLogo}
           onProductCustomized={handleProductCustomized}
-          customTheme={lobotechAppFoodDetailTheme}
+          editing={editingProduct}
         />
       )}
     </>

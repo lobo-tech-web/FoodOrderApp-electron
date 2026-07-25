@@ -25,7 +25,8 @@ export const CartItem = ({
   const hasCustomOptions =
     Array.isArray(item.customOptions) && item.customOptions.length > 0;
 
-  const hasProductComment = item?.productComment.trim() !== "";
+  const hasProductComment =
+    item?.productComment && item?.productComment.trim() !== "";
 
   return (
     <Paper
