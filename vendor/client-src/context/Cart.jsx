@@ -225,24 +225,28 @@ export const CartProvider = ({ children }) => {
 
   // FUNCIÓN PARA SUMAR EL TOTAL DEL PEDIDO
   const getTotalAmount = () =>
-    state.reduce(
-      (total, item) => total + (item.price || 0.0) * item.quantity,
-      0,
-    );
+    state.reduce((total, item) => {
+      const unitPrice = Number(item.price) || 0;
+      const quantity = Number(item.quantity) || 1;
+
+      return total + unitPrice * quantity;
+    }, 0);
 
   // FUNCIÓN PARA SUMAR LOS PUNTOS EN EL PEDIDO
   const getTotalRewardPoints = () =>
-    state.reduce(
-      (total, item) => total + (item.rewardPoints || 0) * item.quantity,
-      0,
-    );
+    state.reduce((total, item) => {
+      return (
+        total + (Number(item.rewardPoints) || 0) * (Number(item.quantity) || 1)
+      );
+    }, 0);
 
   // FUNCIÓN PARA SUMAR LOS PUNTOS DE CANJEO DEL PEDIDO
   const getTotalRedeemPoints = () =>
-    state.reduce(
-      (total, item) => total + (item.redeemPoints || 0) * item.quantity,
-      0,
-    );
+    state.reduce((total, item) => {
+      return (
+        total + (Number(item.redeemPoints) || 0) * (Number(item.quantity) || 1)
+      );
+    }, 0);
 
   return (
     <CartContext.Provider

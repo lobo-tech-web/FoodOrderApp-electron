@@ -1,33 +1,33 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 // ---- MATERIAL UI ----
 import {
   Box,
-  Typography,
   Button,
+  Card,
+  CardContent,
+  Divider,
   IconButton,
   Paper,
   Stack,
-  Divider,
-  Card,
-  CardContent,
   Tooltip,
+  Typography,
   useMediaQuery,
   useTheme,
-} from '@mui/material';
+} from "@mui/material";
 // ---- ICONS ----
 import {
   Add as AddIcon,
-  Remove as RemoveIcon,
   Delete as DeleteIcon,
+  Remove as RemoveIcon,
   Star as StarIcon,
   StickyNote2 as StickyNote2Icon,
-} from '@mui/icons-material';
-import ReceiptIcon from '@mui/icons-material/Receipt';
+} from "@mui/icons-material";
+import ReceiptIcon from "@mui/icons-material/Receipt";
 //<----------------------
 
 // ---- CONTEXT ----
-import { useCart } from '@/context/Cart.jsx';
+import { useCart } from "@/context/Cart.jsx";
 // <----------------
 
 export const CartPreview = ({
@@ -51,26 +51,26 @@ export const CartPreview = ({
 
   // DETECTAMOS SI EL USUARIO ESTA EN MÓVIL
   const themeMobile = useTheme();
-  const isMobile = useMediaQuery(themeMobile.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(themeMobile.breakpoints.down("sm"));
 
   const EmptyCart = () => {
     return (
       <Paper
         elevation={0}
         sx={{
-          bgcolor: 'background.default',
+          bgcolor: "background.default",
           p: 4,
           borderRadius: 2,
-          textAlign: 'center',
-          border: '1px dashed',
-          borderColor: 'divider',
+          textAlign: "center",
+          border: "1px dashed",
+          borderColor: "divider",
           my: 3,
         }}
       >
         <ReceiptIcon
           sx={{
-            fontSize: { xs: '3rem', md: '4rem' },
-            color: 'text.primary',
+            fontSize: { xs: "3rem", md: "4rem" },
+            color: "text.primary",
             mb: 2,
           }}
         />
@@ -78,9 +78,9 @@ export const CartPreview = ({
         <Typography
           variant="h5"
           sx={{
-            color: 'text.terciary',
-            fontFamily: 'fontFamily.secondary',
-            textAlign: 'center',
+            color: "text.terciary",
+            fontFamily: "fontFamily.secondary",
+            textAlign: "center",
             mb: 3,
           }}
         >
@@ -90,16 +90,16 @@ export const CartPreview = ({
           variant="contained"
           onClick={handleLinktoMenu}
           sx={{
-            bgcolor: 'primary.main',
-            color: 'text.secondary',
-            fontFamily: 'fontFamily.secondary',
-            fontSize: '1rem',
+            bgcolor: "primary.main",
+            color: "text.secondary",
+            fontFamily: "fontFamily.secondary",
+            fontSize: "1rem",
             borderRadius: 4,
             boxShadow: 2,
-            transition: 'all 0.3s',
-            '&:hover': {
-              bgcolor: 'primary.dark',
-              transform: 'translateY(-2px)',
+            transition: "all 0.3s",
+            "&:hover": {
+              bgcolor: "primary.dark",
+              transform: "translateY(-2px)",
             },
           }}
         >
@@ -112,20 +112,20 @@ export const CartPreview = ({
   return (
     <Box
       sx={{
-        width: '100%',
-        maxWidth: '800px',
-        margin: '0 auto',
+        width: "100%",
+        maxWidth: "800px",
+        margin: "0 auto",
       }}
     >
       <Typography
         variant="h5"
         sx={{
-          fontFamily: 'fontFamily.secondary',
-          fontSize: isMobile ? '1rem' : '2rem',
-          color: 'text.primary',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          fontFamily: "fontFamily.secondary",
+          fontSize: isMobile ? "1rem" : "2rem",
+          color: "text.primary",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           mb: 2,
           mt: 2,
         }}
@@ -138,18 +138,18 @@ export const CartPreview = ({
         {cartItems.length > 0 &&
           cartItems.map((item, index) => (
             <Card
-              key={item.id + index}
+              key={`${item.productId || item.id}-${index}`}
               elevation={2}
               sx={{
-                bgcolor: 'background.default',
+                bgcolor: "background.default",
                 borderRadius: 2,
-                transition: 'all 0.2s',
-                position: 'relative',
-                overflow: 'visible',
-                border: '1px solid',
-                borderColor: 'primary.main',
-                '&:hover': isEditing && {
-                  transform: 'translateY(-3px)',
+                transition: "all 0.2s",
+                position: "relative",
+                overflow: "visible",
+                border: "1px solid",
+                borderColor: "primary.main",
+                "&:hover": isEditing && {
+                  transform: "translateY(-3px)",
                   boxShadow: 4,
                 },
               }}
@@ -157,19 +157,19 @@ export const CartPreview = ({
               <CardContent sx={{ p: { xs: 2, md: 3 } }}>
                 <Box
                   sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
                     mb: 1,
                   }}
                 >
                   <Box sx={{ flex: 1 }}>
                     {/* NOMBRE DEL PRODUCTO */}
                     <Typography
-                      variant={isMobile ? 'h5' : 'h4'}
+                      variant={isMobile ? "h5" : "h4"}
                       sx={{
-                        fontFamily: 'fontFamily.primary',
-                        color: 'text.primary',
+                        fontFamily: "fontFamily.primary",
+                        color: "text.primary",
                       }}
                     >
                       {item.name}
@@ -183,30 +183,30 @@ export const CartPreview = ({
                             key={idx}
                             variant="body2"
                             sx={{
-                              color: 'text.terciary',
-                              fontFamily: 'fontFamily.secondary',
+                              color: "text.terciary",
+                              fontFamily: "fontFamily.secondary",
                             }}
                           >
                             {option.name}
                             {option.extraCost > 0 && ` (+$${option.extraCost})`}
-                            {option.quantity > 0 ? ` x ${option.quantity}` : ''}
+                            {option.quantity > 0 ? ` x ${option.quantity}` : ""}
                           </Typography>
                         ))}
                       </Box>
                     )}
 
                     {/* Comentario del producto */}
-                    {item?.allowComment && item?.productComment.trim() && (
-                      <Box sx={{ display: 'flex', mt: 1 }}>
+                    {item?.allowComment && item?.productComment?.trim() && (
+                      <Box sx={{ display: "flex", mt: 1 }}>
                         <StickyNote2Icon
                           fontSize="small"
-                          sx={{ color: 'text.primary', mr: 0.5 }}
+                          sx={{ color: "text.primary", mr: 0.5 }}
                         />
                         <Typography
                           variant="body2"
                           sx={{
-                            fontFamily: 'fontFamily.secondary',
-                            color: 'text.primary',
+                            fontFamily: "fontFamily.secondary",
+                            color: "text.primary",
                           }}
                         >
                           {item?.productComment.toUpperCase()}
@@ -217,34 +217,34 @@ export const CartPreview = ({
 
                   <Box
                     sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'flex-end',
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-end",
                       ml: 2,
                     }}
                   >
                     {/* PRECIO TOTAL DEL PRODUCTO */}
                     {item.price > 0 && (
                       <Typography
-                        variant={isMobile ? 'h6' : 'h5'}
+                        variant={isMobile ? "h6" : "h5"}
                         sx={{
-                          fontFamily: 'fontFamily.secondary',
-                          color: 'text.primary',
+                          fontFamily: "fontFamily.secondary",
+                          color: "text.primary",
                         }}
                       >
-                        ${(item.price * item.quantity).toLocaleString('es-AR')}
+                        ${(item.price * item.quantity).toLocaleString("es-AR")}
                       </Typography>
                     )}
 
                     {/* TOTAL DE PUNTOS PARA EL CANJE */}
                     {item.redeemPoints > 0 && (
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <StarIcon sx={{ color: 'text.primary', mr: 0.5 }} />
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <StarIcon sx={{ color: "text.primary", mr: 0.5 }} />
                         <Typography
-                          variant={isMobile ? 'subtitle1' : 'h6'}
+                          variant={isMobile ? "subtitle1" : "h6"}
                           sx={{
-                            fontFamily: 'fontFamily.secondary',
-                            color: 'text.primary',
+                            fontFamily: "fontFamily.secondary",
+                            color: "text.primary",
                           }}
                         >
                           - {item.redeemPoints * item.quantity} pts.
@@ -256,9 +256,9 @@ export const CartPreview = ({
 
                 <Box
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
                     mt: 2,
                   }}
                 >
@@ -266,11 +266,11 @@ export const CartPreview = ({
                   {isEditing ? (
                     <Box
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        overflow: 'hidden',
-                        border: '1px solid',
-                        borderColor: 'primary.main',
+                        display: "flex",
+                        alignItems: "center",
+                        overflow: "hidden",
+                        border: "1px solid",
+                        borderColor: "primary.main",
                         borderRadius: 8,
                       }}
                     >
@@ -283,7 +283,7 @@ export const CartPreview = ({
                               : decrementItemToCart(item)
                           }
                           size="small"
-                          sx={{ color: 'text.primary', borderRadius: 0 }}
+                          sx={{ color: "text.primary", borderRadius: 0 }}
                         >
                           <RemoveIcon />
                         </IconButton>
@@ -292,11 +292,11 @@ export const CartPreview = ({
                       {/* CANTIDAD DEL PRODUCTO */}
                       <Typography
                         sx={{
-                          color: 'text.primary',
-                          fontFamily: 'fontFamily.secondary',
+                          color: "text.primary",
+                          fontFamily: "fontFamily.secondary",
                           mx: 2,
-                          minWidth: '24px',
-                          textAlign: 'center',
+                          minWidth: "24px",
+                          textAlign: "center",
                         }}
                       >
                         {item.quantity}
@@ -307,7 +307,7 @@ export const CartPreview = ({
                         <IconButton
                           onClick={() => addItemToCart(item)}
                           size="small"
-                          sx={{ color: 'text.primary', borderRadius: 0 }}
+                          sx={{ color: "text.primary", borderRadius: 0 }}
                         >
                           <AddIcon />
                         </IconButton>
@@ -316,8 +316,8 @@ export const CartPreview = ({
                   ) : (
                     <Typography
                       sx={{
-                        color: 'text.primary',
-                        fontFamily: 'fontFamily.secondary',
+                        color: "text.primary",
+                        fontFamily: "fontFamily.secondary",
                       }}
                     >
                       Cantidad: {item.quantity}
@@ -330,7 +330,7 @@ export const CartPreview = ({
                       <IconButton
                         onClick={() => removeItemFromCart(item)}
                         sx={{
-                          color: 'error.main',
+                          color: "error.main",
                           ml: 1,
                         }}
                       >
@@ -351,19 +351,19 @@ export const CartPreview = ({
           onClick={handleLinktoMenu}
           startIcon={<AddIcon />}
           sx={{
-            fontFamily: 'fontFamily.secondary',
-            fontSize: '1rem',
-            color: 'text.primary',
-            bgcolor: 'primary.secondary',
+            fontFamily: "fontFamily.secondary",
+            fontSize: "1rem",
+            color: "text.primary",
+            bgcolor: "primary.secondary",
             borderRadius: 8,
-            border: '1px solid',
-            borderColor: 'primary.main',
-            width: '100%',
+            border: "1px solid",
+            borderColor: "primary.main",
+            width: "100%",
             my: 3,
             py: 1.5,
-            '&:hover': {
-              bgcolor: 'primary.main',
-              color: 'primary.secondary',
+            "&:hover": {
+              bgcolor: "primary.main",
+              color: "primary.secondary",
             },
           }}
         >
@@ -379,39 +379,39 @@ export const CartPreview = ({
             mt: 2,
             p: 3,
             borderRadius: 2,
-            bgcolor: 'background.default',
+            bgcolor: "background.default",
           }}
         >
           <Box
             sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
               mb: 2,
             }}
           >
             <Typography
-              variant={isMobile ? 'h5' : 'h4'}
+              variant={isMobile ? "h5" : "h4"}
               sx={{
-                fontFamily: 'fontFamily.secondary',
-                fontSize: isTaxsIncluded && isMobile ? '1rem' : '1.5rem',
-                color: 'text.primary',
-                fontWeight: 'bold',
+                fontFamily: "fontFamily.secondary",
+                fontSize: isTaxsIncluded && isMobile ? "1rem" : "1.5rem",
+                color: "text.primary",
+                fontWeight: "bold",
               }}
             >
-              {isTaxsIncluded ? 'SUBTOTAL' : 'TOTAL'}
+              {isTaxsIncluded ? "SUBTOTAL" : "TOTAL"}
             </Typography>
 
             <Typography
-              variant={isMobile ? 'h5' : 'h4'}
+              variant={isMobile ? "h5" : "h4"}
               sx={{
-                fontFamily: 'fontFamily.secondary',
-                fontSize: isTaxsIncluded && isMobile ? '1rem' : '1.5rem',
-                color: 'text.primary',
-                fontWeight: 'bold',
+                fontFamily: "fontFamily.secondary",
+                fontSize: isTaxsIncluded && isMobile ? "1rem" : "1.5rem",
+                color: "text.primary",
+                fontWeight: "bold",
               }}
             >
-              ${totalOrderAmount.toLocaleString('es-AR')}
+              ${totalOrderAmount.toLocaleString("es-AR")}
             </Typography>
           </Box>
 
@@ -419,66 +419,66 @@ export const CartPreview = ({
             <Box>
               <Box
                 sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                   mb: 2,
                 }}
               >
                 <Typography
-                  variant={isMobile ? 'h5' : 'h4'}
+                  variant={isMobile ? "h5" : "h4"}
                   sx={{
-                    fontFamily: 'fontFamily.secondary',
-                    fontSize: isMobile ? '1rem' : '1.5rem',
-                    color: 'text.primary',
-                    fontWeight: 'bold',
+                    fontFamily: "fontFamily.secondary",
+                    fontSize: isMobile ? "1rem" : "1.5rem",
+                    color: "text.primary",
+                    fontWeight: "bold",
                   }}
                 >
                   TARIFA DE SERVICIOS
                 </Typography>
 
                 <Typography
-                  variant={isMobile ? 'h5' : 'h4'}
+                  variant={isMobile ? "h5" : "h4"}
                   sx={{
-                    fontFamily: 'fontFamily.secondary',
-                    fontSize: isMobile ? '1rem' : '1.5rem',
-                    color: 'text.primary',
-                    fontWeight: 'bold',
+                    fontFamily: "fontFamily.secondary",
+                    fontSize: isMobile ? "1rem" : "1.5rem",
+                    color: "text.primary",
+                    fontWeight: "bold",
                   }}
                 >
                   ${totalTaxAmount}
                 </Typography>
               </Box>
-              <Divider sx={{ my: 1, bgcolor: 'primary.main' }} />
+              <Divider sx={{ my: 1, bgcolor: "primary.main" }} />
 
               <Box
                 sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                   mb: 2,
                 }}
               >
                 <Typography
-                  variant={isMobile ? 'h5' : 'h4'}
+                  variant={isMobile ? "h5" : "h4"}
                   sx={{
-                    fontFamily: 'fontFamily.secondary',
-                    color: 'text.primary',
-                    fontWeight: 'bold',
+                    fontFamily: "fontFamily.secondary",
+                    color: "text.primary",
+                    fontWeight: "bold",
                   }}
                 >
                   TOTAL
                 </Typography>
 
                 <Typography
-                  variant={isMobile ? 'h5' : 'h4'}
+                  variant={isMobile ? "h5" : "h4"}
                   sx={{
-                    fontFamily: 'fontFamily.secondary',
-                    color: 'text.primary',
-                    fontWeight: 'bold',
+                    fontFamily: "fontFamily.secondary",
+                    color: "text.primary",
+                    fontWeight: "bold",
                   }}
                 >
-                  ${(totalOrderAmount + totalTaxAmount).toLocaleString('es-AR')}
+                  ${(totalOrderAmount + totalTaxAmount).toLocaleString("es-AR")}
                 </Typography>
               </Box>
             </Box>
@@ -487,35 +487,35 @@ export const CartPreview = ({
           {/* PTS CANJEABLES */}
           {totalRedeemPoints > 0 && (
             <>
-              <Divider sx={{ my: 2, bgcolor: 'primary.main' }} />
+              <Divider sx={{ my: 2, bgcolor: "primary.main" }} />
               <Box
                 sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                   mb: 1,
                   borderRadius: 1,
                 }}
               >
                 <Typography
-                  variant={isMobile ? 'h6' : 'h5'}
+                  variant={isMobile ? "h6" : "h5"}
                   sx={{
-                    fontFamily: 'fontFamily.secondary',
-                    color: 'text.primary',
-                    display: 'flex',
-                    alignItems: 'center',
+                    fontFamily: "fontFamily.secondary",
+                    color: "text.primary",
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
-                  <StarIcon sx={{ mr: 1, color: 'primary.main' }} />
+                  <StarIcon sx={{ mr: 1, color: "primary.main" }} />
                   PTS. CANJEADOS
                 </Typography>
 
                 <Typography
-                  variant={isMobile ? 'h6' : 'h5'}
+                  variant={isMobile ? "h6" : "h5"}
                   sx={{
-                    fontFamily: 'fontFamily.secondary',
-                    color: 'text.primary',
-                    fontWeight: 'bold',
+                    fontFamily: "fontFamily.secondary",
+                    color: "text.primary",
+                    fontWeight: "bold",
                   }}
                 >
                   - {totalRedeemPoints} PTS.
@@ -527,13 +527,13 @@ export const CartPreview = ({
           {/* PTS ACUMULABLES */}
           {totalRewardPoints > 0 && (
             <>
-              <Divider sx={{ my: 2, bgcolor: 'primary.main' }} />
+              <Divider sx={{ my: 2, bgcolor: "primary.main" }} />
 
               <Box
                 sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                   mb: 1,
                   p: 1.5,
                   borderRadius: 1,
@@ -541,25 +541,25 @@ export const CartPreview = ({
               >
                 <Box>
                   <Typography
-                    variant={isMobile ? 'subtitle2' : 'h6'}
+                    variant={isMobile ? "subtitle2" : "h6"}
                     sx={{
-                      fontFamily: 'fontFamily.secondary',
-                      color: 'text.primary',
-                      display: 'flex',
-                      alignItems: 'center',
+                      fontFamily: "fontFamily.secondary",
+                      color: "text.primary",
+                      display: "flex",
+                      alignItems: "center",
                     }}
                   >
-                    <StarIcon sx={{ mr: 1, color: 'primary.main' }} />
+                    <StarIcon sx={{ mr: 1, color: "primary.main" }} />
                     PUNTOS A ACUMULAR
                   </Typography>
 
                   <Typography
                     variant="caption"
                     sx={{
-                      fontFamily: 'fontFamily.secondary',
-                      fontSize: isMobile ? '0.65rem' : '1rem',
-                      color: 'text.primary',
-                      display: 'block',
+                      fontFamily: "fontFamily.secondary",
+                      fontSize: isMobile ? "0.65rem" : "1rem",
+                      color: "text.primary",
+                      display: "block",
                       mt: 0.5,
                     }}
                   >
@@ -568,10 +568,10 @@ export const CartPreview = ({
                 </Box>
 
                 <Typography
-                  variant={isMobile ? 'h6' : 'h5'}
+                  variant={isMobile ? "h6" : "h5"}
                   sx={{
-                    fontFamily: 'fontFamily.secondary',
-                    color: 'text.primary',
+                    fontFamily: "fontFamily.secondary",
+                    color: "text.primary",
                   }}
                 >
                   + {totalRewardPoints} PTS.
@@ -582,19 +582,19 @@ export const CartPreview = ({
 
           <Box
             sx={{
-              bgcolor: 'transparent',
-              color: 'text.primary',
+              bgcolor: "transparent",
+              color: "text.primary",
               borderRadius: 2,
-              textAlign: 'center',
+              textAlign: "center",
               p: 1,
             }}
           >
-            <Divider sx={{ my: 1, bgcolor: 'primary.main' }} />
+            <Divider sx={{ my: 1, bgcolor: "primary.main" }} />
             <Typography
               variant="body2"
               sx={{
-                fontFamily: 'fontFamily.secondary',
-                color: 'text.primary',
+                fontFamily: "fontFamily.secondary",
+                color: "text.primary",
               }}
             >
               * SI EL PEDIDO SE REALIZA POR DELIVERY EL COSTO DEL ENVIO NO ESTA
@@ -604,8 +604,8 @@ export const CartPreview = ({
             <Typography
               variant="body2"
               sx={{
-                fontFamily: 'fontFamily.secondary',
-                color: 'text.primary',
+                fontFamily: "fontFamily.secondary",
+                color: "text.primary",
                 mt: 1,
               }}
             >
@@ -622,22 +622,22 @@ export const CartPreview = ({
               onClick={() => {
                 if (
                   window.confirm(
-                    '¿Estás seguro de que quieres vaciar el carrito?'
+                    "¿Estás seguro de que quieres vaciar el carrito?",
                   )
                 ) {
                   clearCart();
                 }
               }}
               sx={{
-                fontFamily: 'fontFamily.secondary',
-                borderColor: 'error.main',
-                color: 'error.main',
+                fontFamily: "fontFamily.secondary",
+                borderColor: "error.main",
+                color: "error.main",
                 mt: 3,
                 borderRadius: 8,
-                transition: 'all 0.3s',
-                '&:hover': {
-                  bgcolor: 'error.main',
-                  color: 'error.contrastText',
+                transition: "all 0.3s",
+                "&:hover": {
+                  bgcolor: "error.main",
+                  color: "error.contrastText",
                 },
               }}
             >
