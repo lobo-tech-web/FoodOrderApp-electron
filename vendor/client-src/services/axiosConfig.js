@@ -67,3 +67,42 @@ apiWithToken.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+export const apiOptionalToken = axios.create({
+    baseURL: mainURL,
+});
+
+const getOptionalValidToken = () => {
+    const token = window.localStorage.getItem('token');
+
+    if (!token) return null;
+
+    try {
+        const decoded = jwtDecode(token);
+
+        if (decoded.exp * 1000 < Date.now()) {
+            window.localStorage.removeItem('token');
+            window.localStorage.removeItem('user');
+            return null;
+        }
+
+        return token;
+    } catch (error) {
+        window.localStorage.removeItem('token');
+        window.localStorage.removeItem('user');
+        return null;
+    }
+};
+
+apiOptionalToken.interceptors.request.use(
+    (config) => {
+        const token = getOptionalValidToken();
+
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+
+        return config;
+    },
+    (error) => Promise.reject(error)
+);

@@ -1,8 +1,8 @@
 // ---- DAYJS ----
 import dayjs from 'dayjs';
 import 'dayjs/locale/es'; // Importa español para dayjs
-import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 // ---------------
 dayjs.locale('es'); // Configura dayjs en español
 dayjs.extend(utc);
@@ -57,4 +57,14 @@ export const getNextDateNowDayjs = () => {
 export const getTimeNowDayjs = () => {
     const nowArgentina = dayjs().tz('America/Argentina/Buenos_Aires');
     return nowArgentina.format('HH:mm:ss'); // Hora actual en formato 24h
+};
+
+export const formatArgentinaDateTime = (date) => {
+    if (!date) return '';
+
+    return new Intl.DateTimeFormat('es-AR', {
+        timeZone: 'America/Argentina/Buenos_Aires',
+        dateStyle: 'short',
+        timeStyle: 'short',
+    }).format(new Date(date));
 };

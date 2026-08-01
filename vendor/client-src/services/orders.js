@@ -1,4 +1,4 @@
-import { api, apiWithToken } from "./axiosConfig";
+import { apiOptionalToken, apiWithToken } from "./axiosConfig";
 
 // ---- URLS ----
 const apiMainURLOrders = import.meta.env.VITE_API_ORDERS_MAIN_ROUTER;
@@ -170,7 +170,7 @@ export const updateArrayOrderServices = async (orderData) => {
 
 export const addNewOrderServices = async (orderData) => {
     try {
-        const response = await api.post(apiPostURLOrders, { orderData });
+        const response = await apiOptionalToken.post(apiPostURLOrders, { orderData });
         return response.data;
     } catch (error) {
         if (error.response) {
