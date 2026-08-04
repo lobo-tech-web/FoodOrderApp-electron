@@ -1,8 +1,8 @@
 import {
-  useEffect,
-  useCallback,
   createContext,
+  useCallback,
   useContext,
+  useEffect,
   useReducer,
 } from "react";
 
@@ -11,13 +11,14 @@ import { jwtDecode } from "jwt-decode";
 // ------------------------------------
 
 // ---- SERVICES ----
+import { loginRestaurantStaffService } from "@/services/restaurantStaff.js";
+import { getAllUserPointsService } from "../services/userPoints.js";
 import {
   getAllUsersService,
   getUserByID,
-  userLoginService,
   updateUserService,
+  userLoginService,
 } from "../services/users.js";
-import { getAllUserPointsService } from "../services/userPoints.js";
 // <-----------------
 
 // CREACIÓN DEL CONTEXTO ------>
@@ -48,6 +49,7 @@ const ACTION_TYPES = {
   UPDATE_USER_POINTS: "UPDATE_USER_POINTS",
   LOGIN_USER: "LOGIN_USER",
   LOGOUT_USER: "LOGOUT_USER",
+  LOGIN_STAFF: "LOGIN_STAFF",
   FILTER_BY_STATUS: "FILTER_BY_STATUS",
   FILTER_BY_ROLE: "FILTER_BY_ROLE",
   FILTER_USERPOINTS_BY_NAME: "FILTER_USERPOINTS_BY_NAME",
@@ -152,6 +154,16 @@ const userReducer = (state, action) => {
       };
     }
 
+    case ACTION_TYPES.LOGIN_STAFF: {
+      return {
+        ...state,
+        user: {
+          ...action.payload,
+          points: [],
+        },
+      };
+    }
+
     case ACTION_TYPES.FILTER_BY_STATUS: {
       let filteredSource =
         action.payload === "all"
@@ -244,13 +256,6 @@ export const UserProvider = ({ children }) => {
     checkTokenExpiration();
   }, []);
 
-  // ✅ SE EJECUTA AL MONTAR EL CONTEXTO PARA SI EXISTE UN USUARIO LOGUEADO Y VALIDA SI TIENE PUNTOS EL USUARIO
-  useEffect(() => {
-    if (userState.user && userState.user.id) {
-      getUserPointsByUser();
-    }
-  }, []);
-
   // Efecto para actualizar el localStorage cuando el estado cambia
   useEffect(() => {
     updateUserLocalStorage(userState.user);
@@ -320,21 +325,44 @@ export const UserProvider = ({ children }) => {
     }
   }, []);
 
-  const getUserPointsByUser = useCallback(async () => {
-    try {
-      if (userState.user && userState.user.id) {
+  const getUserPointsByUser = useCallback(
+    async (restaurantId = null) => {
+      try {
+        const token = window.localStorage.getItem("token");
+
+        if (!token || !userState.user?.id) return [];
+        if (userState.user?.role !== "user") return [];
+
         const response = await getAllUserPointsService({
           userId: userState.user.id,
+          ...(restaurantId ? { restaurantId } : {}),
         });
+
+        const points = normalizeUserPoints(response);
+
         dispatch({
           type: ACTION_TYPES.REFRESH_USER_POINTS,
-          payload: response,
+          payload: points,
+          meta: { restaurantId },
         });
+
+        return points;
+      } catch (error) {
+        const errorMessage = error?.message || error;
+        console.warn("Error al obtener puntos del usuario:", errorMessage);
+
+        throw error;
       }
-    } catch (error) {
-      throw error.response?.data?.message || error?.message;
+    },
+    [userState.user?.id, userState.user?.role],
+  );
+
+  // ✅ SE EJECUTA AL MONTAR EL CONTEXTO PARA SI EXISTE UN USUARIO LOGUEADO Y VALIDA SI TIENE PUNTOS EL USUARIO
+  useEffect(() => {
+    if (userState.user?.role === "user" && userState.user?.id) {
+      getUserPointsByUser().catch(() => {});
     }
-  }, [userState.user]);
+  }, [userState.user?.role, userState.user?.id, getUserPointsByUser]);
 
   const getUserPointsByRestaurant = useCallback(
     async (restaurantId, filters = {}) => {
@@ -422,6 +450,25 @@ export const UserProvider = ({ children }) => {
     dispatch({ type: ACTION_TYPES.LOGOUT_USER });
   };
 
+  // INICIO DE SESIÓN DEL STAFF
+  const staffLogin = async (staffCredentials) => {
+    try {
+      const { user: loggedInStaff, token } =
+        await loginRestaurantStaffService(staffCredentials);
+
+      window.localStorage.setItem("token", token);
+
+      dispatch({
+        type: ACTION_TYPES.LOGIN_STAFF,
+        payload: loggedInStaff,
+      });
+
+      return loggedInStaff;
+    } catch (error) {
+      throw error.response?.data?.message || error.message;
+    }
+  };
+
   // FILTRO DE USUARIOS POR STATUS
   const filterUserByStatus = (status) => {
     dispatch({ type: ACTION_TYPES.FILTER_BY_STATUS, payload: status });
@@ -468,6 +515,7 @@ export const UserProvider = ({ children }) => {
         updateUserPoints,
         userLogin,
         userLogOut,
+        staffLogin,
         filterUserByStatus,
         filterUserByRole,
         filteredUserPointsByName,

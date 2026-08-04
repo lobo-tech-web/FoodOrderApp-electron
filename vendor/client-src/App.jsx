@@ -1,54 +1,56 @@
-import { Route, Routes } from 'react-router-dom';
-import '@fontsource/roboto';
+import "@fontsource/roboto";
+import { Route, Routes } from "react-router-dom";
 
 // ---- VIEWS ----
-import { MainPage } from '@/views/LoboTech/MainPage/MainPage.jsx';
-import { MenuPage } from '@/views/LoboTech/MenuPage/MenuPage.jsx';
-import { ContactUs } from '@/views/LoboTech/ContactUs/ContactUs.jsx';
-import { PlansPage } from '@/views/LoboTech/PlansPage/PlansPage.jsx';
-import { AdminPanel } from '@/views/ControlPanel/AdminPanel/AdminPanel.jsx';
-import { DevPanel } from '@/views/ControlPanel/DevPanel/DevPanel.jsx';
-import { UserProfile } from '@/views/UserProfile/UserProfile.jsx';
+import { AdminPanel } from "@/views/ControlPanel/AdminPanel/AdminPanel.jsx";
+import { DevPanel } from "@/views/ControlPanel/DevPanel/DevPanel.jsx";
+import { StaffPanel } from "@/views/ControlPanel/StaffPanel/StaffPanel.jsx";
+import { ContactUs } from "@/views/LoboTech/ContactUs/ContactUs.jsx";
+import { MainPage } from "@/views/LoboTech/MainPage/MainPage.jsx";
+import { MenuPage } from "@/views/LoboTech/MenuPage/MenuPage.jsx";
+import { PlansPage } from "@/views/LoboTech/PlansPage/PlansPage.jsx";
+import { UserProfile } from "@/views/UserProfile/UserProfile.jsx";
 // ---------------
 
 // ---- COMPONENTS ----
-import { Login } from '@/components/Login/Login.jsx';
-import { Register } from '@/components/Register/Register.jsx';
+import { Login } from "@/components/Login/Login.jsx";
+import { Register } from "@/components/Register/Register.jsx";
+import { LoginStaff } from "./components/LoginStaff/LoginStaff.jsx";
 // --------------------
 
 // ---- CONTEXT ----
-import { useLoginModal } from '@/context/LoginContext.jsx';
-import { useRegisterModal } from '@/context/RegisterContext.jsx';
+import { useLoginModal } from "@/context/LoginContext.jsx";
+import { useRegisterModal } from "@/context/RegisterContext.jsx";
 // -----------------
 
 // ---- TORO BURGER ----
-import { ToroProductsPage } from '@/views/Client-views/ToroBurger/ToroProductsPage/ToroProductsPage.jsx';
-import { ToroOrderPreview } from '@/views/Client-views/ToroBurger/ToroOrderPreview/ToroOrderPreview.jsx';
+import { ToroOrderPreview } from "@/views/Client-views/ToroBurger/ToroOrderPreview/ToroOrderPreview.jsx";
+import { ToroProductsPage } from "@/views/Client-views/ToroBurger/ToroProductsPage/ToroProductsPage.jsx";
 // ---------------
 
 // ---- TASTING COFFE ----
-import { TastingCoffeProductsPage } from './views/Client-views/TastingCoffe/TastingCoffeProductsPage/TastingCoffeProductsPage.jsx';
-import { TastingCoffeOrderPreview } from './views/Client-views/TastingCoffe/TastingCoffeOrderPreview/TastingCoffeOrderPreview.jsx';
+import { TastingCoffeOrderPreview } from "./views/Client-views/TastingCoffe/TastingCoffeOrderPreview/TastingCoffeOrderPreview.jsx";
+import { TastingCoffeProductsPage } from "./views/Client-views/TastingCoffe/TastingCoffeProductsPage/TastingCoffeProductsPage.jsx";
 // -----------------------
 
 // ---- DOLCE SUCURSAL MITRE ----
-import { DolceSMProductsPage } from './views/Client-views/DolceSucursalMitre/DolceSMProductsPage/DolceSMProductsPage.jsx';
-import { DolceSMOrderPreview } from './views/Client-views/DolceSucursalMitre/DolceSMOrderPreview/DolceSMOrderPreview.jsx';
+import { DolceSMOrderPreview } from "./views/Client-views/DolceSucursalMitre/DolceSMOrderPreview/DolceSMOrderPreview.jsx";
+import { DolceSMProductsPage } from "./views/Client-views/DolceSucursalMitre/DolceSMProductsPage/DolceSMProductsPage.jsx";
 // ------------------------------
 
 // ---- LA NACION ----
-import { LaNacionProductsPage } from './views/Client-views/LaNacion/LaNacionProductsPage/LaNacionProductsPage.jsx';
-import { LaNacionOrderPreview } from './views/Client-views/LaNacion/LaNacionOrderPreview/LaNacionOrderPreview.jsx';
+import { LaNacionOrderPreview } from "./views/Client-views/LaNacion/LaNacionOrderPreview/LaNacionOrderPreview.jsx";
+import { LaNacionProductsPage } from "./views/Client-views/LaNacion/LaNacionProductsPage/LaNacionProductsPage.jsx";
 // -------------------
 
 // ---- CASANOVA ----
-import { CasanovaProductsPage } from './views/Client-views/Casanova/CasanovaProductsPage/CasanovaProductsPage.jsx';
-import { CasanovaOrderPreview } from './views/Client-views/Casanova/CasanovaOrderPreview/CasanovaOrderPreview.jsx';
+import { CasanovaOrderPreview } from "./views/Client-views/Casanova/CasanovaOrderPreview/CasanovaOrderPreview.jsx";
+import { CasanovaProductsPage } from "./views/Client-views/Casanova/CasanovaProductsPage/CasanovaProductsPage.jsx";
 // ------------------
 
 // ---- WANNA SABORES ----
-import { WannaSaboresProductsPage } from './views/Client-views/WannaSabores/WannaSaboresProductsPage/WannaSaboresProductsPage.jsx';
-import { WannaSaboresOrderPreview } from './views/Client-views/WannaSabores/WannaSaboresOrderPreview/WannaSaboresOrderPreview.jsx';
+import { WannaSaboresOrderPreview } from "./views/Client-views/WannaSabores/WannaSaboresOrderPreview/WannaSaboresOrderPreview.jsx";
+import { WannaSaboresProductsPage } from "./views/Client-views/WannaSabores/WannaSaboresProductsPage/WannaSaboresProductsPage.jsx";
 // ------------------
 
 function App() {
@@ -66,6 +68,8 @@ function App() {
           <Route path="/pricing-plan" element={<PlansPage />}></Route>
           <Route path="/control-panel" element={<AdminPanel />}></Route>
           <Route path="/dev-control-panel" element={<DevPanel />}></Route>
+          <Route path="/login-staff" element={<LoginStaff />} />
+          <Route path="/staff-panel" element={<StaffPanel />} />
           <Route path="/account" element={<UserProfile />}></Route>
           {/* TORO BURGER */}
           <Route

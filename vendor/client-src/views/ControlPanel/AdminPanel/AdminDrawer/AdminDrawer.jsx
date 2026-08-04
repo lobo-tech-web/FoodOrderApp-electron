@@ -3,36 +3,37 @@ import { useState } from "react";
 // ---- MATERIAL UI ----
 import {
   Box,
-  Typography,
+  Button,
+  Collapse,
+  Divider,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Divider,
-  Button,
-  Collapse,
+  Typography,
 } from "@mui/material";
 // ---- ICONS ----
 import {
-  Storefront as StorefrontIcon,
-  Fastfood as FastfoodIcon,
-  LunchDining as LunchDiningIcon,
-  LocalDining as LocalDiningIcon,
+  AttachMoney as AttachMoneyIcon,
+  BarChart as BarChartIcon,
+  CalendarMonth as CalendarMonthIcon,
   Category as CategoryIcon,
-  ReceiptLong as ReceiptLongIcon,
-  PeopleAlt as PeopleAltIcon,
-  QueryStats as QueryStatsIcon,
-  Moped as MopedIcon,
-  Logout as LogoutIcon,
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
-  Today as TodayIcon,
-  CalendarMonth as CalendarMonthIcon,
+  Fastfood as FastfoodIcon,
   History as HistoryIcon,
-  AttachMoney as AttachMoneyIcon,
+  LocalDining as LocalDiningIcon,
+  Logout as LogoutIcon,
+  LunchDining as LunchDiningIcon,
+  Moped as MopedIcon,
+  PeopleAlt as PeopleAltIcon,
+  QueryStats as QueryStatsIcon,
+  ReceiptLong as ReceiptLongIcon,
   Savings as SavingsIcon,
-  BarChart as BarChartIcon,
+  Storefront as StorefrontIcon,
+  Today as TodayIcon,
+  Work as WorkIcon,
 } from "@mui/icons-material";
 //------------------
 
@@ -492,6 +493,30 @@ export const AdminDrawer = ({
           </ListItemIcon>
           <ListItemText
             primary="Cadetes"
+            primaryTypographyProps={{ fontSize: "0.9rem" }}
+          />
+        </ListItemButton>
+
+        {/* EMPLEADOS */}
+        <ListItemButton
+          selected={activeTab === 6}
+          onClick={() => handleAction(6)}
+          sx={{
+            fontFamily: "fontFamily.secondary",
+            borderRadius: 2,
+            mb: 0.5,
+            "&.Mui-selected": {
+              bgcolor: "primary.main",
+              color: "text.terciary",
+              "& .MuiListItemIcon-root": { color: "text.terciary" },
+            },
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <WorkIcon />
+          </ListItemIcon>
+          <ListItemText
+            primary="Empleados"
             primaryTypographyProps={{ fontSize: "0.9rem" }}
           />
         </ListItemButton>

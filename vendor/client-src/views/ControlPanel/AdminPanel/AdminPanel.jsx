@@ -1,44 +1,40 @@
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-// APLICAR RUTAS TAL VEZ PARA NO IR NAVEGANDO ENTRE TABS PARA QUE QUEDE MEJOR
-// --------> RUTA CATEGORIAS
-// --------> RUTA PRODUCTOS
-// --------> ETC.
 
 // ---- MATERIAL UI ----
 import {
-  Box,
-  Typography,
-  Drawer,
-  Toolbar,
-  CssBaseline,
   AppBar,
+  Box,
+  CssBaseline,
+  Drawer,
   IconButton,
   ThemeProvider,
+  Toolbar,
+  Typography,
 } from "@mui/material";
 // ICONS
 import { Menu as MenuIcon } from "@mui/icons-material";
 // <--------------------
 
 // ---- COMPONENTS ----
-import { AdminDrawer } from "./AdminDrawer/AdminDrawer.jsx";
 import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
-import { ProductPanel } from "./ProductPanel/ProductPanel.jsx";
-import { CustomOptionPanel } from "./CustomOptionPanel/CustomOptionPanel.jsx";
-import { OrderPanel } from "./OrderPanel/OrderPanel.jsx";
+import { AdminDrawer } from "./AdminDrawer/AdminDrawer.jsx";
 import { CategoryPanel } from "./CategoryPanel/CategoryPanel.jsx";
-import { UserPointsRestaurantPanel } from "./UserPointsRestaurantPanel/UserPointsRestaurantPanel.jsx";
-import { StatsPanel } from "./StatsPanel/StatsPanel.jsx";
-import { RiderPanel } from "./RiderPanel/RiderPanel.jsx";
+import { CustomOptionPanel } from "./CustomOptionPanel/CustomOptionPanel.jsx";
 import { LocalSettingsPanel } from "./LocalSettingsPanel/LocalSettingsPanel.jsx";
+import { OrderPanel } from "./OrderPanel/OrderPanel.jsx";
+import { ProductPanel } from "./ProductPanel/ProductPanel.jsx";
+import { RestaurantStaffPanel } from "./RestaurantStaffPanel/RestaurantStaffPanel.jsx";
+import { RiderPanel } from "./RiderPanel/RiderPanel.jsx";
+import { StatsPanel } from "./StatsPanel/StatsPanel.jsx";
+import { UserPointsRestaurantPanel } from "./UserPointsRestaurantPanel/UserPointsRestaurantPanel.jsx";
 // <-------------------
 
 // ---- CONTEXT ----
+import { useOrders } from "@/context/Orders.jsx";
+import { useProducts } from "@/context/Products.jsx";
 import { useLobotechThemeContext } from "@/context/ThemeContext.jsx";
 import { useUser } from "@/context/Users.jsx";
-import { useProducts } from "@/context/Products.jsx";
-import { useOrders } from "@/context/Orders.jsx";
 // <----------------
 
 // ---- STYLES ----
@@ -142,6 +138,7 @@ export const AdminPanel = () => {
               {activeTab === 41 && "ESTADÍSTICAS DE VENTAS MENSUALES"}
               {activeTab === 42 && "REPORTE DE VENTAS POR CATEGORÍA"}
               {activeTab === 5 && "GESTIÓN DE CADETES"}
+              {activeTab === 6 && "GESTIÓN DE EMPLEADOS"}
             </Typography>
           </Toolbar>
         </AppBar>
@@ -215,6 +212,7 @@ export const AdminPanel = () => {
             <StatsPanel user={user} externalView={activeTab} />
           )}
           {activeTab === 5 && <RiderPanel user={user} />}
+          {activeTab === 6 && <RestaurantStaffPanel user={user} />}
         </Box>
       </Box>
     </ThemeProvider>
