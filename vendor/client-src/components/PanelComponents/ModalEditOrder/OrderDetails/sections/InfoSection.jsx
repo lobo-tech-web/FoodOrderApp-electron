@@ -1,38 +1,38 @@
 // ---- Material UI ----
 import {
   Box,
-  TextField,
   FormControl,
-  Select,
-  MenuItem,
-  Typography,
   IconButton,
   InputAdornment,
-} from '@mui/material';
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
+} from "@mui/material";
 // Icons
 import {
   Edit as EditIcon,
-  Pending as PendingIcon,
-  TwoWheeler as TwoWheelerIcon,
-  Percent as PercentIcon,
   AttachMoney as MoneyIcon,
   Moped as MopedIcon,
-} from '@mui/icons-material';
+  Pending as PendingIcon,
+  Percent as PercentIcon,
+  TwoWheeler as TwoWheelerIcon,
+} from "@mui/icons-material";
 
 // ---- STLYES ----
-import { fieldStyles } from '../../styles/modalEditOrder.styles.js';
+import { fieldStyles } from "../../styles/modalEditOrder.styles.js";
 // ----------------
 
 // ---- Shared ----
-import { ModalSection } from '../../shared/ModalSection.jsx';
-import { FieldBlock } from '../../shared/FieldBlock.jsx';
+import { FieldBlock } from "../../shared/FieldBlock.jsx";
+import { ModalSection } from "../../shared/ModalSection.jsx";
 // ----------------
 
 // ---- Utils ----
-import { paymentMethods } from '@/utils/components/PaymentUtils.jsx';
-import { orderTypeOptions } from '@/utils/components/OrderTypeUtils.jsx';
-import { statusOptions } from '@/utils/components/StatusUtils.jsx';
-import { discountMethods } from '@/utils/components/DiscountUtils.jsx';
+import { discountMethods } from "@/utils/components/DiscountUtils.jsx";
+import { orderTypeOptions } from "@/utils/components/OrderTypeUtils.jsx";
+import { paymentMethods } from "@/utils/components/PaymentUtils.jsx";
+import { statusOptions } from "@/utils/components/StatusUtils.jsx";
 // ---------------------
 
 export const InfoSection = ({
@@ -47,6 +47,11 @@ export const InfoSection = ({
   setEditingRider,
   setOpenSelectRider,
   openSelectRider,
+  originalStatus,
+  cancelReason,
+  setCancelReason,
+  editCapabilities,
+  availableStatuses,
 }) => {
   const getPaymentIcon = (method) => {
     return (
@@ -80,13 +85,13 @@ export const InfoSection = ({
     );
   };
 
-  const renderSelectValue = (value, icon, placeholder = 'Seleccionar...') => {
+  const renderSelectValue = (value, icon, placeholder = "Seleccionar...") => {
     if (!value) {
       return (
         <Typography
           sx={{
-            color: 'text.secondary',
-            fontFamily: 'fontFamily.terciary',
+            color: "text.secondary",
+            fontFamily: "fontFamily.terciary",
           }}
         >
           {placeholder}
@@ -95,12 +100,12 @@ export const InfoSection = ({
     }
 
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
         {icon}
         <Typography
           sx={{
-            color: 'text.primary',
-            fontFamily: 'fontFamily.terciary',
+            color: "text.primary",
+            fontFamily: "fontFamily.terciary",
             fontWeight: 900,
           }}
         >
@@ -114,11 +119,11 @@ export const InfoSection = ({
     <ModalSection>
       <Box
         sx={{
-          display: 'grid',
+          display: "grid",
           gridTemplateColumns: {
-            xs: '1fr',
-            sm: 'repeat(2, minmax(0, 1fr))',
-            md: 'repeat(3, minmax(0, 1fr))',
+            xs: "1fr",
+            sm: "repeat(2, minmax(0, 1fr))",
+            md: "repeat(3, minmax(0, 1fr))",
           },
           gap: { xs: 1, sm: 1.2, md: 1.4 },
         }}
@@ -128,22 +133,23 @@ export const InfoSection = ({
             <Select
               name="paymentMethod"
               value={order.paymentMethod}
+              disabled={!editCapabilities.canEditPayment}
               onChange={handleInputChange}
               renderValue={(value) =>
                 renderSelectValue(
                   value,
                   getPaymentIcon(value),
-                  'Seleccionar pago'
+                  "Seleccionar pago",
                 )
               }
             >
               {paymentMethods.map((method) => (
                 <MenuItem key={method.value} value={method.value}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     {method.icon}
                     <Typography
                       sx={{
-                        fontFamily: 'fontFamily.terciary',
+                        fontFamily: "fontFamily.terciary",
                         fontWeight: 800,
                       }}
                     >
@@ -161,22 +167,23 @@ export const InfoSection = ({
             <Select
               name="orderType"
               value={order.orderType}
+              disabled={!editCapabilities.canEditDelivery}
               onChange={handleInputChange}
               renderValue={(value) =>
                 renderSelectValue(
                   value,
                   getOrderTypeIcon(value),
-                  'Seleccionar tipo'
+                  "Seleccionar tipo",
                 )
               }
             >
               {orderTypeOptions.map((type) => (
                 <MenuItem key={type.value} value={type.value}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     {type.icon}
                     <Typography
                       sx={{
-                        fontFamily: 'fontFamily.terciary',
+                        fontFamily: "fontFamily.terciary",
                         fontWeight: 800,
                       }}
                     >
@@ -194,41 +201,59 @@ export const InfoSection = ({
             <Select
               name="status"
               value={order.status}
+              disabled={!editCapabilities.canUpdateStatus}
               onChange={handleInputChange}
               renderValue={(value) =>
                 renderSelectValue(
                   value,
                   getStatusIcon(value),
-                  'Seleccionar estado'
+                  "Seleccionar estado",
                 )
               }
             >
-              {statusOptions.map((status) => (
-                <MenuItem key={status.value} value={status.value}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {status.icon}
-                    <Typography
-                      sx={{
-                        fontFamily: 'fontFamily.terciary',
-                        fontWeight: 800,
-                      }}
-                    >
-                      {status.value}
-                    </Typography>
-                  </Box>
-                </MenuItem>
-              ))}
+              {statusOptions
+                .filter((s) => availableStatuses.includes(s.value))
+                .map((status) => (
+                  <MenuItem key={status.value} value={status.value}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      {status.icon}
+                      <Typography
+                        sx={{
+                          fontFamily: "fontFamily.terciary",
+                          fontWeight: 800,
+                        }}
+                      >
+                        {status.value}
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                ))}
             </Select>
           </FormControl>
         </FieldBlock>
 
-        {order.orderType === 'DELIVERY' && (
+        {order.status === "CANCELADO" && originalStatus !== "CANCELADO" && (
+          <FieldBlock label="Motivo de cancelación">
+            <TextField
+              fullWidth
+              multiline
+              minRows={2}
+              value={cancelReason}
+              onChange={(event) => setCancelReason(event.target.value)}
+              placeholder="Ej: el cliente solicitó cancelar el pedido"
+              sx={fieldStyles}
+            />
+          </FieldBlock>
+        )}
+
+        {order.orderType === "DELIVERY" && (
           <>
             <FieldBlock label="Costo de delivery">
               <TextField
                 type="text"
                 name="deliverycost"
                 value={order.deliverycost}
+                disabled={!editCapabilities.canEditDelivery}
                 onChange={handleInputChange}
                 sx={fieldStyles}
                 InputProps={{
@@ -245,14 +270,14 @@ export const InfoSection = ({
               <FieldBlock
                 label={
                   order.riderId && !editingRider
-                    ? 'Rider seleccionado'
-                    : 'Selecciona el rider'
+                    ? "Rider seleccionado"
+                    : "Selecciona el rider"
                 }
               >
                 {order.riderId && !editingRider ? (
                   <TextField
                     type="text"
-                    value={selectedRider?.name || ''}
+                    value={selectedRider?.name || ""}
                     sx={fieldStyles}
                     InputProps={{
                       readOnly: true,
@@ -264,6 +289,7 @@ export const InfoSection = ({
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton
+                            disabled={!editCapabilities.canEditRider}
                             onClick={() => {
                               setEditingRider(true);
                               setOpenSelectRider(true);
@@ -278,18 +304,19 @@ export const InfoSection = ({
                 ) : (
                   <FormControl fullWidth sx={fieldStyles}>
                     <Select
-                      value={order.riderId || ''}
+                      value={order.riderId || ""}
                       open={openSelectRider}
                       onClose={() => {
                         setOpenSelectRider(false);
                         setEditingRider(false);
                       }}
                       onOpen={() => setOpenSelectRider(true)}
+                      disabled={!editCapabilities.canEditRider}
                       onChange={(e) => {
                         const riderId = e.target.value || null;
                         const selectedRiderData =
                           availableRiders.find(
-                            (rider) => rider.id === riderId
+                            (rider) => rider.id === riderId,
                           ) || null;
 
                         setOrder((prev) => ({
@@ -303,18 +330,18 @@ export const InfoSection = ({
                       displayEmpty
                       renderValue={(value) => {
                         const rider = availableRiders.find(
-                          (r) => r.id === value
+                          (r) => r.id === value,
                         );
 
                         return renderSelectValue(
-                          rider?.name || '',
+                          rider?.name || "",
                           <MopedIcon color="secondary" />,
-                          'Seleccionar rider...'
+                          "Seleccionar rider...",
                         );
                       }}
                     >
                       <MenuItem value="">
-                        <Typography sx={{ fontFamily: 'fontFamily.terciary' }}>
+                        <Typography sx={{ fontFamily: "fontFamily.terciary" }}>
                           Sin asignar
                         </Typography>
                       </MenuItem>
@@ -323,19 +350,19 @@ export const InfoSection = ({
                         <MenuItem key={rider.id} value={rider.id}>
                           <Box
                             sx={{
-                              display: 'flex',
-                              alignItems: 'center',
+                              display: "flex",
+                              alignItems: "center",
                               gap: 1,
                             }}
                           >
                             <MopedIcon color="primary" />
                             <Typography
                               sx={{
-                                fontFamily: 'fontFamily.terciary',
+                                fontFamily: "fontFamily.terciary",
                                 fontWeight: 800,
                               }}
                             >
-                              {rider.name.toUpperCase()}{' '}
+                              {rider.name.toUpperCase()}{" "}
                               {rider?.phone && `(${rider.phone})`}
                             </Typography>
                           </Box>
@@ -354,23 +381,24 @@ export const InfoSection = ({
             <Select
               name="isDiscount"
               value={isDiscount}
+              disabled={!editCapabilities.canEditPayment}
               onChange={(e) => handleDiscountChange(e.target.value)}
               displayEmpty
               renderValue={(value) =>
                 renderSelectValue(
                   value,
                   getDiscountIcon(value),
-                  'Seleccionar descuento'
+                  "Seleccionar descuento",
                 )
               }
             >
               {discountMethods.map((type) => (
                 <MenuItem key={type.value} value={type.value}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     {type.icon}
                     <Typography
                       sx={{
-                        fontFamily: 'fontFamily.terciary',
+                        fontFamily: "fontFamily.terciary",
                         fontWeight: 800,
                       }}
                     >
@@ -383,12 +411,13 @@ export const InfoSection = ({
           </FormControl>
         </FieldBlock>
 
-        {isDiscount === 'PORCENTAJE' && (
+        {isDiscount === "PORCENTAJE" && (
           <FieldBlock label="Descuento %">
             <TextField
               type="text"
               name="discount"
               value={order.discount}
+              disabled={!editCapabilities.canEditPayment}
               onChange={handleInputChange}
               sx={fieldStyles}
               InputProps={{
@@ -401,12 +430,13 @@ export const InfoSection = ({
             />
           </FieldBlock>
         )}
-        {isDiscount === 'MONTO' && (
+        {isDiscount === "MONTO" && (
           <FieldBlock label="Descuento $">
             <TextField
               type="text"
               name="discountamount"
               value={order.discountamount}
+              disabled={!editCapabilities.canEditPayment}
               onChange={handleInputChange}
               sx={fieldStyles}
               InputProps={{

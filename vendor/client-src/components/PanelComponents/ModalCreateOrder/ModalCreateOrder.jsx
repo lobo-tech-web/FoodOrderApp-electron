@@ -140,6 +140,34 @@ export const ModalCreateOrder = ({
   const { productState } = useProducts();
   const { printHtml } = useThermalPrinter();
 
+  const currentUser = useMemo(() => userState?.user || {}, [userState?.user]);
+
+  const isStaff = currentUser?.role === "staff";
+
+  const restaurantId = useMemo(() => {
+    if (isStaff) {
+      return currentUser?.restaurantId || "";
+    }
+
+    return currentUser?.id || "";
+  }, [isStaff, currentUser?.id, currentUser?.restaurantId]);
+
+  const restaurantData = useMemo(() => {
+    if (isStaff) {
+      return currentUser?.restaurant || {};
+    }
+
+    return currentUser || {};
+  }, [isStaff, currentUser]);
+
+  const restaurantName = useMemo(() => {
+    return restaurantData?.businessName || restaurantData?.name || "LOCAL";
+  }, [restaurantData]);
+
+  const restaurantLogo = useMemo(() => {
+    return restaurantData?.businessLogoUrl || "";
+  }, [restaurantData]);
+
   const [addServiceTax, setAddServiceTax] = useState(false);
   const [modalState, setModalState] = useState({
     clientsData: false,
@@ -157,10 +185,8 @@ export const ModalCreateOrder = ({
     [productState.allProducts],
   );
 
-  const currentUser = useMemo(() => userState?.user || {}, [userState?.user]);
-
   const [order, setOrder] = useState({
-    userId: "",
+    userId: null,
     restaurantId: "",
     restaurantName: "",
     tableid: "",
@@ -188,7 +214,7 @@ export const ModalCreateOrder = ({
     if (confirmation) {
       setLoading(false);
       setOrder({
-        userId: "",
+        userId: null,
         restaurantId: "",
         restaurantName: "",
         tableid: "",
@@ -245,10 +271,11 @@ export const ModalCreateOrder = ({
   const handleIgnoreEmail = (e) => {
     const checked = e.target.checked;
     setIgnoreEmail(checked);
+
     if (checked) {
       setOrder((prev) => ({
         ...prev,
-        clientEmail: currentUser?.email || DEFAULT_EMAIL,
+        clientEmail: DEFAULT_EMAIL,
       }));
     } else {
       setOrder((prev) => ({
@@ -534,6 +561,7 @@ export const ModalCreateOrder = ({
     setEditingProductIndex(index);
     setEditingProduct({
       ...originalProduct,
+      id: originalProduct.id,
       productId: originalProduct.id,
       customOptions: _.cloneDeep(item.customOptions || []),
       productComment: item.productComment || "",
@@ -575,7 +603,7 @@ export const ModalCreateOrder = ({
             today.day,
             today.month,
             today.year,
-            currentUser.id,
+            restaurantId,
           );
           const globalIndex = refreshedOrders.findIndex(
             (item) => item.id === savedOrder?.id,
@@ -604,7 +632,7 @@ export const ModalCreateOrder = ({
         );
       }
     },
-    [currentUser.id, filterOrderByDate],
+    [restaurantId, filterOrderByDate],
   );
 
   const tryPrintOrderDocument = useCallback(
@@ -691,11 +719,11 @@ export const ModalCreateOrder = ({
         order.status,
       );
       const createData = {
-        userId: currentUser.id,
-        restaurantId: currentUser.id,
-        restaurantName: currentUser.businessName,
-        businessName: currentUser.businessName || currentUser.name || "LOCAL",
-        businessLogoUrl: currentUser.businessLogoUrl || "",
+        userId: order.userId || null,
+        restaurantId,
+        restaurantName,
+        businessName: restaurantName || "LOCAL",
+        businessLogoUrl: restaurantLogo,
         cartItems: order.cartItems,
         totalRewardPoints: calculatedProductTotals.totalRewardPoints,
         totalRedeemPoints: calculatedProductTotals.totalRedeemPoints,
@@ -742,13 +770,12 @@ export const ModalCreateOrder = ({
     }
   }, [
     order,
+    restaurantId,
+    restaurantName,
+    restaurantLogo,
     calculatedDiscount.discountamount,
     calculatedProductTotals.totalRedeemPoints,
     calculatedProductTotals.totalRewardPoints,
-    currentUser.businessName,
-    currentUser.businessLogoUrl,
-    currentUser.id,
-    currentUser.name,
     getOrderIndexFromToday,
     showAlert,
     onClose,
@@ -758,39 +785,39 @@ export const ModalCreateOrder = ({
   ]);
 
   useEffect(() => {
-    if (show) {
-      const initialOrder = {
-        userId: currentUser.id || "",
-        restaurantId: currentUser.id || "",
-        restaurantName: currentUser.businessName || "",
-        tableid: "",
-        cartItems: [],
-        totalRewardPoints: 0,
-        totalRedeemPoints: 0,
-        deliverycost: 0,
-        servicetax: 0,
-        discount: 0,
-        discountamount: 0,
-        totalAmount: 0,
-        paymentMethod: "MERCADO PAGO",
-        clientEmail: "",
-        clientName: "",
-        deliveryAddress: "",
-        contactPhone: "",
-        orderType: "",
-        comentary: "",
-        status: "PENDIENTE A CONFIRMAR",
-      };
-      setOrder(initialOrder);
-      setOrderCopy(_.cloneDeep(initialOrder));
-      setCurrentTab(0);
-      setIsDiscount("SIN DESCUENTO");
-      setProductSelectorFirstStep(true);
-      setShowProductSelector(true);
-      setEditingProductIndex(null);
-      setEditingProduct(null);
-    }
-  }, [show, currentUser.businessName, currentUser.id]);
+    if (!show) return;
+
+    const initialOrder = {
+      userId: null,
+      restaurantId,
+      restaurantName,
+      tableid: "",
+      cartItems: [],
+      totalRewardPoints: 0,
+      totalRedeemPoints: 0,
+      deliverycost: 0,
+      servicetax: 0,
+      discount: 0,
+      discountamount: 0,
+      totalAmount: 0,
+      paymentMethod: "MERCADO PAGO",
+      clientEmail: "",
+      clientName: "",
+      deliveryAddress: "",
+      contactPhone: "",
+      orderType: "",
+      comentary: "",
+      status: "PENDIENTE A CONFIRMAR",
+    };
+    setOrder(initialOrder);
+    setOrderCopy(_.cloneDeep(initialOrder));
+    setCurrentTab(0);
+    setIsDiscount("SIN DESCUENTO");
+    setProductSelectorFirstStep(true);
+    setShowProductSelector(true);
+    setEditingProductIndex(null);
+    setEditingProduct(null);
+  }, [show, restaurantId, restaurantName]);
 
   if (loading) return <LoadingComponent message={"Creando pedido..."} />;
 
@@ -1146,7 +1173,7 @@ export const ModalCreateOrder = ({
         <ClientSearchModal
           show={modalState.clientsData}
           handleClose={() => toggleModal("clientsData", false)}
-          restaurantId={currentUser.id}
+          restaurantId={restaurantId}
         />
       )}
     </>

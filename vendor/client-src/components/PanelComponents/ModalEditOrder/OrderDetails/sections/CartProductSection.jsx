@@ -1,27 +1,27 @@
 import {
+  Alert,
+  Avatar,
   Box,
   Button,
-  Typography,
   IconButton,
-  Avatar,
-  Alert,
   Stack,
   Tooltip,
-} from '@mui/material';
+  Typography,
+} from "@mui/material";
 // Icons
 import {
-  Edit as EditIcon,
-  Delete as DeleteIcon,
   Add as AddIcon,
-  Remove as RemoveIcon,
-  Receipt as ReceiptIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
   Fastfood as FastfoodIcon,
+  Receipt as ReceiptIcon,
+  Remove as RemoveIcon,
   StickyNote2 as StickyNote2Icon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 
-import { formatCurrency } from '@/utils/orderCalculations.js';
+import { formatCurrency } from "@/utils/orderCalculations.js";
 // ---- Shared ----
-import { ModalSection } from '../../shared/ModalSection.jsx';
+import { ModalSection } from "../../shared/ModalSection.jsx";
 // ----------------
 
 export const CartProductSection = ({
@@ -31,6 +31,7 @@ export const CartProductSection = ({
   handleRemoveProduct,
   setShowProductSelector,
   handleQuickEditOpen,
+  editCapabilities,
 }) => {
   const getProductImage = (item) => {
     return (
@@ -39,25 +40,25 @@ export const CartProductSection = ({
       item.productImage ||
       item.imageUrl ||
       item.imgUrl ||
-      ''
+      ""
     );
   };
 
   const formatCustomOptionsText = (item) => {
-    if (!item?.customOptions || item.customOptions.length === 0) return '';
+    if (!item?.customOptions || item.customOptions.length === 0) return "";
 
     return item.customOptions
       .map((opt) => {
-        const name = opt.name || opt.title || opt.label || 'Opción';
+        const name = opt.name || opt.title || opt.label || "Opción";
         const quantity = opt.quantity || opt.qty || 1;
-        return `${name?.toLowerCase()}${quantity > 1 ? ` x${quantity}` : ''}`;
+        return `${name?.toLowerCase()}${quantity > 1 ? ` x${quantity}` : ""}`;
       })
-      .join(' · ');
+      .join(" · ");
   };
 
   const productGridColumns = {
-    xs: '1fr',
-    md: 'minmax(240px, 1fr) 110px 105px 115px 38px',
+    xs: "1fr",
+    md: "minmax(240px, 1fr) 110px 105px 115px 38px",
   };
 
   return (
@@ -65,32 +66,32 @@ export const CartProductSection = ({
       <Box
         sx={{
           display: {
-            xs: 'none',
-            md: 'grid',
+            xs: "none",
+            md: "grid",
           },
           gridTemplateColumns: productGridColumns.md,
           columnGap: 1.2,
-          alignItems: 'center',
+          alignItems: "center",
           px: 1,
           mb: 0.8,
         }}
       >
-        {['Producto', 'Cantidad', 'Precio', 'Subtotal', ''].map(
+        {["Producto", "Cantidad", "Precio", "Subtotal", ""].map(
           (head, index) => (
             <Typography
               key={head || index}
               sx={{
-                color: 'text.primary',
-                fontFamily: 'fontFamily.primary',
+                color: "text.primary",
+                fontFamily: "fontFamily.primary",
                 fontWeight: 900,
                 fontSize: 11,
-                textTransform: 'uppercase',
-                textAlign: index === 0 ? 'left' : 'center',
+                textTransform: "uppercase",
+                textAlign: index === 0 ? "left" : "center",
               }}
             >
               {head}
             </Typography>
-          )
+          ),
         )}
       </Box>
 
@@ -107,23 +108,23 @@ export const CartProductSection = ({
               <Box
                 key={`${item.productId || item.id || item.name}-${index}`}
                 sx={{
-                  display: 'grid',
+                  display: "grid",
                   gridTemplateColumns: productGridColumns,
                   columnGap: { xs: 1, md: 1.2 },
                   rowGap: { xs: 1, md: 0 },
-                  alignItems: 'center',
+                  alignItems: "center",
                   px: 1,
                   py: { xs: 0.9, sm: 1 },
-                  borderRadius: '12px',
-                  border: '1px solid',
-                  borderColor: 'text.primary',
-                  bgcolor: 'transparent',
+                  borderRadius: "12px",
+                  border: "1px solid",
+                  borderColor: "text.primary",
+                  bgcolor: "transparent",
                 }}
               >
                 <Box
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
+                    display: "flex",
+                    alignItems: "center",
                     gap: 1,
                     minWidth: 0,
                   }}
@@ -134,8 +135,8 @@ export const CartProductSection = ({
                     sx={{
                       width: { xs: 42, sm: 46, md: 48 },
                       height: { xs: 42, sm: 46, md: 48 },
-                      bgcolor: 'transparent',
-                      borderRadius: '8px',
+                      bgcolor: "transparent",
+                      borderRadius: "8px",
                     }}
                   >
                     <FastfoodIcon color="primary" />
@@ -143,18 +144,18 @@ export const CartProductSection = ({
 
                   <Box sx={{ minWidth: 0 }}>
                     <Box
-                      sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
                     >
                       <Typography
                         sx={{
-                          color: 'text.primary',
-                          fontFamily: 'fontFamily.primary',
+                          color: "text.primary",
+                          fontFamily: "fontFamily.primary",
                           fontWeight: 900,
                           fontSize: { xs: 13, sm: 14, md: 17 },
-                          textTransform: 'uppercase',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
+                          textTransform: "uppercase",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {item.name}
@@ -164,7 +165,9 @@ export const CartProductSection = ({
                         size="small"
                         onClick={() => handleEditProduct(item, index)}
                         disabled={
-                          !item.customOptions || item.customOptions.length === 0
+                          !item.customOptions ||
+                          item.customOptions.length === 0 ||
+                          !editCapabilities.canEditItems
                         }
                       >
                         <EditIcon
@@ -173,8 +176,8 @@ export const CartProductSection = ({
                             color:
                               !item.customOptions ||
                               item.customOptions.length === 0
-                                ? 'text.secondary'
-                                : 'primary.main',
+                                ? "text.secondary"
+                                : "primary.main",
                           }}
                         />
                       </IconButton>
@@ -183,12 +186,12 @@ export const CartProductSection = ({
                     {customText && (
                       <Typography
                         sx={{
-                          color: 'text.secondary',
-                          fontFamily: 'fontFamily.secondary',
+                          color: "text.secondary",
+                          fontFamily: "fontFamily.secondary",
                           fontSize: { xs: 11, sm: 12 },
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {customText}
@@ -196,11 +199,11 @@ export const CartProductSection = ({
                     )}
 
                     {item?.productComment &&
-                      item.productComment.trim() !== '' && (
+                      item.productComment.trim() !== "" && (
                         <Box
                           sx={{
-                            display: 'flex',
-                            alignItems: 'center',
+                            display: "flex",
+                            alignItems: "center",
                             gap: 0.6,
                             mt: 0.2,
                           }}
@@ -208,15 +211,15 @@ export const CartProductSection = ({
                           <StickyNote2Icon fontSize="small" color="primary" />
                           <Typography
                             sx={{
-                              fontFamily: 'fontFamily.primary',
+                              fontFamily: "fontFamily.primary",
                               fontSize: {
-                                xs: '0.6rem',
-                                sm: '0.7rem',
-                                md: '0.75rem',
+                                xs: "0.6rem",
+                                sm: "0.7rem",
+                                md: "0.75rem",
                               },
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
                             }}
                           >
                             {item.productComment.toUpperCase()}
@@ -224,21 +227,22 @@ export const CartProductSection = ({
                           <Tooltip title="Editar comentario" arrow>
                             <IconButton
                               size="small"
+                              disabled={!editCapabilities.canEditItems}
                               onClick={(event) =>
                                 handleQuickEditOpen(event, {
-                                  target: 'cartItem',
-                                  field: 'productComment',
-                                  value: item.productComment || '',
+                                  target: "cartItem",
+                                  field: "productComment",
+                                  value: item.productComment || "",
                                   itemIndex: index,
                                 })
                               }
                               sx={{
-                                color: 'primary.main',
-                                border: '1px solid',
-                                borderColor: 'divider',
-                                '&:hover': {
-                                  borderColor: 'primary.main',
-                                  bgcolor: 'rgba(245, 158, 11, 0.12)',
+                                color: "primary.main",
+                                border: "1px solid",
+                                borderColor: "divider",
+                                "&:hover": {
+                                  borderColor: "primary.main",
+                                  bgcolor: "rgba(245, 158, 11, 0.12)",
                                 },
                               }}
                             >
@@ -252,36 +256,38 @@ export const CartProductSection = ({
 
                 <Box
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: { xs: 'space-between', md: 'center' },
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: { xs: "space-between", md: "center" },
                     gap: 1,
                   }}
                 >
                   <Typography
                     sx={{
-                      display: { xs: 'block', md: 'none' },
-                      color: 'text.secondary',
+                      display: { xs: "block", md: "none" },
+                      color: "text.secondary",
                       fontSize: 12,
                     }}
                   >
                     Cantidad
                   </Typography>
 
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.7 }}>
                     <IconButton
                       size="small"
+                      disabled={
+                        item.quantity <= 1 || !editCapabilities.canEditItems
+                      }
                       onClick={() =>
                         handleQuantityChange(index, item.quantity - 1)
                       }
-                      disabled={item.quantity <= 1}
                       sx={{
                         width: 26,
                         height: 26,
-                        border: '1px solid',
-                        borderColor: 'text.primary',
-                        borderRadius: '8px',
-                        color: 'text.primary',
+                        border: "1px solid",
+                        borderColor: "text.primary",
+                        borderRadius: "8px",
+                        color: "text.primary",
                       }}
                     >
                       <RemoveIcon fontSize="small" />
@@ -290,9 +296,9 @@ export const CartProductSection = ({
                     <Typography
                       sx={{
                         minWidth: 24,
-                        color: 'text.primary',
-                        textAlign: 'center',
-                        fontFamily: 'fontFamily.terciary',
+                        color: "text.primary",
+                        textAlign: "center",
+                        fontFamily: "fontFamily.terciary",
                         fontWeight: 900,
                       }}
                     >
@@ -301,16 +307,17 @@ export const CartProductSection = ({
 
                     <IconButton
                       size="small"
+                      disabled={!editCapabilities.canEditItems}
                       onClick={() =>
                         handleQuantityChange(index, item.quantity + 1)
                       }
                       sx={{
                         width: 26,
                         height: 26,
-                        border: '1px solid',
-                        borderColor: 'text.primary',
-                        borderRadius: '8px',
-                        color: 'text.primary',
+                        border: "1px solid",
+                        borderColor: "text.primary",
+                        borderRadius: "8px",
+                        color: "text.primary",
                       }}
                     >
                       <AddIcon fontSize="small" />
@@ -320,10 +327,10 @@ export const CartProductSection = ({
 
                 <Typography
                   sx={{
-                    color: 'text.primary',
-                    fontFamily: 'fontFamily.terciary',
+                    color: "text.primary",
+                    fontFamily: "fontFamily.terciary",
                     fontWeight: 800,
-                    textAlign: { xs: 'left', md: 'center' },
+                    textAlign: { xs: "left", md: "center" },
                   }}
                 >
                   {formatCurrency(item.price)}
@@ -331,10 +338,10 @@ export const CartProductSection = ({
 
                 <Typography
                   sx={{
-                    color: 'text.primary',
-                    fontFamily: 'fontFamily.terciary',
+                    color: "text.primary",
+                    fontFamily: "fontFamily.terciary",
                     fontWeight: 900,
-                    textAlign: { xs: 'left', md: 'center' },
+                    textAlign: { xs: "left", md: "center" },
                   }}
                 >
                   {formatCurrency(item.price * item.quantity)}
@@ -343,9 +350,10 @@ export const CartProductSection = ({
                 <IconButton
                   size="small"
                   color="error"
+                  disabled={!editCapabilities.canEditItems}
                   onClick={() => handleRemoveProduct(index)}
                   sx={{
-                    justifySelf: { xs: 'end', md: 'center' },
+                    justifySelf: { xs: "end", md: "center" },
                   }}
                 >
                   <DeleteIcon />
@@ -359,19 +367,20 @@ export const CartProductSection = ({
       <Button
         fullWidth
         startIcon={<AddIcon />}
+        disabled={!editCapabilities.canEditItems}
         onClick={() => setShowProductSelector(true)}
         sx={{
           mt: 1.5,
           minHeight: 46,
-          borderRadius: '10px',
-          border: '1px dashed',
-          borderColor: 'primary.main',
-          color: 'primary.main',
-          fontFamily: 'fontFamily.terciary',
+          borderRadius: "10px",
+          border: "1px dashed",
+          borderColor: "primary.main",
+          color: "primary.main",
+          fontFamily: "fontFamily.terciary",
           fontWeight: 900,
-          '&:hover': {
-            bgcolor: 'rgba(245,158,11,0.08)',
-            borderColor: 'primary.main',
+          "&:hover": {
+            bgcolor: "rgba(245,158,11,0.08)",
+            borderColor: "primary.main",
           },
         }}
       >

@@ -1,28 +1,29 @@
-import { Box, TextField } from '@mui/material';
+import { Box, TextField } from "@mui/material";
 // ICONS
 import {
-  Person as PersonIcon,
   Badge as BadgeIcon,
-  Email as EmailIcon,
-  Phone as PhoneIcon,
-  Home as HomeIcon,
   Comment as CommentIcon,
-} from '@mui/icons-material';
+  Email as EmailIcon,
+  Home as HomeIcon,
+  Person as PersonIcon,
+  Phone as PhoneIcon,
+} from "@mui/icons-material";
 // ---------------------
 
 // ---- Shared ----
-import { ModalSection } from '../../shared/ModalSection.jsx';
-import { ClientInfoBox } from '../../shared/ClientInfoBox.jsx';
+import { ClientInfoBox } from "../../shared/ClientInfoBox.jsx";
+import { ModalSection } from "../../shared/ModalSection.jsx";
 // ----------------
 
 // ---- Styles ----
-import { fieldStyles } from '../../styles/modalEditOrder.styles.js';
+import { fieldStyles } from "../../styles/modalEditOrder.styles.js";
 // ----------------
 
 export const ClientInfoSection = ({
   order,
   handleInputChange,
   handleQuickEditOpen,
+  editCapabilities,
 }) => {
   return (
     <ModalSection
@@ -31,10 +32,10 @@ export const ClientInfoSection = ({
     >
       <Box
         sx={{
-          display: 'grid',
+          display: "grid",
           gridTemplateColumns: {
-            xs: '1fr',
-            md: 'repeat(2, minmax(0, 1fr))',
+            xs: "1fr",
+            md: "repeat(2, minmax(0, 1fr))",
           },
           gap: 1.2,
         }}
@@ -43,10 +44,11 @@ export const ClientInfoSection = ({
           icon={<BadgeIcon fontSize="small" color="primary" />}
           label="Nombre"
           value={order.clientName}
+          onDisable={!editCapabilities.canEditClient}
           onEdit={(event) =>
             handleQuickEditOpen(event, {
-              target: 'order',
-              field: 'clientName',
+              target: "order",
+              field: "clientName",
               value: order.clientName,
             })
           }
@@ -56,10 +58,11 @@ export const ClientInfoSection = ({
           icon={<EmailIcon fontSize="small" color="primary" />}
           label="Email"
           value={order.clientEmail}
+          onDisable={!editCapabilities.canEditClient}
           onEdit={(event) =>
             handleQuickEditOpen(event, {
-              target: 'order',
-              field: 'clientEmail',
+              target: "order",
+              field: "clientEmail",
               value: order.clientEmail,
             })
           }
@@ -69,10 +72,11 @@ export const ClientInfoSection = ({
           icon={<PhoneIcon fontSize="small" color="primary" />}
           label="Tel"
           value={order.contactPhone}
+          onDisable={!editCapabilities.canEditClient}
           onEdit={(event) =>
             handleQuickEditOpen(event, {
-              target: 'order',
-              field: 'contactPhone',
+              target: "order",
+              field: "contactPhone",
               value: order.contactPhone,
             })
           }
@@ -82,10 +86,11 @@ export const ClientInfoSection = ({
           icon={<HomeIcon fontSize="small" color="primary" />}
           label="Domicilio"
           value={order.deliveryAddress}
+          onDisable={!editCapabilities.canEditClient}
           onEdit={(event) =>
             handleQuickEditOpen(event, {
-              target: 'order',
-              field: 'deliveryAddress',
+              target: "order",
+              field: "deliveryAddress",
               value: order.deliveryAddress,
             })
           }
@@ -103,7 +108,8 @@ export const ClientInfoSection = ({
           rows={2}
           placeholder="Agregar comentarios especiales para el pedido..."
           name="comentary"
-          value={order?.comentary || ''}
+          value={order?.comentary || ""}
+          disabled={!editCapabilities.canEditCommentary}
           onChange={handleInputChange}
           sx={fieldStyles}
         />

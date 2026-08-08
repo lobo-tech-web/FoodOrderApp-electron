@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 // ---- MATERIAL UI ----
 import {
+  Alert,
   Box,
   Button,
   Dialog,
@@ -53,6 +54,10 @@ import {
   cleanMoneyValue,
 } from "@/utils/orderCalculations.js";
 import {
+  getAllowedOrderStatuses,
+  getOrderEditCapabilities,
+} from "@/utils/orderEditRules.js";
+import {
   initialUpdateOrderState,
   normalizeOrderForCompare,
 } from "@/utils/orderUtils.js";
@@ -64,6 +69,9 @@ export const ModalEditOrder = ({
   showAlert,
   showOrder,
   showOrderIndex,
+  cashSession = null,
+  staffMode = false,
+  onOrderUpdated,
 }) => {
   const [loading, setLoading] = useState(false);
   const [loadingOrderDetail, setLoadingOrderDetail] = useState(false);
@@ -76,6 +84,8 @@ export const ModalEditOrder = ({
 
   // Estados para el pedido
   const [order, setOrder] = useState(initialUpdateOrderState);
+  const [originalStatus, setOriginalStatus] = useState("");
+  const [cancelReason, setCancelReason] = useState("");
 
   const [orderCopy, setOrderCopy] = useState(null);
   const [showConfirmClose, setShowConfirmClose] = useState(false);
@@ -106,6 +116,34 @@ export const ModalEditOrder = ({
       onClose();
     }
   }, [hasChanges, onClose]);
+
+  const currentUser = userState.user;
+
+  const isPrivilegedUser =
+    currentUser?.role === "admin" || currentUser?.role === "dev";
+
+  const currentRestaurantId =
+    currentUser?.role === "staff" ? currentUser.restaurantId : currentUser?.id;
+
+  const editCapabilities = useMemo(() => {
+    return getOrderEditCapabilities({
+      originalStatus,
+      user: currentUser,
+      cashSession,
+    });
+  }, [originalStatus, currentUser, cashSession]);
+
+  const availableStatuses = useMemo(() => {
+    return getAllowedOrderStatuses({
+      originalStatus,
+      canCancel: editCapabilities.canCancel,
+      allowAllStatuses: isPrivilegedUser,
+    });
+  }, [originalStatus, editCapabilities.canCancel, isPrivilegedUser]);
+
+  const canSaveOrder =
+    !editCapabilities.isTerminal &&
+    (!staffMode || editCapabilities.hasOpenCash);
 
   // ✅ ESTADOS PARA RIDERS
   const [editingRider, setEditingRider] = useState(false);
@@ -478,10 +516,16 @@ export const ModalEditOrder = ({
         status: statusOverride || order.status,
         extraPoints: Number(order.extraPoints) || 0,
         riderId: order.riderId ? order.riderId : null,
+        cancelReason:
+          order.status === "CANCELADO" && originalStatus !== "CANCELADO"
+            ? cancelReason.trim()
+            : undefined,
       };
     },
     [
       order,
+      originalStatus,
+      cancelReason,
       calculatedProductTotals.totalRewardPoints,
       calculatedProductTotals.totalRedeemPoints,
       calculatedDiscount.discountamount,
@@ -540,6 +584,22 @@ export const ModalEditOrder = ({
       return;
     }
 
+    if (staffMode && !order.contactPhone.trim()) {
+      showAlert("El teléfono de contacto es requerido", "warning");
+      return;
+    }
+
+    if (
+      staffMode &&
+      order.status === "CANCELADO" &&
+      originalStatus !== "CANCELADO" &&
+      !cancelReason.trim()
+    ) {
+      showAlert("Debe ingresar el motivo de cancelación", "warning");
+
+      return;
+    }
+
     setLoading(true);
     try {
       const updateData = buildOrderUpdateData();
@@ -558,6 +618,9 @@ export const ModalEditOrder = ({
       setOrderCopy(_.cloneDeep(savedOrder));
 
       showAlert("Pedido actualizado correctamente!", "success");
+
+      await onOrderUpdated?.();
+
       onClose();
     } catch (error) {
       const errorMessage = error.message || "Error desconocido";
@@ -565,7 +628,16 @@ export const ModalEditOrder = ({
     } finally {
       setLoading(false);
     }
-  }, [order, buildOrderUpdateData, showAlert, onClose, updateOrder]);
+  }, [
+    order,
+    cancelReason,
+    originalStatus,
+    onOrderUpdated,
+    buildOrderUpdateData,
+    showAlert,
+    onClose,
+    updateOrder,
+  ]);
 
   const handleDeleteOrder = async (orderData) => {
     const isConfirmed = window.confirm(
@@ -635,6 +707,8 @@ export const ModalEditOrder = ({
           rider: fullOrder.rider || null,
         };
 
+        setOriginalStatus(fullOrder.status || "");
+        setCancelReason("");
         setOrder(initialOrder);
         setOrderCopy(_.cloneDeep(initialOrder));
 
@@ -672,15 +746,16 @@ export const ModalEditOrder = ({
 
   useEffect(() => {
     const fetchRiders = async () => {
+      if (!show || !currentRestaurantId) return;
+
       try {
-        if (show && userState?.user?.id)
-          await getRidersByRestaurant(userState.user.id);
+        await getRidersByRestaurant(currentRestaurantId);
       } catch (error) {
         console.error("Error al obtener los riders:", error);
       }
     };
     fetchRiders();
-  }, [show, userState?.user?.id, getRidersByRestaurant]);
+  }, [show, currentRestaurantId, getRidersByRestaurant]);
 
   return (
     <>
@@ -849,6 +924,20 @@ export const ModalEditOrder = ({
             overflow: "auto",
           }}
         >
+          {staffMode && !editCapabilities.hasOpenCash && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              La caja está cerrada. Este pedido se puede consultar, pero no
+              modificar.
+            </Alert>
+          )}
+
+          {editCapabilities.isTerminal && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              El pedido está {originalStatus.toLowerCase()} y ya no admite
+              modificaciones.
+            </Alert>
+          )}
+
           {loadingOrderDetail ? (
             <LoadingInModal
               message="Cargando pedido..."
@@ -884,6 +973,11 @@ export const ModalEditOrder = ({
                   handleRemoveProduct={handleRemoveProduct}
                   setShowProductSelector={setShowProductSelector}
                   handleQuickEditOpen={handleQuickEditOpen}
+                  originalStatus={originalStatus}
+                  cancelReason={cancelReason}
+                  setCancelReason={setCancelReason}
+                  editCapabilities={editCapabilities}
+                  availableStatuses={availableStatuses}
                 />
               </Box>
 
@@ -914,7 +1008,10 @@ export const ModalEditOrder = ({
           <Button
             onClick={handleSaveChanges}
             disabled={
-              loading || loadingOrderDetail || order.cartItems.length === 0
+              loading ||
+              loadingOrderDetail ||
+              order.cartItems.length === 0 ||
+              !canSaveOrder
             }
             variant="contained"
             color="primary"

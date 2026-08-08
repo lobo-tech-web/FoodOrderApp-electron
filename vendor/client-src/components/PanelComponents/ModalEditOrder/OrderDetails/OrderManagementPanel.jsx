@@ -1,9 +1,9 @@
-import { Stack } from '@mui/material';
+import { Stack } from "@mui/material";
 
 // ---- Sections ----
-import { InfoSection } from './sections/InfoSection.jsx';
-import { CartProductSection } from './sections/CartProductSection.jsx';
-import { ClientInfoSection } from './sections/ClientInfoSection.jsx';
+import { CartProductSection } from "./sections/CartProductSection.jsx";
+import { ClientInfoSection } from "./sections/ClientInfoSection.jsx";
+import { InfoSection } from "./sections/InfoSection.jsx";
 // ------------------
 
 export const OrderManagementPanel = ({
@@ -23,6 +23,11 @@ export const OrderManagementPanel = ({
   handleRemoveProduct,
   setShowProductSelector,
   handleQuickEditOpen,
+  originalStatus,
+  cancelReason,
+  setCancelReason,
+  editCapabilities,
+  availableStatuses,
 }) => {
   return (
     <Stack spacing={{ xs: 1.2, sm: 1.4 }}>
@@ -38,6 +43,11 @@ export const OrderManagementPanel = ({
         setEditingRider={setEditingRider}
         setOpenSelectRider={setOpenSelectRider}
         openSelectRider={openSelectRider}
+        originalStatus={originalStatus}
+        cancelReason={cancelReason}
+        setCancelReason={setCancelReason}
+        editCapabilities={editCapabilities}
+        availableStatuses={availableStatuses}
       />
 
       <CartProductSection
@@ -47,12 +57,14 @@ export const OrderManagementPanel = ({
         handleRemoveProduct={handleRemoveProduct}
         setShowProductSelector={setShowProductSelector}
         handleQuickEditOpen={handleQuickEditOpen}
+        editCapabilities={editCapabilities}
       />
 
       <ClientInfoSection
         order={order}
         handleInputChange={handleInputChange}
         handleQuickEditOpen={handleQuickEditOpen}
+        editCapabilities={editCapabilities}
       />
     </Stack>
   );
