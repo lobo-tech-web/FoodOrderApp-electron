@@ -17,6 +17,9 @@ permissions:
 jobs:
   release:
     runs-on: windows-latest
+    env:
+      ELECTRON_CACHE: ${{ github.workspace }}\.cache\electron
+      ELECTRON_BUILDER_CACHE: ${{ github.workspace }}\.cache\electron-builder
 
     steps:
       - name: Checkout
@@ -27,6 +30,25 @@ jobs:
         with:
           node-version: 24
           cache: npm
+
+      - name: Configure Windows CA bundle
+        shell: pwsh
+        run: |
+          $certPath = "${env:ProgramFiles}\Git\mingw64\etc\ssl\certs\ca-bundle.crt"
+          if (Test-Path $certPath) {
+            "SSL_CERT_FILE=$certPath" >> $env:GITHUB_ENV
+            "NODE_EXTRA_CA_CERTS=$certPath" >> $env:GITHUB_ENV
+          }
+
+      - name: Cache Electron Builder binaries
+        uses: actions/cache@v4
+        with:
+          path: |
+            .cache/electron
+            .cache/electron-builder
+          key: electron-builder-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            electron-builder-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Install dependencies
         run: npm ci
@@ -47,7 +69,26 @@ jobs:
         run: npm version ${{ inputs.version }} --no-git-tag-version --allow-same-version
 
       - name: Build and publish GitHub Release
-        run: npm run release:github
+        shell: pwsh
+        run: |
+          $maxAttempts = 3
+
+          for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+            Write-Host "Release attempt $attempt of $maxAttempts"
+            npm run release:github
+
+            if ($LASTEXITCODE -eq 0) {
+              exit 0
+            }
+
+            if ($attempt -eq $maxAttempts) {
+              exit $LASTEXITCODE
+            }
+
+            $delaySeconds = 20 * $attempt
+            Write-Warning "Release failed with exit code $LASTEXITCODE. Retrying in $delaySeconds seconds..."
+            Start-Sleep -Seconds $delaySeconds
+          }
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           UPDATE_REPOSITORY: ${{ vars.UPDATE_REPOSITORY || github.repository }}
