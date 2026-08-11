@@ -52,7 +52,7 @@ apiWithToken.interceptors.response.use(
     async (error) => {
         const { config, response } = error;
 
-        if ((response?.status === 401 || response?.status === 403) && !config._retry) {
+        if (response?.status === 401 && !config._retry) {
             // Si el token ha expirado o es inválido
             config._retry = true; // Evita bucles infinitos
 

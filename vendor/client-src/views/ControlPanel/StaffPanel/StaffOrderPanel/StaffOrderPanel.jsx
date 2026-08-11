@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 
 // ---- Material UI ----
 import {
@@ -16,7 +16,7 @@ import {
   Tabs,
   Tab,
   Typography,
-} from '@mui/material';
+} from "@mui/material";
 // Icons
 import {
   MoreHoriz as MoreHorizIcon,
@@ -25,73 +25,73 @@ import {
   DeliveryDining as DeliveryDiningIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 // -------------------
 
 // ---- CONTEXT ----
-import { useOrders } from '@/context/Orders.jsx';
+import { useOrders } from "@/context/Orders.jsx";
 // -----------------
 
 // ---- HOOKS ----
-import { useAutoRefresh } from '@/hooks/AutoRefreshOrders.jsx';
+import { useAutoRefresh } from "@/hooks/AutoRefreshOrders.jsx";
 // ---------------
 
 // ---- Components ----
-import { LoadingComponent } from '@/components/LoadingComponent/LoadingComponent.jsx';
-import { StaffOrderActionsBar } from './StaffOrderActionsBar/StaffOrderActionsBar.jsx';
-import { OrderInfo } from '../../AdminPanel/OrderPanel/OrderInfo/OrderInfo.jsx';
-import { AutoRefreshIndicator } from '../../AdminPanel/OrderPanel/AutoRefreshIndicator/AutoRefreshIndicator.jsx';
-import { RiderCountIndicator } from '../../AdminPanel/OrderPanel/RiderCountIndicator/RiderCountIndicator.jsx';
-import { ModalEditOrder } from '@/components/PanelComponents/ModalEditOrder/ModalEditOrder.jsx';
+import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
+import { StaffOrderActionsBar } from "./StaffOrderActionsBar/StaffOrderActionsBar.jsx";
+import { OrderInfo } from "../../AdminPanel/OrderPanel/OrderInfo/OrderInfo.jsx";
+import { AutoRefreshIndicator } from "../../AdminPanel/OrderPanel/AutoRefreshIndicator/AutoRefreshIndicator.jsx";
+import { RiderCountIndicator } from "../../AdminPanel/OrderPanel/RiderCountIndicator/RiderCountIndicator.jsx";
+import { ModalEditOrder } from "@/components/PanelComponents/ModalEditOrder/ModalEditOrder.jsx";
 // --------------------
 
 // ---- Utils ----
-import { getDateNowDayjs, getTimeNowDayjs } from '@/utils/clientWorking.js';
+import { getDateNowDayjs, getTimeNowDayjs } from "@/utils/clientWorking.js";
 import {
   isTerminalOrderStatus,
   hasOrderPermission,
-} from '@/utils/orderEditRules.js';
-import { statusOptions } from '@/utils/components/StatusUtils.jsx';
+} from "@/utils/orderEditRules.js";
+// import { statusOptions } from "@/utils/components/StatusUtils.jsx";
 // ---------------
 
 const ORDER_STATUS = {
   TODOS: {
-    color: '#f59e0b',
+    color: "#f59e0b",
     icon: <MoreHorizIcon fontSize="small" />,
   },
 
-  'PENDIENTE A CONFIRMAR': {
-    color: '#ff9800',
+  "PENDIENTE A CONFIRMAR": {
+    color: "#ff9800",
     icon: <PendingIcon fontSize="small" />,
   },
 
-  'EN PREPARACIÓN': {
-    color: '#2196f3',
+  "EN PREPARACIÓN": {
+    color: "#2196f3",
     icon: <FactCheckIcon fontSize="small" />,
   },
 
-  'EN ENVIO': {
-    color: '#9c27b0',
+  "EN ENVIO": {
+    color: "#9c27b0",
     icon: <DeliveryDiningIcon fontSize="small" />,
   },
 
   FINALIZADO: {
-    color: '#4caf50',
+    color: "#4caf50",
     icon: <CheckCircleIcon fontSize="small" />,
   },
 
   CANCELADO: {
-    color: '#f44336',
+    color: "#f44336",
     icon: <CancelIcon fontSize="small" />,
   },
 };
 
 // ---- Styles ----
 const tableHeadStyle = {
-  fontFamily: 'fontFamily.primary',
-  color: 'primary.main',
-  textAlign: 'center',
-  fontWeight: 'bold',
+  fontFamily: "fontFamily.primary",
+  color: "primary.main",
+  textAlign: "center",
+  fontWeight: "bold",
   py: 2,
 };
 // ----------------
@@ -102,9 +102,15 @@ export const StaffOrderPanel = ({
   cashSession,
   showAlert,
 }) => {
+  const isElectronApp =
+    typeof window !== "undefined" && Boolean(window.electronAPI);
+
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(50);
+
+  const ordersRequestInFlightRef = useRef("");
+  const initialFetchKeyRef = useRef("");
 
   const activeTab = useMemo(() => {
     if (externalView === 1) return 0;
@@ -117,10 +123,10 @@ export const StaffOrderPanel = ({
   const allOrders = useMemo(() => orderState.orders || [], [orderState.orders]);
   const availableRiders = useMemo(
     () => orderState?.riders || [],
-    [orderState?.riders]
+    [orderState?.riders],
   );
 
-  const [statusFilter, setStatusFilter] = useState('TODOS');
+  const [statusFilter, setStatusFilter] = useState("TODOS");
 
   const handleStatusChange = (event, newValue) => {
     setStatusFilter(newValue);
@@ -129,7 +135,7 @@ export const StaffOrderPanel = ({
   };
 
   const filteredOrders = useMemo(() => {
-    if (statusFilter === 'TODOS') return allOrders;
+    if (statusFilter === "TODOS") return allOrders;
     return allOrders.filter((order) => order.status === statusFilter);
   }, [allOrders, statusFilter]);
 
@@ -144,13 +150,12 @@ export const StaffOrderPanel = ({
   }, [allOrders]);
 
   const restaurantId = useMemo(() => {
-    if (user?.role === 'staff') return user.restaurantId;
+    if (user?.role === "staff") return user.restaurantId;
     return user?.id;
   }, [user?.id, user?.restaurantId, user?.role]);
 
-  const canUpdateStatus = hasOrderPermission(user, 'updateStatus');
-
-  const isCashOpen = cashSession?.id && cashSession?.status === 'OPEN';
+  const canUpdateStatus = hasOrderPermission(user, "updateStatus");
+  const isCashOpen = cashSession?.id && cashSession?.status === "OPEN";
 
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedOrderIndex, setSelectedOrderIndex] = useState(null);
@@ -176,7 +181,7 @@ export const StaffOrderPanel = ({
     if (!isCashOpen) return [];
 
     return filteredOrders.filter(
-      (order) => !isTerminalOrderStatus(order.status)
+      (order) => !isTerminalOrderStatus(order.status),
     );
   }, [filteredOrders, isCashOpen]);
 
@@ -189,7 +194,7 @@ export const StaffOrderPanel = ({
       setSelectedOrdersCheckbox((prev) => [...prev, order]);
     } else {
       setSelectedOrdersCheckbox((prev) =>
-        prev.filter((o) => o.id !== order.id)
+        prev.filter((o) => o.id !== order.id),
       );
     }
   };
@@ -209,6 +214,10 @@ export const StaffOrderPanel = ({
     async (isAutoRefresh = false) => {
       if (!restaurantId) return;
 
+      const requestKey = `${activeTab}:${restaurantId}`;
+      if (ordersRequestInFlightRef.current === requestKey) return;
+      ordersRequestInFlightRef.current = requestKey;
+
       if (isAutoRefresh) {
         setIsRefreshing(true);
       } else {
@@ -223,12 +232,12 @@ export const StaffOrderPanel = ({
             today.day,
             today.month,
             today.year,
-            restaurantId
+            restaurantId,
           );
           await getRidersByRestaurant(restaurantId);
         }
         if (activeTab === 1) {
-          await filterOrderByDate('', today.month, today.year, restaurantId);
+          await filterOrderByDate("", today.month, today.year, restaurantId);
         }
 
         if (!isAutoRefresh) {
@@ -239,8 +248,8 @@ export const StaffOrderPanel = ({
         setLastRefresh(time);
       } catch (error) {
         showAlert?.(
-          error?.message || 'Error al obtener pedidos del local',
-          'error'
+          error?.message || "Error al obtener pedidos del local",
+          "error",
         );
       } finally {
         if (isAutoRefresh) {
@@ -248,6 +257,7 @@ export const StaffOrderPanel = ({
         } else {
           setLoading(false);
         }
+        ordersRequestInFlightRef.current = "";
       }
     },
     [
@@ -256,15 +266,18 @@ export const StaffOrderPanel = ({
       filterOrderByDate,
       getRidersByRestaurant,
       showAlert,
-    ]
+    ],
   );
 
   useEffect(() => {
+    const fetchKey = `${activeTab}:${restaurantId || ""}`;
+    if (!restaurantId || initialFetchKeyRef.current === fetchKey) return;
+
+    initialFetchKeyRef.current = fetchKey;
     fetchOrders(false);
-  }, [fetchOrders]);
+  }, [activeTab, restaurantId, fetchOrders]);
 
   // Auto-refresh hook
-
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(null);
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
@@ -282,9 +295,9 @@ export const StaffOrderPanel = ({
         enabled: autoRefreshEnabled && activeTab === 0,
         pauseOnHidden: true,
         onRefresh: () => {
-          showAlert('Se actualizaron los pedidos automáticamente', 'success');
+          showAlert("Se actualizaron los pedidos automáticamente", "success");
         },
-      }
+      },
     );
 
   const handleToggleAutoRefresh = () => {
@@ -300,7 +313,16 @@ export const StaffOrderPanel = ({
   }
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box
+      sx={{
+        width: "100%",
+        height: isElectronApp ? "calc(100vh - 112px)" : "auto",
+        overflowY: isElectronApp ? "auto" : "visible",
+        overflowX: isElectronApp ? "auto" : "visible",
+        pr: isElectronApp ? 1 : 0,
+        pb: isElectronApp ? 3 : 0,
+      }}
+    >
       <StaffOrderActionsBar
         user={user}
         cashSession={cashSession}
@@ -313,7 +335,7 @@ export const StaffOrderPanel = ({
 
       {/* RIDERS */}
       {availableRiders.length > 0 && activeTab === 0 && (
-        <Box sx={{ width: '100%', mb: 2 }}>
+        <Box sx={{ width: "100%", mb: 2 }}>
           <RiderCountIndicator
             totalOrders={allOrders}
             availableRiders={availableRiders}
@@ -321,7 +343,7 @@ export const StaffOrderPanel = ({
         </Box>
       )}
 
-      <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 200 }}>
+      <Box sx={{ display: "flex", alignItems: "center", minWidth: 200 }}>
         {activeTab === 0 && (
           <AutoRefreshIndicator
             isEnabled={autoRefreshEnabled}
@@ -336,34 +358,34 @@ export const StaffOrderPanel = ({
       <Paper
         elevation={0}
         sx={{
-          bgcolor: 'background.main',
-          width: '100%',
+          bgcolor: "background.main",
+          width: "100%",
           mb: 2,
           borderRadius: 2,
-          overflow: 'hidden',
+          overflow: "hidden",
         }}
       >
         <Typography
           variant="h6"
           sx={{
-            fontFamily: 'fontFamily.primary',
-            display: 'flex',
-            justifyContent: 'center',
-            color: 'text.primary',
+            fontFamily: "fontFamily.primary",
+            display: "flex",
+            justifyContent: "center",
+            color: "text.primary",
             m: 2,
           }}
         >
-          {activeTab === 0 ? 'PEDIDOS DE HOY' : 'PEDIDOS DEL MES'}
+          {activeTab === 0 ? "PEDIDOS DE HOY" : "PEDIDOS DEL MES"}
         </Typography>
 
         <Paper
           elevation={0}
           sx={{
             mb: 2,
-            bgcolor: 'background.paper',
+            bgcolor: "background.paper",
             borderRadius: 2,
-            border: '1px solid',
-            borderColor: 'divider',
+            border: "1px solid",
+            borderColor: "divider",
           }}
         >
           <Tabs
@@ -373,10 +395,10 @@ export const StaffOrderPanel = ({
             scrollButtons="auto"
             sx={{
               px: 1,
-              '& .MuiTabs-indicator': {
+              "& .MuiTabs-indicator": {
                 height: 3,
-                borderRadius: '3px 3px 0 0',
-                bgcolor: ORDER_STATUS[statusFilter]?.color || 'primary.main',
+                borderRadius: "3px 3px 0 0",
+                bgcolor: ORDER_STATUS[statusFilter]?.color || "primary.main",
               },
             }}
           >
@@ -387,18 +409,18 @@ export const StaffOrderPanel = ({
                 label={
                   <Box
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
+                      display: "flex",
+                      alignItems: "center",
                       gap: 1,
                     }}
                   >
                     <Box
                       sx={{
-                        display: 'flex',
+                        display: "flex",
                         color:
                           statusFilter === status
                             ? ORDER_STATUS[status].color
-                            : 'text.disabled',
+                            : "text.disabled",
                       }}
                     >
                       {ORDER_STATUS[status].icon}
@@ -407,8 +429,8 @@ export const StaffOrderPanel = ({
                     <Typography
                       variant="body2"
                       sx={{
-                        fontFamily: 'fontFamily.secondary',
-                        fontSize: '0.75rem',
+                        fontFamily: "fontFamily.secondary",
+                        fontSize: "0.75rem",
                       }}
                     >
                       {status}
@@ -420,17 +442,17 @@ export const StaffOrderPanel = ({
                         size="small"
                         variant="outlined"
                         sx={{
-                          fontSize: '0.60rem',
+                          fontSize: "0.60rem",
 
                           color:
                             statusFilter === status
                               ? ORDER_STATUS[status].color
-                              : 'text.primary',
+                              : "text.primary",
 
                           borderColor:
                             statusFilter === status
                               ? ORDER_STATUS[status].color
-                              : 'text.secondary',
+                              : "text.secondary",
                         }}
                       />
                     )}
@@ -438,9 +460,9 @@ export const StaffOrderPanel = ({
                 }
                 sx={{
                   minHeight: 60,
-                  textTransform: 'none',
+                  textTransform: "none",
 
-                  '&.Mui-selected': {
+                  "&.Mui-selected": {
                     color: ORDER_STATUS[status].color,
                   },
                 }}
@@ -452,7 +474,7 @@ export const StaffOrderPanel = ({
         <TableContainer>
           {filteredOrders.length > 0 ? (
             <Table>
-              <TableHead sx={{ bgcolor: 'background.paper' }}>
+              <TableHead sx={{ bgcolor: "background.paper" }}>
                 <TableRow>
                   <TableCell padding="checkbox">
                     <Checkbox
@@ -468,9 +490,9 @@ export const StaffOrderPanel = ({
                       }
                       onChange={handleSelectAll}
                       sx={{
-                        color: 'primary.main',
-                        '&.Mui-checked': {
-                          color: 'primary.main',
+                        color: "primary.main",
+                        "&.Mui-checked": {
+                          color: "primary.main",
                         },
                       }}
                     />
@@ -492,7 +514,7 @@ export const StaffOrderPanel = ({
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((order) => {
                     const globalIndex = allOrders.findIndex(
-                      (o) => o.id === order.id
+                      (o) => o.id === order.id,
                     );
                     const terminal = isTerminalOrderStatus(order.status);
 
@@ -518,16 +540,16 @@ export const StaffOrderPanel = ({
             <Box
               sx={{
                 p: 5,
-                textAlign: 'center',
+                textAlign: "center",
               }}
             >
-              <Typography sx={{ fontFamily: 'fontFamily.primary' }}>
+              <Typography sx={{ fontFamily: "fontFamily.primary" }}>
                 NO HAY PEDIDOS CON ESTADO:
               </Typography>
 
               <Typography
                 sx={{
-                  fontFamily: 'fontFamily.secondary',
+                  fontFamily: "fontFamily.secondary",
                   color: ORDER_STATUS[statusFilter]?.color,
                 }}
               >

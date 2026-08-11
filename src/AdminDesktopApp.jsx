@@ -1,5 +1,9 @@
-import { useEffect, useState } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { PrinterConfigModal } from "@/components/PanelComponents/ModalEditOrder/PrinterConfig/PrinterConfigModal.jsx";
+import { useUser } from "@/context/Users.jsx";
+import { AdminPanel } from "@/views/ControlPanel/AdminPanel/AdminPanel.jsx";
+import { DevPanel } from "@/views/ControlPanel/DevPanel/DevPanel.jsx";
+import { StaffPanel } from "@/views/ControlPanel/StaffPanel/StaffPanel.jsx";
+import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
 import {
   Alert,
   Box,
@@ -11,17 +15,16 @@ import {
   Snackbar,
   Typography,
 } from "@mui/material";
-import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
+import { useEffect, useState } from "react";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { AdminLogin } from "./components/AdminLogin/AdminLogin.jsx";
 import { LocalOrders } from "./components/LocalOrders/LocalOrders.jsx";
-import { AdminPanel } from "@/views/ControlPanel/AdminPanel/AdminPanel.jsx";
-import { DevPanel } from "@/views/ControlPanel/DevPanel/DevPanel.jsx";
-import { PrinterConfigModal } from "@/components/PanelComponents/ModalEditOrder/PrinterConfig/PrinterConfigModal.jsx";
-import { useUser } from "@/context/Users.jsx";
+import { clearDesktopRuntimeSession } from "./utils/desktopSessionCleanup.js";
 
 const getHomePathByRole = (role) => {
   if (role === "dev") return "/dev-control-panel";
   if (role === "admin") return "/control-panel";
+  if (role === "staff") return "/staff-panel";
   return "/";
 };
 
@@ -62,6 +65,20 @@ export const AdminDesktopApp = () => {
   const [printerConfigOpen, setPrinterConfigOpen] = useState(false);
   const [updateState, setUpdateState] = useState(null);
   const [updateMessage, setUpdateMessage] = useState(null);
+
+  useEffect(() => {
+    const handleClose = () => {
+      clearDesktopRuntimeSession();
+    };
+
+    window.addEventListener("beforeunload", handleClose);
+    window.addEventListener("pagehide", handleClose);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleClose);
+      window.removeEventListener("pagehide", handleClose);
+    };
+  }, []);
 
   useEffect(() => {
     if (!window.electronAPI?.onUpdateStatus) return undefined;
@@ -109,8 +126,13 @@ export const AdminDesktopApp = () => {
       <ElectronBridge onOpenPrinterConfig={() => setPrinterConfigOpen(true)} />
       <Routes>
         <Route path="/" element={<AdminLogin />} />
+        <Route
+          path="/login-staff"
+          element={<AdminLogin initialMode="staff" />}
+        />
         <Route path="/control-panel" element={<AdminPanel />} />
         <Route path="/dev-control-panel" element={<DevPanel />} />
+        <Route path="/staff-panel" element={<StaffPanel />} />
         <Route path="/local-orders" element={<LocalOrders />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -19,6 +19,8 @@ import {
 } from "@mui/material";
 // Icons
 import {
+  Storefront as StoreFrontIcon,
+  Person as PersonIcon,
   Email as EmailIcon,
   Lock as LockIcon,
   Login as LoginIcon,
@@ -36,26 +38,45 @@ import { useLobotechThemeContext } from "@/context/ThemeContext.jsx";
 import { useUser } from "@/context/Users.jsx";
 // -----------------
 
+// ---- Utils ----
+import { normalizeStaffUsername } from "@/utils/restaurantStaffUtils.js";
+// ---------------
+
 // ---- Styles ----
 import { buttonStyle1 } from "../styles/buttonStyle.js";
 // ----------------
 
+const LOGIN_MODES = {
+  ADMIN: "admin",
+  STAFF: "staff",
+};
+
 const getPanelPathByRole = (role) => {
   if (role === "dev") return "/dev-control-panel";
   if (role === "admin") return "/control-panel";
+  if (role === "staff") return "/staff-panel";
   return "";
 };
 
-export const AdminLogin = () => {
+export const AdminLogin = ({ initialMode = LOGIN_MODES.ADMIN }) => {
   const navigate = useNavigate();
   const { lobotechTheme } = useLobotechThemeContext();
-  const { userState, userLogin, userLogOut } = useUser();
+  const { userState, userLogin, staffLogin, userLogOut } = useUser();
+
+  const [activeMode, setActiveMode] = useState(initialMode);
   const [formLogin, setFormLogin] = useState({ email: "", password: "" });
+  const [staffForm, setStaffForm] = useState({ name: "", password: "" });
   const [rememberLogin, setRememberLogin] = useState(false);
   const [hasSavedLogin, setHasSavedLogin] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+
+  const isStaffMode = activeMode === LOGIN_MODES.STAFF;
+
+  useEffect(() => {
+    setActiveMode(initialMode);
+  }, [initialMode]);
 
   useEffect(() => {
     const savedLogin = window.secureStorage?.getItem("loginCredentials");
@@ -89,12 +110,28 @@ export const AdminLogin = () => {
     }
 
     userLogOut();
-    setMessage("Este acceso es solo para administradores y desarrolladores.");
+    setMessage(
+      "Este acceso es solo para administradores, desarrolladores o empleados.",
+    );
   }, [navigate, userLogOut, userState.user]);
+
+  const handleModeChange = (mode) => {
+    setMessage("");
+    setShowPassword(false);
+    setActiveMode(mode);
+  };
 
   const handleInputChange = (event) => {
     setMessage("");
     setFormLogin((current) => ({
+      ...current,
+      [event.target.name]: event.target.value,
+    }));
+  };
+
+  const handleStaffInputChange = (event) => {
+    setMessage("");
+    setStaffForm((current) => ({
       ...current,
       [event.target.name]: event.target.value,
     }));
@@ -108,9 +145,7 @@ export const AdminLogin = () => {
     setMessage("Datos guardados eliminados de esta computadora.");
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
+  const handleAdminLogin = async () => {
     if (!formLogin.email || !formLogin.password) {
       setMessage("Completa email y contrasena para ingresar.");
       return;
@@ -143,6 +178,42 @@ export const AdminLogin = () => {
     }
   };
 
+  const handleStaffLogin = async () => {
+    if (!staffForm.name.trim() || !staffForm.password.trim()) {
+      setMessage("Completa usuario y contrasena para ingresar.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await staffLogin({
+        name: normalizeStaffUsername(staffForm.name),
+        password: staffForm.password,
+      });
+
+      navigate("/staff-panel", { replace: true });
+    } catch (error) {
+      setMessage(
+        error?.message ||
+          error ||
+          "No se pudo iniciar sesion como empleado. Revisa tus credenciales.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (isStaffMode) {
+      await handleStaffLogin();
+      return;
+    }
+
+    await handleAdminLogin();
+  };
+
   return (
     <ThemeProvider theme={lobotechTheme}>
       <Box
@@ -155,7 +226,7 @@ export const AdminLogin = () => {
           py: 4,
         }}
       >
-        <Container maxWidth="xs" disableGutters>
+        <Container maxWidth="sm" disableGutters>
           <Paper
             elevation={0}
             sx={{
@@ -163,7 +234,7 @@ export const AdminLogin = () => {
               border: "1px solid",
               borderColor: "primary.main",
               bgcolor: "background.paper",
-              p: { xs: 3, sm: 4 },
+              p: { xs: 2.5, sm: 4 },
             }}
           >
             <Box sx={{ display: "grid", gap: 3 }}>
@@ -183,7 +254,9 @@ export const AdminLogin = () => {
                     color: "primary.main",
                   }}
                 >
-                  PANEL DE ADMINISTRACIÓN
+                  {isStaffMode
+                    ? "ACCESO DE EMPLEADOS"
+                    : "PANEL DE ADMINISTRADOR"}
                 </Typography>
                 <Typography
                   sx={{
@@ -192,8 +265,55 @@ export const AdminLogin = () => {
                     mt: 0.5,
                   }}
                 >
-                  Inicia sesion para gestionar tu restaurante.
+                  {isStaffMode
+                    ? "Ingresa con el usuario creado por el administrador del local."
+                    : "Inicia sesion para gestionar tu restaurante."}
                 </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                  gap: 1,
+                  p: 0.75,
+                  borderRadius: 2,
+                  bgcolor: "background.main",
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                <Button
+                  type="button"
+                  variant={!isStaffMode ? "contained" : "text"}
+                  startIcon={<StoreFrontIcon />}
+                  onClick={() => handleModeChange(LOGIN_MODES.ADMIN)}
+                  sx={{
+                    minHeight: 44,
+                    borderRadius: 1.5,
+                    fontFamily: "fontFamily.primary",
+                    fontWeight: 800,
+                    color: !isStaffMode ? "text.primary" : "primary.main",
+                  }}
+                >
+                  ADMINISTRADOR
+                </Button>
+
+                <Button
+                  type="button"
+                  variant={isStaffMode ? "contained" : "text"}
+                  startIcon={<PersonIcon />}
+                  onClick={() => handleModeChange(LOGIN_MODES.STAFF)}
+                  sx={{
+                    minHeight: 44,
+                    borderRadius: 1.5,
+                    fontFamily: "fontFamily.primary",
+                    fontWeight: 800,
+                    color: isStaffMode ? "text.primary" : "primary.main",
+                  }}
+                >
+                  EMPLEADOS
+                </Button>
               </Box>
 
               {message && <Alert severity="warning">{message}</Alert>}
@@ -203,26 +323,49 @@ export const AdminLogin = () => {
                 onSubmit={handleSubmit}
                 sx={{ display: "grid", gap: 2 }}
               >
-                <Box>
-                  <Box sx={{ display: "flex", gap: 1, mb: 0.5 }}>
-                    <EmailIcon color="primary" />
-                    <Typography sx={{ fontFamily: "fontFamily.secondary" }}>
-                      Email
-                    </Typography>
+                {!isStaffMode ? (
+                  <Box>
+                    <Box sx={{ display: "flex", gap: 1, mb: 0.5 }}>
+                      <EmailIcon color="primary" />
+                      <Typography sx={{ fontFamily: "fontFamily.secondary" }}>
+                        Email
+                      </Typography>
+                    </Box>
+                    <TextField
+                      fullWidth
+                      required
+                      autoFocus
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      value={formLogin.email}
+                      onChange={handleInputChange}
+                      sx={{ fontFamily: "fontFamily.secondary" }}
+                    />
                   </Box>
-                  <TextField
-                    fullWidth
-                    required
-                    autoFocus
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    value={formLogin.email}
-                    onChange={handleInputChange}
-                    sx={{ fontFamily: "fontFamily.secondary" }}
-                  />
-                </Box>
+                ) : (
+                  <Box>
+                    <Box sx={{ display: "flex", gap: 1, mb: 0.5 }}>
+                      <PersonIcon color="primary" />
+                      <Typography sx={{ fontFamily: "fontFamily.secondary" }}>
+                        Usuario
+                      </Typography>
+                    </Box>
+                    <TextField
+                      fullWidth
+                      required
+                      autoFocus
+                      id="staff-name"
+                      name="name"
+                      type="text"
+                      autoComplete="username"
+                      value={staffForm.name}
+                      onChange={handleStaffInputChange}
+                      sx={{ fontFamily: "fontFamily.secondary" }}
+                    />
+                  </Box>
+                )}
 
                 <Box>
                   <Box sx={{ display: "flex", gap: 1, mb: 0.5 }}>
@@ -238,8 +381,12 @@ export const AdminLogin = () => {
                     name="password"
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
-                    value={formLogin.password}
-                    onChange={handleInputChange}
+                    value={
+                      isStaffMode ? staffForm.password : formLogin.password
+                    }
+                    onChange={
+                      isStaffMode ? handleStaffInputChange : handleInputChange
+                    }
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
@@ -267,46 +414,48 @@ export const AdminLogin = () => {
                   />
                 </Box>
 
-                <Box>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={rememberLogin}
-                        onChange={(event) =>
-                          setRememberLogin(event.target.checked)
-                        }
-                        sx={{
-                          color: "primary.main",
-                          "&.Mui-checked": { color: "primary.main" },
-                        }}
-                      />
-                    }
-                    label="Recordar email y contraseña en esta computadora"
-                    sx={{
-                      m: 0,
-                      color: "text.primary",
-                      "& .MuiFormControlLabel-label": {
-                        fontFamily: "fontFamily.secondary",
-                        fontSize: "0.9rem",
-                      },
-                    }}
-                  />
-                  {hasSavedLogin && (
-                    <Button
-                      size="small"
-                      color="error"
-                      variant="outlined"
-                      onClick={removeSavedLogin}
+                {!isStaffMode && (
+                  <Box>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={rememberLogin}
+                          onChange={(event) =>
+                            setRememberLogin(event.target.checked)
+                          }
+                          sx={{
+                            color: "primary.main",
+                            "&.Mui-checked": { color: "primary.main" },
+                          }}
+                        />
+                      }
+                      label="Recordar email y contrasena en esta computadora"
                       sx={{
-                        fontFamily: "fontFamily.secondary",
-                        fontSize: { xs: "0.5rem", sm: "0.7rem" },
-                        mt: 0.5,
+                        m: 0,
+                        color: "text.primary",
+                        "& .MuiFormControlLabel-label": {
+                          fontFamily: "fontFamily.secondary",
+                          fontSize: "0.9rem",
+                        },
                       }}
-                    >
-                      Eliminar datos guardados
-                    </Button>
-                  )}
-                </Box>
+                    />
+                    {hasSavedLogin && (
+                      <Button
+                        size="small"
+                        color="error"
+                        variant="outlined"
+                        onClick={removeSavedLogin}
+                        sx={{
+                          fontFamily: "fontFamily.secondary",
+                          fontSize: { xs: "0.5rem", sm: "0.7rem" },
+                          mt: 0.5,
+                        }}
+                      >
+                        Eliminar datos guardados
+                      </Button>
+                    )}
+                  </Box>
+                )}
 
                 <Button
                   type="submit"

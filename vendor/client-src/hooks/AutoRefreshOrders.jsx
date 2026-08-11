@@ -12,6 +12,7 @@ export const useAutoRefresh = (
   } = options;
 
   const refreshFunctionRef = useRef(refreshFunction);
+  const onRefreshRef = useRef(onRefresh);
   const isEnabledRef = useRef(enabled);
   const [countdown, setCountdown] = useState(interval / 1000);
   const countdownIntervalRef = useRef(null);
@@ -19,8 +20,9 @@ export const useAutoRefresh = (
   // Actualizar referencias
   useEffect(() => {
     refreshFunctionRef.current = refreshFunction;
+    onRefreshRef.current = onRefresh;
     isEnabledRef.current = enabled;
-  }, [refreshFunction, enabled]);
+  }, [refreshFunction, onRefresh, enabled]);
 
   const stopCountdown = useCallback(() => {
     if (countdownIntervalRef.current) {
@@ -41,7 +43,7 @@ export const useAutoRefresh = (
 
             try {
               await refreshFunctionRef.current();
-              onRefresh?.();
+              onRefreshRef.current?.();
             } catch (error) {
               console.error('Error en auto-refresh', error);
             }
@@ -51,7 +53,7 @@ export const useAutoRefresh = (
         return prev - 1;
       });
     }, 1000);
-  }, [interval, pauseOnHidden, onRefresh]);
+  }, [interval, pauseOnHidden]);
 
   const startPolling = useCallback(() => {
     stopCountdown(); // Asegúrate de no duplicar timers

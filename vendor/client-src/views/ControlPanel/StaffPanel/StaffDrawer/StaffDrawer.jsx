@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 // ---- MATERIAL UI ----
 import {
   Box,
   Typography,
-  Stack,
   Chip,
   List,
   ListItemButton,
@@ -13,7 +12,7 @@ import {
   Divider,
   Button,
   Collapse,
-} from '@mui/material';
+} from "@mui/material";
 // ---- ICONS ----
 import {
   Storefront as StorefrontIcon,
@@ -21,6 +20,8 @@ import {
   Fastfood as FastfoodIcon,
   LunchDining as LunchDiningIcon,
   LocalDining as LocalDiningIcon,
+  AttachMoney as AttachMoneyIcon,
+  Badge as BadgeIcon,
   Category as CategoryIcon,
   ReceiptLong as ReceiptLongIcon,
   PeopleAlt as PeopleAltIcon,
@@ -30,15 +31,15 @@ import {
   ExpandMore as ExpandMoreIcon,
   Today as TodayIcon,
   CalendarMonth as CalendarMonthIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 //------------------
 
 // ---- LOGO ----
-import lobotechLogo from '@/assets/main/logo-lobotech-oj.png';
+import lobotechLogo from "@/assets/main/logo-lobotech-oj.png";
 // --------------
 
 // ---- COMPONENTS ----
-import { ThemeToggle } from '@/components/ThemeToggle/ThemeToggle.jsx';
+import { ThemeToggle } from "@/components/ThemeToggle/ThemeToggle.jsx";
 // --------------------
 
 export const StaffDrawer = ({
@@ -54,9 +55,15 @@ export const StaffDrawer = ({
   };
 
   const getEmployeeRole = (role) => {
-    if (role === 'manager') return 'ENCARGADO';
-    if (role === 'cashier') return 'CAJERO';
-    return 'COCINERO';
+    if (role === "manager") return "ENCARGADO";
+    if (role === "cashier") return "CAJERO";
+    return "COCINERO";
+  };
+
+  const getEmployeeIcon = (role) => {
+    if (role === "manager") return <BadgeIcon />;
+    if (role === "cashier") return <AttachMoneyIcon />;
+    return <LocalDiningIcon />;
   };
 
   const [openProducts, setOpenProducts] = useState(false);
@@ -65,24 +72,24 @@ export const StaffDrawer = ({
   return (
     <Box
       sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       {/* CABECERA: PERFIL BREVE */}
       <Box
         sx={{
           pt: 1.5,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}
       >
         <ThemeToggle size="small" showLabel />
         <Box
           sx={{
-            width: { xs: '140px', sm: '180px', md: '160px' },
+            width: { xs: "140px", sm: "180px", md: "160px" },
             flexShrink: 0, // Evita que el logo se achique
           }}
         >
@@ -92,10 +99,10 @@ export const StaffDrawer = ({
             src={lobotechLogo}
             alt="Lobotech Logo"
             sx={{
-              width: '100%',
-              height: 'auto',
-              objectFit: 'contain',
-              filter: 'drop-shadow(0px 4px 10px rgba(0,0,0,0.05))',
+              width: "100%",
+              height: "auto",
+              objectFit: "contain",
+              filter: "drop-shadow(0px 4px 10px rgba(0,0,0,0.05))",
             }}
           />
         </Box>
@@ -104,41 +111,41 @@ export const StaffDrawer = ({
       {/* INFORMACIÓN DEL EMPLEADO */}
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
           gap: 1,
           mb: 1,
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
           <StorefrontIcon color="primary" />
           <Typography
             variant="subtitle1"
             sx={{
-              fontFamily: 'fontFamily.primary',
-              color: 'text.primary',
-              textAlign: 'center',
+              fontFamily: "fontFamily.primary",
+              color: "text.primary",
+              textAlign: "center",
             }}
           >
             {(
               user?.restaurant?.businessName ||
               user?.restaurant?.name ||
               user?.businessName ||
-              'Mi Negocio'
+              "Mi Negocio"
             ).toUpperCase()}
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
           <PersonIcon color="primary" />
           <Typography
             variant="subtitle2"
             sx={{
-              fontFamily: 'fontFamily.primary',
-              color: 'text.primary',
-              textAlign: 'center',
-              textTransform: 'uppercase',
+              fontFamily: "fontFamily.primary",
+              color: "text.primary",
+              textAlign: "center",
+              textTransform: "uppercase",
             }}
           >
             {user.name}
@@ -146,11 +153,11 @@ export const StaffDrawer = ({
         </Box>
 
         <Chip
-          icon={<ReceiptLongIcon />}
+          icon={getEmployeeIcon(user.staffRole)}
           label={getEmployeeRole(user.staffRole)}
           color="primary"
           variant="outlined"
-          sx={{ fontFamily: 'fontFamily.secondary' }}
+          sx={{ fontFamily: "fontFamily.secondary" }}
         />
       </Box>
 
@@ -158,8 +165,8 @@ export const StaffDrawer = ({
         <Typography
           variant="subtitle2"
           sx={{
-            fontFamily: 'fontFamily.primary',
-            color: 'text.secondary',
+            fontFamily: "fontFamily.primary",
+            color: "text.secondary",
             lineHeight: 1.2,
           }}
         >
@@ -173,13 +180,13 @@ export const StaffDrawer = ({
           selected={activeTab === 1 || activeTab === 11 || activeTab === 12}
           onClick={() => setOpenOrders(!openOrders)}
           sx={{
-            fontFamily: 'fontFamily.secondary',
+            fontFamily: "fontFamily.secondary",
             borderRadius: 2,
             mb: 0.5,
-            '&.Mui-selected': {
-              bgcolor: 'primary.main',
-              color: 'text.terciary',
-              '& .MuiListItemIcon-root': { color: 'text.terciary' },
+            "&.Mui-selected": {
+              bgcolor: "primary.main",
+              color: "text.terciary",
+              "& .MuiListItemIcon-root": { color: "text.terciary" },
             },
           }}
         >
@@ -188,7 +195,7 @@ export const StaffDrawer = ({
           </ListItemIcon>
           <ListItemText
             primary="Pedidos"
-            primaryTypographyProps={{ fontSize: '0.9rem' }}
+            primaryTypographyProps={{ fontSize: "0.9rem" }}
           />
           {openOrders ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </ListItemButton>
@@ -200,7 +207,7 @@ export const StaffDrawer = ({
               selected={activeTab === 1}
               onClick={() => handleAction(1)}
               sx={{
-                fontFamily: 'fontFamily.secondary',
+                fontFamily: "fontFamily.secondary",
                 pl: 4,
                 borderRadius: 2,
                 mb: 0.5,
@@ -209,12 +216,12 @@ export const StaffDrawer = ({
               <ListItemIcon sx={{ minWidth: 40 }}>
                 <TodayIcon
                   fontSize="small"
-                  color={activeTab === 1 ? 'primary' : 'inherit'}
+                  color={activeTab === 1 ? "primary" : "inherit"}
                 />
               </ListItemIcon>
               <ListItemText
                 primary="Hoy"
-                primaryTypographyProps={{ fontSize: '0.85rem' }}
+                primaryTypographyProps={{ fontSize: "0.85rem" }}
               />
             </ListItemButton>
 
@@ -222,7 +229,7 @@ export const StaffDrawer = ({
               selected={activeTab === 11}
               onClick={() => handleAction(11)}
               sx={{
-                fontFamily: 'fontFamily.secondary',
+                fontFamily: "fontFamily.secondary",
                 pl: 4,
                 borderRadius: 2,
                 mb: 0.5,
@@ -231,12 +238,12 @@ export const StaffDrawer = ({
               <ListItemIcon sx={{ minWidth: 40 }}>
                 <CalendarMonthIcon
                   fontSize="small"
-                  color={activeTab === 11 ? 'primary' : 'inherit'}
+                  color={activeTab === 11 ? "primary" : "inherit"}
                 />
               </ListItemIcon>
               <ListItemText
                 primary="Este Mes"
-                primaryTypographyProps={{ fontSize: '0.85rem' }}
+                primaryTypographyProps={{ fontSize: "0.85rem" }}
               />
             </ListItemButton>
           </List>
@@ -247,13 +254,13 @@ export const StaffDrawer = ({
           selected={activeTab === 2 || activeTab === 21 || activeTab === 22}
           onClick={() => setOpenProducts(!openProducts)}
           sx={{
-            fontFamily: 'fontFamily.secondary',
+            fontFamily: "fontFamily.secondary",
             borderRadius: 2,
             mb: 0.5,
-            '&.Mui-selected': {
-              bgcolor: 'primary.main',
-              color: 'text.terciary',
-              '& .MuiListItemIcon-root': { color: 'text.terciary' },
+            "&.Mui-selected": {
+              bgcolor: "primary.main",
+              color: "text.terciary",
+              "& .MuiListItemIcon-root": { color: "text.terciary" },
             },
           }}
         >
@@ -262,7 +269,7 @@ export const StaffDrawer = ({
           </ListItemIcon>
           <ListItemText
             primary="Carta Digital"
-            primaryTypographyProps={{ fontSize: '0.9rem' }}
+            primaryTypographyProps={{ fontSize: "0.9rem" }}
           />
           {openProducts ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </ListItemButton>
@@ -275,7 +282,7 @@ export const StaffDrawer = ({
               selected={activeTab === 2}
               onClick={() => handleAction(2)}
               sx={{
-                fontFamily: 'fontFamily.secondary',
+                fontFamily: "fontFamily.secondary",
                 pl: 4,
                 borderRadius: 2,
                 mb: 0.5,
@@ -284,12 +291,12 @@ export const StaffDrawer = ({
               <ListItemIcon sx={{ minWidth: 40 }}>
                 <CategoryIcon
                   fontSize="small"
-                  color={activeTab === 2 ? 'primary' : 'inherit'}
+                  color={activeTab === 2 ? "primary" : "inherit"}
                 />
               </ListItemIcon>
               <ListItemText
                 primary="Categorías"
-                primaryTypographyProps={{ fontSize: '0.85rem' }}
+                primaryTypographyProps={{ fontSize: "0.85rem" }}
               />
             </ListItemButton>
 
@@ -298,7 +305,7 @@ export const StaffDrawer = ({
               selected={activeTab === 21}
               onClick={() => handleAction(21)}
               sx={{
-                fontFamily: 'fontFamily.secondary',
+                fontFamily: "fontFamily.secondary",
                 pl: 4,
                 borderRadius: 2,
                 mb: 0.5,
@@ -307,12 +314,12 @@ export const StaffDrawer = ({
               <ListItemIcon sx={{ minWidth: 40 }}>
                 <LunchDiningIcon
                   fontSize="small"
-                  color={activeTab === 21 ? 'primary' : 'inherit'}
+                  color={activeTab === 21 ? "primary" : "inherit"}
                 />
               </ListItemIcon>
               <ListItemText
                 primary="Productos"
-                primaryTypographyProps={{ fontSize: '0.85rem' }}
+                primaryTypographyProps={{ fontSize: "0.85rem" }}
               />
             </ListItemButton>
 
@@ -321,7 +328,7 @@ export const StaffDrawer = ({
               selected={activeTab === 22}
               onClick={() => handleAction(22)}
               sx={{
-                fontFamily: 'fontFamily.secondary',
+                fontFamily: "fontFamily.secondary",
                 pl: 4,
                 borderRadius: 2,
                 mb: 0.5,
@@ -330,12 +337,12 @@ export const StaffDrawer = ({
               <ListItemIcon sx={{ minWidth: 40 }}>
                 <LocalDiningIcon
                   fontSize="small"
-                  color={activeTab === 22 ? 'primary' : 'inherit'}
+                  color={activeTab === 22 ? "primary" : "inherit"}
                 />
               </ListItemIcon>
               <ListItemText
                 primary="Personalizaciónes"
-                primaryTypographyProps={{ fontSize: '0.85rem' }}
+                primaryTypographyProps={{ fontSize: "0.85rem" }}
               />
             </ListItemButton>
           </List>
@@ -346,13 +353,13 @@ export const StaffDrawer = ({
           selected={activeTab === 3}
           onClick={() => handleAction(3)}
           sx={{
-            fontFamily: 'fontFamily.secondary',
+            fontFamily: "fontFamily.secondary",
             borderRadius: 2,
             mb: 0.5,
-            '&.Mui-selected': {
-              bgcolor: 'primary.main',
-              color: 'text.terciary',
-              '& .MuiListItemIcon-root': { color: 'text.terciary' },
+            "&.Mui-selected": {
+              bgcolor: "primary.main",
+              color: "text.terciary",
+              "& .MuiListItemIcon-root": { color: "text.terciary" },
             },
           }}
         >
@@ -361,22 +368,22 @@ export const StaffDrawer = ({
           </ListItemIcon>
           <ListItemText
             primary="Fidelización de Clientes"
-            primaryTypographyProps={{ fontSize: '0.9rem' }}
+            primaryTypographyProps={{ fontSize: "0.9rem" }}
           />
         </ListItemButton>
 
         {/* CADETES */}
         <ListItemButton
-          selected={activeTab === 5}
-          onClick={() => handleAction(5)}
+          selected={activeTab === 4}
+          onClick={() => handleAction(4)}
           sx={{
-            fontFamily: 'fontFamily.secondary',
+            fontFamily: "fontFamily.secondary",
             borderRadius: 2,
             mb: 0.5,
-            '&.Mui-selected': {
-              bgcolor: 'primary.main',
-              color: 'text.terciary',
-              '& .MuiListItemIcon-root': { color: 'text.terciary' },
+            "&.Mui-selected": {
+              bgcolor: "primary.main",
+              color: "text.terciary",
+              "& .MuiListItemIcon-root": { color: "text.terciary" },
             },
           }}
         >
@@ -385,13 +392,13 @@ export const StaffDrawer = ({
           </ListItemIcon>
           <ListItemText
             primary="Cadetes"
-            primaryTypographyProps={{ fontSize: '0.9rem' }}
+            primaryTypographyProps={{ fontSize: "0.9rem" }}
           />
         </ListItemButton>
       </List>
 
       {/* SECCIÓN FINAL: LOGOUT */}
-      <Box sx={{ p: 2, mt: 'auto' }}>
+      <Box sx={{ p: 2, mt: "auto" }}>
         <Button
           aria-label="Cerrar sesión"
           fullWidth
@@ -400,7 +407,7 @@ export const StaffDrawer = ({
           startIcon={<LogoutIcon />}
           onClick={onLogout}
           sx={{
-            fontFamily: 'fontFamily.primary',
+            fontFamily: "fontFamily.primary",
             borderRadius: 2,
           }}
         >

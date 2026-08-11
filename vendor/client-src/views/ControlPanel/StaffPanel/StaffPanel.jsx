@@ -1,56 +1,63 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 
 // ---- Material UI ----
 import {
+  AppBar,
   Box,
   CssBaseline,
-  AppBar,
-  Toolbar,
-  IconButton,
   Drawer,
+  IconButton,
   Paper,
+  Toolbar,
   Typography,
   ThemeProvider,
-} from '@mui/material';
+} from "@mui/material";
 // Icons
-import { Menu as MenuIcon } from '@mui/icons-material';
+import { Menu as MenuIcon } from "@mui/icons-material";
 // ---------------------
 
 // ---- Hooks ----
-import { useAlert } from '@/hooks/Alert.jsx';
+import { useAlert } from "@/hooks/Alert.jsx";
 // ---------------
 
 // ---- Context ----
-import { useLobotechThemeContext } from '@/context/ThemeContext.jsx';
-import { useUser } from '@/context/Users.jsx';
-import { useProducts } from '@/context/Products.jsx';
-import { useOrders } from '@/context/Orders.jsx';
+import { useLobotechThemeContext } from "@/context/ThemeContext.jsx";
+import { useUser } from "@/context/Users.jsx";
+import { useProducts } from "@/context/Products.jsx";
+import { useOrders } from "@/context/Orders.jsx";
 // -----------------
 
 // ---- Components ----
-import { LoadingComponent } from '@/components/LoadingComponent/LoadingComponent.jsx';
-import { StaffDrawer } from './StaffDrawer/StaffDrawer.jsx';
-import { CashRegisterGate } from './CashRegisterGate/CashRegisterGate.jsx';
-import { StaffOrderPanel } from './StaffOrderPanel/StaffOrderPanel.jsx';
+import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
+import { StaffDrawer } from "./StaffDrawer/StaffDrawer.jsx";
+import { CashRegisterGate } from "./CashRegisterGate/CashRegisterGate.jsx";
+import { StaffOrderPanel } from "./StaffOrderPanel/StaffOrderPanel.jsx";
 // --------------------
 
 // ---- STYLES ----
 const drawerWidth = 260;
 
 const STAFF_PANEL_TITLES = {
-  1: 'PEDIDOS DE HOY',
-  11: 'PEDIDOS DEL MES',
-  2: 'CATEGORÍAS',
-  21: 'PRODUCTOS',
-  22: 'PERSONALIZACIONES',
-  3: 'FIDELIZACIÓN DE CLIENTES',
-  5: 'CADETES',
+  1: "PEDIDOS DE HOY",
+  11: "PEDIDOS DEL MES",
+  2: "CATEGORÍAS",
+  21: "PRODUCTOS",
+  22: "PERSONALIZACIONES",
+  3: "FIDELIZACIÓN DE CLIENTES",
+  4: "CADETES",
 };
 // ----------------
 
 const isOrdersTab = (activeTab) => {
   return activeTab === 1 || activeTab === 11;
+};
+
+const getStoredSessionToken = () => {
+  return (
+    window.secureStorage?.getItem?.("token") ||
+    window.localStorage.getItem("token")
+  );
 };
 
 const PlaceholderSection = ({ title, description }) => {
@@ -60,17 +67,17 @@ const PlaceholderSection = ({ title, description }) => {
       sx={{
         p: 3,
         borderRadius: 3,
-        border: '1px solid',
-        borderColor: 'divider',
-        bgcolor: 'background.paper',
+        border: "1px solid",
+        borderColor: "divider",
+        bgcolor: "background.paper",
       }}
     >
       <Typography
         variant="h6"
         sx={{
-          fontFamily: 'fontFamily.primary',
-          fontWeight: 'bold',
-          color: 'text.primary',
+          fontFamily: "fontFamily.primary",
+          fontWeight: "bold",
+          color: "text.primary",
         }}
       >
         {title}
@@ -79,8 +86,8 @@ const PlaceholderSection = ({ title, description }) => {
       <Typography
         sx={{
           mt: 1,
-          fontFamily: 'fontFamily.secondary',
-          color: 'text.secondary',
+          fontFamily: "fontFamily.secondary",
+          color: "text.secondary",
         }}
       >
         {description}
@@ -96,9 +103,9 @@ export const StaffPanel = () => {
   const [activeTab, setActiveTab] = useState(1);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleDrawerToggle = () => {
+  const handleDrawerToggle = useCallback(() => {
     setMobileOpen((prev) => !prev);
-  };
+  }, []);
 
   const { AlertComponent, showAlert } = useAlert();
 
@@ -110,19 +117,37 @@ export const StaffPanel = () => {
   const staffUser = userState.user;
 
   const [cashSession, setCashSession] = useState(null);
+  const initialLoadKeyRef = useRef("");
+
+  const handleCashSessionChange = useCallback((nextSession) => {
+    setCashSession((currentSession) => {
+      const currentKey = currentSession
+        ? `${currentSession.id || ""}:${currentSession.status || ""}`
+        : "";
+      const nextKey = nextSession
+        ? `${nextSession.id || ""}:${nextSession.status || ""}`
+        : "";
+
+      return currentKey === nextKey ? currentSession : nextSession;
+    });
+  }, []);
 
   useEffect(() => {
-    const token = window.localStorage.getItem('token');
+    const token = getStoredSessionToken();
 
     if (!token || !staffUser?.id) {
-      navigate('/login-staff');
+      navigate("/login-staff");
       return;
     }
 
-    if (staffUser.role !== 'staff') {
-      navigate('/');
+    if (staffUser.role !== "staff") {
+      navigate("/");
       return;
     }
+
+    const staffLoadKey = `${staffUser.id || ""}:${staffUser.restaurantId || ""}`;
+    if (initialLoadKeyRef.current === staffLoadKey) return;
+    initialLoadKeyRef.current = staffLoadKey;
 
     const fetchData = async () => {
       setLoading(true);
@@ -133,7 +158,7 @@ export const StaffPanel = () => {
           getRidersByRestaurant(staffUser?.restaurantId),
         ]);
       } catch (error) {
-        console.error('Error al obtener productos y categorías:', error);
+        console.error("Error al obtener productos y categorías:", error);
       } finally {
         setLoading(false);
       }
@@ -152,14 +177,14 @@ export const StaffPanel = () => {
 
   const handleLogout = () => {
     userLogOut();
-    navigate('/login-staff');
+    navigate("/login-staff");
   };
 
   const panelTitle = useMemo(() => {
-    return STAFF_PANEL_TITLES[activeTab] || 'PANEL DEL LOCAL';
+    return STAFF_PANEL_TITLES[activeTab] || "PANEL DEL LOCAL";
   }, [activeTab]);
 
-  if (!staffUser?.id || staffUser.role !== 'staff') return null;
+  if (!staffUser?.id || staffUser.role !== "staff") return null;
 
   if (loading) return <LoadingComponent message="Cargando panel..." />;
 
@@ -167,8 +192,8 @@ export const StaffPanel = () => {
     <ThemeProvider theme={lobotechTheme}>
       <Box
         sx={{
-          display: 'flex',
-          minHeight: '100vh',
+          display: "flex",
+          minHeight: "100vh",
         }}
       >
         <CssBaseline />
@@ -180,9 +205,9 @@ export const StaffPanel = () => {
           sx={{
             width: { md: `calc(100% - ${drawerWidth}px)` },
             ml: { md: `${drawerWidth}px` },
-            bgcolor: 'background.paper',
-            borderBottom: '1px solid',
-            borderColor: 'divider',
+            bgcolor: "background.paper",
+            borderBottom: "1px solid",
+            borderColor: "divider",
           }}
         >
           <Toolbar>
@@ -190,7 +215,7 @@ export const StaffPanel = () => {
               color="inherit"
               edge="start"
               onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { md: 'none' }, color: 'primary.main' }}
+              sx={{ mr: 2, display: { md: "none" }, color: "primary.main" }}
             >
               <MenuIcon />
             </IconButton>
@@ -198,7 +223,7 @@ export const StaffPanel = () => {
             <Typography
               variant="h6"
               noWrap
-              sx={{ fontFamily: 'fontFamily.primary', color: 'text.primary' }}
+              sx={{ fontFamily: "fontFamily.primary", color: "text.primary" }}
             >
               {panelTitle}
             </Typography>
@@ -216,10 +241,10 @@ export const StaffPanel = () => {
             onClose={handleDrawerToggle}
             ModalProps={{ keepMounted: true }}
             sx={{
-              display: { xs: 'block', md: 'none' },
-              '& .MuiDrawer-paper': {
+              display: { xs: "block", md: "none" },
+              "& .MuiDrawer-paper": {
                 width: drawerWidth,
-                bgcolor: 'background.paper',
+                bgcolor: "background.paper",
               },
             }}
           >
@@ -236,13 +261,13 @@ export const StaffPanel = () => {
           <Drawer
             variant="permanent"
             sx={{
-              display: { xs: 'none', md: 'block' },
-              '& .MuiDrawer-paper': {
+              display: { xs: "none", md: "block" },
+              "& .MuiDrawer-paper": {
                 width: drawerWidth,
-                boxSizing: 'border-box',
-                bgcolor: 'background.paper',
-                borderRight: '1px solid',
-                borderColor: 'divider',
+                boxSizing: "border-box",
+                bgcolor: "background.paper",
+                borderRight: "1px solid",
+                borderColor: "divider",
               },
             }}
             open
@@ -261,9 +286,9 @@ export const StaffPanel = () => {
           component="main"
           sx={{
             flexGrow: 1,
-            width: { xs: '100%', md: `calc(100% - ${drawerWidth}px)` },
-            minHeight: '100vh',
-            bgcolor: 'background.default',
+            width: { xs: "100%", md: `calc(100% - ${drawerWidth}px)` },
+            minHeight: "100vh",
+            bgcolor: "background.default",
             p: { xs: 1.5, sm: 2, md: 3 },
           }}
         >
@@ -273,7 +298,7 @@ export const StaffPanel = () => {
             <CashRegisterGate
               user={staffUser}
               showAlert={showAlert}
-              onCashSessionChange={setCashSession}
+              onCashSessionChange={handleCashSessionChange}
             />
           )}
 
@@ -314,7 +339,7 @@ export const StaffPanel = () => {
             />
           )}
 
-          {activeTab === 5 && (
+          {activeTab === 4 && (
             <PlaceholderSection
               title="Cadetes"
               description="Más adelante agregamos la gestión de cadetes para empleados habilitados."

@@ -1,10 +1,21 @@
 {
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "javascript.validate.enable": true,
   "typescript.validate.enable": true,
   "javascript.suggestionActions.enabled": true,
   "typescript.suggestionActions.enabled": true,
   "editor.showUnused": true,
   "editor.codeActionsOnSave": {
-    "source.organizeImports": "explicit"
-  }
+    "source.organizeImports": "never",
+    "source.fixAll": "never",
+    "source.fixAll.eslint": "never",
+    "source.removeUnusedImports": "never",
+    "source.sortImports": "never"
+  },
+  "eslint.codeActionsOnSave.mode": "problems",
+  "javascript.preferences.organizeImports": false,
+  "typescript.preferences.organizeImports": false,
+  "javascript.updateImportsOnFileMove.enabled": "never",
+  "typescript.updateImportsOnFileMove.enabled": "never"
 }

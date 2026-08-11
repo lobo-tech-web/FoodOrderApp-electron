@@ -1,37 +1,36 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 
 // ---- Material UI ----
 import {
   Alert,
   Box,
   Button,
-  Chip,
   CircularProgress,
   Paper,
   Stack,
   Typography,
-} from '@mui/material';
+} from "@mui/material";
 // Icons
 import {
   MonetizationOn as MonetizationOnIcon,
   PointOfSale as PointOfSaleIcon,
   Refresh as RefreshIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 // --------------------
 
 // ---- Components ----
-import { ModalOpenCashRegister } from '@/components/PanelComponents/ModalOpenCashRegister/ModalOpenCashRegister.jsx';
+import { ModalOpenCashRegister } from "@/components/PanelComponents/ModalOpenCashRegister/ModalOpenCashRegister.jsx";
 // --------------------
 
 // ---- Services ----
 import {
   getOpenCashSessionService,
   openCashRegisterSessionService,
-} from '@/services/cashRegister.js';
+} from "@/services/cashRegister.js";
 // ------------------
 
 // ---- Utils ----
-import { hasPermission, formatMoney } from '@/utils/cashRegisterUtils.js';
+import { formatMoney, hasPermission } from "@/utils/cashRegisterUtils.js";
 // ---------------
 
 export const CashRegisterGate = ({ user, showAlert, onCashSessionChange }) => {
@@ -40,37 +39,54 @@ export const CashRegisterGate = ({ user, showAlert, onCashSessionChange }) => {
   const [saving, setSaving] = useState(false);
 
   const [openModal, setOpenModal] = useState(false);
+  const showAlertRef = useRef(showAlert);
+  const onCashSessionChangeRef = useRef(onCashSessionChange);
+  const requestInFlightRef = useRef(false);
+
+  useEffect(() => {
+    showAlertRef.current = showAlert;
+  }, [showAlert]);
+
+  useEffect(() => {
+    onCashSessionChangeRef.current = onCashSessionChange;
+  }, [onCashSessionChange]);
 
   const restaurantId = useMemo(() => {
-    if (user?.role === 'staff') return user.restaurantId;
+    if (user?.role === "staff") return user.restaurantId;
     return user?.id;
   }, [user?.id, user?.restaurantId, user?.role]);
 
   const canOpenCash = useMemo(() => {
-    return hasPermission(user, 'cashRegister', 'open');
+    return hasPermission(user, "cashRegister", "open");
   }, [user]);
 
-  const isKitchen = user?.staffRole === 'kitchen';
+  const isKitchen = user?.staffRole === "kitchen";
 
   const fetchOpenCashSession = useCallback(async () => {
     if (!restaurantId || isKitchen) return;
+    if (requestInFlightRef.current) return;
 
+    requestInFlightRef.current = true;
     setLoading(true);
 
     try {
       const response = await getOpenCashSessionService({
         restaurantId,
-        registerCode: 'MAIN',
+        registerCode: "MAIN",
       });
 
       setCashSession(response || null);
-      onCashSessionChange?.(response || null);
+      onCashSessionChangeRef.current?.(response || null);
     } catch (error) {
-      showAlert?.(error?.message || 'Error al obtener caja abierta', 'error');
+      showAlertRef.current?.(
+        error?.message || "Error al obtener caja abierta",
+        "error",
+      );
     } finally {
+      requestInFlightRef.current = false;
       setLoading(false);
     }
-  }, [restaurantId, isKitchen, onCashSessionChange, showAlert]);
+  }, [restaurantId, isKitchen]);
 
   useEffect(() => {
     fetchOpenCashSession();
@@ -86,12 +102,12 @@ export const CashRegisterGate = ({ user, showAlert, onCashSessionChange }) => {
       });
 
       setCashSession(response);
-      onCashSessionChange?.(response);
+      onCashSessionChangeRef.current?.(response);
 
-      showAlert?.('Caja abierta correctamente', 'success');
+      showAlertRef.current?.("Caja abierta correctamente", "success");
       setOpenModal(false);
     } catch (error) {
-      showAlert?.(error?.message || 'Error al abrir caja', 'error');
+      showAlertRef.current?.(error?.message || "Error al abrir caja", "error");
     } finally {
       setSaving(false);
     }
@@ -109,9 +125,9 @@ export const CashRegisterGate = ({ user, showAlert, onCashSessionChange }) => {
           p: 2,
           mb: 2,
           borderRadius: 3,
-          border: '1px solid',
-          borderColor: 'divider',
-          bgcolor: 'background.paper',
+          border: "1px solid",
+          borderColor: "divider",
+          bgcolor: "background.paper",
         }}
       >
         <Stack direction="row" spacing={1} alignItems="center">
@@ -130,38 +146,38 @@ export const CashRegisterGate = ({ user, showAlert, onCashSessionChange }) => {
           p: 2,
           mb: 2,
           borderRadius: 3,
-          border: '1px solid',
-          borderColor: cashSession ? 'success.main' : 'warning.main',
-          bgcolor: cashSession ? 'success.main' : 'warning.main',
+          border: "1px solid",
+          borderColor: cashSession ? "success.main" : "warning.main",
+          bgcolor: cashSession ? "success.main" : "warning.main",
         }}
       >
         <Stack
-          direction={{ xs: 'column', md: 'row' }}
+          direction={{ xs: "column", md: "row" }}
           spacing={2}
           justifyContent="space-between"
-          alignItems={{ xs: 'flex-start', md: 'center' }}
+          alignItems={{ xs: "flex-start", md: "center" }}
         >
           <Stack direction="row" spacing={1.5} alignItems="center">
             <MonetizationOnIcon />
 
             <Box>
-              <Typography sx={{ fontFamily: 'fontFamily.primary' }}>
-                {cashSession ? 'CAJA ABIERTA' : 'NO HAY CAJA ABIERTA'}
+              <Typography sx={{ fontFamily: "fontFamily.primary" }}>
+                {cashSession ? "CAJA ABIERTA" : "NO HAY CAJA ABIERTA"}
               </Typography>
 
               <Typography
                 sx={{
-                  fontFamily: 'fontFamily.secondary',
+                  fontFamily: "fontFamily.secondary",
                   fontSize: 14,
                 }}
               >
                 {cashSession
                   ? `${cashSession.registerName} · Monto inicial ${formatMoney(
-                      cashSession.openingAmount
+                      cashSession.openingAmount,
                     )}`
-                  : user?.role === 'admin'
-                    ? 'Podés abrir caja para registrar ventas y cierre.'
-                    : 'Para registrar ventas del local, abrí una caja.'}
+                  : user?.role === "admin"
+                    ? "Podés abrir caja para registrar ventas y cierre."
+                    : "Para registrar ventas del local, abrí una caja."}
               </Typography>
             </Box>
           </Stack>
@@ -171,7 +187,7 @@ export const CashRegisterGate = ({ user, showAlert, onCashSessionChange }) => {
               variant="contained"
               startIcon={<RefreshIcon />}
               onClick={fetchOpenCashSession}
-              sx={{ fontFamily: 'fontFamily.primary' }}
+              sx={{ fontFamily: "fontFamily.primary" }}
             >
               Actualizar
             </Button>
@@ -181,7 +197,7 @@ export const CashRegisterGate = ({ user, showAlert, onCashSessionChange }) => {
                 variant="contained"
                 startIcon={<PointOfSaleIcon />}
                 onClick={() => setOpenModal(true)}
-                sx={{ fontFamily: 'fontFamily.primary' }}
+                sx={{ fontFamily: "fontFamily.primary" }}
               >
                 Abrir caja
               </Button>
