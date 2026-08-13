@@ -590,7 +590,6 @@ export const ModalEditOrder = ({
     }
 
     if (
-      staffMode &&
       order.status === "CANCELADO" &&
       originalStatus !== "CANCELADO" &&
       !cancelReason.trim()

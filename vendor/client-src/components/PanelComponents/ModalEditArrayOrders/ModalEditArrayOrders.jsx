@@ -145,9 +145,18 @@ export const ModalEditArrayOrders = ({
   const [extraPoints, setExtraPoints] = useState(0);
   const [status, setStatus] = useState("");
   const [rider, setRider] = useState(undefined);
+  const [cancelReason, setCancelReason] = useState("");
 
   const { orderState, getRidersByRestaurant } = useOrders();
   const { userState } = useUser();
+
+  const restaurantId = useMemo(() => {
+    if (userState.user?.role === "staff") {
+      return userState.user.restaurantId;
+    }
+
+    return userState.user?.id;
+  }, [userState.user?.id, userState.user?.restaurantId, userState.user?.role]);
 
   const availableRiders = useMemo(
     () => orderState?.riders || [],
@@ -174,13 +183,23 @@ export const ModalEditArrayOrders = ({
         "warning",
       );
 
+    if (status === "CANCELADO" && !cancelReason.trim()) {
+      return showAlert("Debes indicar el motivo de cancelación", "warning");
+    }
+
     setLoading(true);
     try {
       const ordersData = {
         orderList: showOrders.map((order) => ({ id: order.id })),
-        extraPoints: extraPoints || 0,
-        status: status || undefined,
+        ...(extraPoints !== "" && {
+          extraPoints: Number(extraPoints),
+        }),
+        status,
         ...(rider !== undefined && { riderId: rider }),
+        ...(status === "CANCELADO" && {
+          cancelReason: cancelReason.trim(),
+        }),
+        registerCode: "MAIN",
       };
 
       await updateArrayOrderServices(ordersData);
@@ -199,21 +218,32 @@ export const ModalEditArrayOrders = ({
         await refreshOrders();
       }, 1500);
     }
-  }, [status, extraPoints, rider, showOrders, showAlert, handleClose]);
+  }, [
+    status,
+    extraPoints,
+    rider,
+    cancelReason,
+    showOrders,
+    showAlert,
+    handleClose,
+  ]);
 
   useEffect(() => {
+    if (!show) return;
     const fetchRiders = async () => {
       try {
-        if (!show || !userState?.user?.id) return;
-        setStatus("");
-        setRider(undefined);
-        await getRidersByRestaurant(userState.user.id);
+        await getRidersByRestaurant(restaurantId);
       } catch (error) {
-        console.error("Error al obtener los riders:", error);
+        console.error(error.message || error);
       }
     };
+
     fetchRiders();
-  }, [show, userState?.user?.id]);
+    setExtraPoints("");
+    setStatus("");
+    setRider(undefined);
+    setCancelReason("");
+  }, [show, getRidersByRestaurant, restaurantId]);
 
   return (
     <Dialog
@@ -401,6 +431,24 @@ export const ModalEditArrayOrders = ({
                 ))}
               </Box>
             </Box>
+
+            {status === "CANCELADO" && (
+              <Box sx={{ mt: 2 }}>
+                <Box sx={labelContainerStyle}>
+                  <Typography sx={labelStyle}>MOTIVO DE CANCELACIÓN</Typography>
+                </Box>
+
+                <TextField
+                  fullWidth
+                  multiline
+                  minRows={3}
+                  value={cancelReason}
+                  onChange={(event) => setCancelReason(event.target.value)}
+                  placeholder="Ej: el cliente solicitó cancelar los pedidos"
+                  sx={fieldStyles}
+                />
+              </Box>
+            )}
 
             {availableRiders.length > 0 && (
               <Box sx={{ mb: { xs: 2.5, sm: 3 } }}>
