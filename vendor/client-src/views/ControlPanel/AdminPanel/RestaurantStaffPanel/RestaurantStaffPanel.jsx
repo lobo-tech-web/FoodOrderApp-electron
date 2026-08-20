@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 // ---- Material UI ----
 import {
-  Alert,
   Box,
   Button,
   Chip,
@@ -23,6 +22,9 @@ import {
 } from "@mui/material";
 // Icons
 import {
+  Badge as BadgeIcon,
+  AttachMoney as AttachMoneyIcon,
+  LocalDining as LocalDiningIcon,
   Add as AddIcon,
   Edit as EditIcon,
   Email as EmailIcon,
@@ -49,10 +51,9 @@ import { useAlert } from "@/hooks/Alert.jsx";
 
 // ---- Utils ----
 import {
-  DEFAULT_STAFF_PERMISSIONS,
+  initialForm,
   ROLE_OPTIONS,
   getRoleLabel,
-  initialForm,
   normalizeStaffUsername,
 } from "@/utils/restaurantStaffUtils.js";
 // ---------------
@@ -69,6 +70,12 @@ const StaffFormFields = ({ form, onChange, isEditing = false }) => {
   const selectedRoleInfo = useMemo(() => {
     return ROLE_OPTIONS.find((role) => role.value === form.staffRole);
   }, [form.staffRole]);
+
+  const getEmployeeIcon = (role) => {
+    if (role === "manager") return <BadgeIcon color="primary" />;
+    if (role === "cashier") return <AttachMoneyIcon color="primary" />;
+    return <LocalDiningIcon color="primary" />;
+  };
 
   return (
     <Stack spacing={2}>
@@ -89,6 +96,7 @@ const StaffFormFields = ({ form, onChange, isEditing = false }) => {
             </InputAdornment>
           ),
         }}
+        sx={{ fontFamily: "fontFamily.secondary" }}
       />
 
       <TextField
@@ -103,6 +111,7 @@ const StaffFormFields = ({ form, onChange, isEditing = false }) => {
             </InputAdornment>
           ),
         }}
+        sx={{ fontFamily: "fontFamily.secondary" }}
       />
 
       <TextField
@@ -118,6 +127,7 @@ const StaffFormFields = ({ form, onChange, isEditing = false }) => {
             </InputAdornment>
           ),
         }}
+        sx={{ fontFamily: "fontFamily.secondary" }}
       />
 
       <TextField
@@ -132,10 +142,13 @@ const StaffFormFields = ({ form, onChange, isEditing = false }) => {
             </InputAdornment>
           ),
         }}
+        sx={{ fontFamily: "fontFamily.secondary" }}
       />
 
       <FormControl fullWidth>
-        <InputLabel>Rol del empleado</InputLabel>
+        <InputLabel sx={{ fontFamily: "fontFamily.secondary" }}>
+          Rol del empleado
+        </InputLabel>
 
         <Select
           label="Rol del empleado"
@@ -143,12 +156,17 @@ const StaffFormFields = ({ form, onChange, isEditing = false }) => {
           onChange={(event) => onChange("staffRole", event.target.value)}
           startAdornment={
             <InputAdornment position="start">
-              <WorkIcon color="primary" />
+              {getEmployeeIcon(form.staffRole)}
             </InputAdornment>
           }
+          sx={{ fontFamily: "fontFamily.primary" }}
         >
           {ROLE_OPTIONS.map((role) => (
-            <MenuItem key={role.value} value={role.value}>
+            <MenuItem
+              key={role.value}
+              value={role.value}
+              sx={{ fontFamily: "fontFamily.primary" }}
+            >
               {role.label}
             </MenuItem>
           ))}
@@ -156,15 +174,29 @@ const StaffFormFields = ({ form, onChange, isEditing = false }) => {
       </FormControl>
 
       {selectedRoleInfo && (
-        <Alert severity="info">
-          <Typography sx={{ fontWeight: "bold" }}>
-            {selectedRoleInfo.label}
-          </Typography>
+        <Paper
+          elevation={0}
+          sx={{
+            bgcolor: "background.default",
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+            p: 2,
+          }}
+        >
+          <Box sx={{ display: "flex", gap: 0.5 }}>
+            {getEmployeeIcon(form.staffRole)}
+            <Typography
+              sx={{ fontFamily: "fontFamily.primary", color: "text.primary" }}
+            >
+              {selectedRoleInfo.label}
+            </Typography>
+          </Box>
 
-          <Typography sx={{ fontSize: 13 }}>
+          <Typography sx={{ fontFamily: "fontFamily.secondary", fontSize: 13 }}>
             {selectedRoleInfo.description}
           </Typography>
-        </Alert>
+        </Paper>
       )}
     </Stack>
   );
@@ -230,7 +262,7 @@ export const RestaurantStaffPanel = ({ user }) => {
       email: form.email.trim().toLowerCase(),
       phone: form.phone || "SIN ESPECIFICAR",
       staffRole: form.staffRole,
-      permissions: DEFAULT_STAFF_PERMISSIONS[form.staffRole],
+      permissions: form.permissions,
     };
 
     if (form.password.trim()) {
@@ -337,7 +369,7 @@ export const RestaurantStaffPanel = ({ user }) => {
           border: "1px solid",
           borderColor: "divider",
           borderRadius: 3,
-          bgcolor: "background.main",
+          bgcolor: "background.paper",
         }}
       >
         <Stack
@@ -421,7 +453,7 @@ export const RestaurantStaffPanel = ({ user }) => {
               border: "1px solid",
               borderColor: "divider",
               borderRadius: 3,
-              bgcolor: "background.default",
+              bgcolor: "background.main",
             }}
           >
             <Stack
@@ -484,7 +516,7 @@ export const RestaurantStaffPanel = ({ user }) => {
               border: "1px solid",
               borderColor: "divider",
               borderRadius: 3,
-              bgcolor: "background.default",
+              bgcolor: "background.main",
               minHeight: 340,
             }}
           >
@@ -508,6 +540,7 @@ export const RestaurantStaffPanel = ({ user }) => {
                 label={`${staffList.length} empleados`}
                 color="primary"
                 variant="outlined"
+                sx={{ fontFamily: "fontFamily.secondary" }}
               />
             </Stack>
 
@@ -574,7 +607,7 @@ export const RestaurantStaffPanel = ({ user }) => {
                           <Typography
                             sx={{
                               fontFamily: "fontFamily.primary",
-                              fontWeight: "bold",
+                              color: "text.primary",
                             }}
                           >
                             {staff.name}
@@ -585,20 +618,23 @@ export const RestaurantStaffPanel = ({ user }) => {
                             label={getRoleLabel(staff.staffRole)}
                             color="primary"
                             variant="outlined"
+                            sx={{ fontFamily: "fontFamily.primary" }}
                           />
 
                           <Chip
                             size="small"
-                            label={staff.status ? "Activo" : "Desactivado"}
-                            color={staff.status ? "success" : "default"}
+                            label={staff.status ? "ACTIVO" : "DESACTIVADO"}
+                            color={staff.status ? "success" : "error"}
+                            sx={{ fontFamily: "fontFamily.primary" }}
                           />
                         </Stack>
 
                         <Typography
                           sx={{
-                            mt: 0.5,
+                            fontFamily: "fontFamily.secondary",
                             color: "text.secondary",
                             fontSize: 13,
+                            mt: 0.5,
                           }}
                         >
                           {staff.email}

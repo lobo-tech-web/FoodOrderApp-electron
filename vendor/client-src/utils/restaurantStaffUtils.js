@@ -1,19 +1,11 @@
-export const initialForm = {
-    name: '',
-    email: '',
-    password: '',
-    phone: '',
-    staffRole: 'cashier',
-};
-
 export const DEFAULT_STAFF_PERMISSIONS = {
     cashier: {
         orders: {
             read: true,
             create: true,
             updateStatus: true,
-            cancel: false,
-            edit: false,
+            cancel: true,
+            edit: true,
         },
         clients: {
             read: true,
@@ -21,7 +13,7 @@ export const DEFAULT_STAFF_PERMISSIONS = {
         },
         cashRegister: {
             open: true,
-            close: false,
+            close: true,
             movements: true,
             readReport: false,
         },
@@ -92,17 +84,17 @@ export const DEFAULT_STAFF_PERMISSIONS = {
 export const ROLE_OPTIONS = [
     {
         value: 'cashier',
-        label: 'Cajero',
-        description: 'Toma pedidos, puede abrir caja y registrar movimientos.',
+        label: 'CAJERO',
+        description: 'Toma pedidos y edita pedidos, puede abrir/cerrar caja y registrar movimientos.',
     },
     {
         value: 'manager',
-        label: 'Encargado',
+        label: 'ENCARGADO',
         description: 'Puede cerrar caja, ver reportes y administrar operaciones.',
     },
     {
         value: 'kitchen',
-        label: 'Cocina',
+        label: 'COCINA',
         description: 'Ve pedidos y cambia estados de preparación.',
     },
 ];
@@ -110,6 +102,34 @@ export const ROLE_OPTIONS = [
 export const getRoleLabel = (role) => {
     return ROLE_OPTIONS.find((option) => option.value === role)?.label || role;
 };
+
+export const cloneStaffPermissions = (
+    permissions
+) => {
+    return JSON.parse(JSON.stringify(permissions || {}));
+};
+
+export const getStaffRolePermissions = (
+    staffRole = 'cashier'
+) => {
+    return cloneStaffPermissions(
+        DEFAULT_STAFF_PERMISSIONS[staffRole] ||
+        DEFAULT_STAFF_PERMISSIONS.cashier
+    );
+};
+
+export const createInitialStaffForm = (
+    staffRole = 'cashier'
+) => ({
+    name: '',
+    email: '',
+    password: '',
+    phone: '',
+    staffRole,
+    permissions: getStaffRolePermissions(staffRole),
+});
+
+export const initialForm = createInitialStaffForm();
 
 export const normalizeStaffUsername = (value) => {
     return String(value || '')

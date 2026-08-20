@@ -1,66 +1,66 @@
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import _ from "lodash";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 // ---- MATERIAL UI ----
 import {
+  Typography,
   Box,
   Button,
   Chip,
   Dialog,
-  DialogActions,
-  DialogContent,
   DialogTitle,
+  DialogContent,
+  DialogActions,
   FormControl,
-  IconButton,
-  MenuItem,
   Select,
-  Typography,
+  MenuItem,
+  IconButton,
   useTheme,
 } from "@mui/material";
 // ICONS
 import {
   Add as AddIcon,
-  Cancel as CancelIcon,
-  CheckCircle as CheckCircleIcon,
   Close as CloseIcon,
-  DeliveryDining as DeliveryDiningIcon,
-  FactCheck as FactCheckIcon,
   Pending as PendingIcon,
+  FactCheck as FactCheckIcon,
+  DeliveryDining as DeliveryDiningIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
 } from "@mui/icons-material";
 // ----------------------
 
 // ---- CONTEXT ----
+import { useUser } from "@/context/Users.jsx";
 import { useOrders } from "@/context/Orders.jsx";
 import { useProducts } from "@/context/Products.jsx";
-import { useUser } from "@/context/Users.jsx";
 // -----------------
 
 // ---- COMPONENTS ----
-import { ConfirmDialogClose } from "@/components/ConfirmDialogClose/ConfirmDialogClose.jsx";
 import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
-import { ModalSelectProducts } from "../ModalEditOrder/ModalSelectProducts/ModalSelectProducts.jsx";
+import { ConfirmDialogClose } from "@/components/ConfirmDialogClose/ConfirmDialogClose.jsx";
 import { useThermalPrinter } from "../ModalEditOrder/PrinterConfig/useThermalPrinter.js";
-import { ClientInfoTab } from "./ClientInfoTab/ClientInfoTab.jsx";
-import { ClientSearchModal } from "./ClientSearchModal/ClientSearchModal.jsx";
+import { ModalSelectProducts } from "../ModalEditOrder/ModalSelectProducts/ModalSelectProducts.jsx";
 import { OrderSummary } from "./OrderSummary/OrderSummary.jsx";
+import { ClientSearchModal } from "./ClientSearchModal/ClientSearchModal.jsx";
+import { ClientInfoTab } from "./ClientInfoTab/ClientInfoTab.jsx";
 
 // ---- TABS ----
 import { OrderDetailsTab } from "./OrderDetailsTab/OrderDetailsTab.jsx";
 // ------------------
 
 // ---- UTILS ----
-import { getDateNowDayjs } from "@/utils/clientWorking.js";
 import { taxAmount } from "@/utils/lobotechUtils.js"; // TARIFA DE SERVICIO
+import { getDateNowDayjs } from "@/utils/clientWorking.js";
 import { getProductOptionsForUI } from "@/utils/migrateCustomOptions.js";
-import {
-  calculateDiscount,
-  calculateFinalProductPrice,
-  calculateFinalTotal,
-  calculateProductTotals,
-  cleanMoneyValue,
-} from "@/utils/orderCalculations.js";
 import { buildOrderKitchenPrinterHtml } from "@/utils/printTemplates/orderKitchenTemplate.js";
 import { buildOrderTicketPrinterHtml } from "@/utils/printTemplates/orderTicketTemplate.js";
+import {
+  cleanMoneyValue,
+  calculateFinalProductPrice,
+  calculateProductTotals,
+  calculateDiscount,
+  calculateFinalTotal,
+} from "@/utils/orderCalculations.js";
 // ---------------
 
 const workflowSteps = ["PEDIDO", "CLIENTE"];
@@ -143,6 +143,8 @@ export const ModalCreateOrder = ({
   const currentUser = useMemo(() => userState?.user || {}, [userState?.user]);
 
   const isStaff = currentUser?.role === "staff";
+  const canSearchClients =
+    !isStaff || currentUser?.permissions?.clients?.read === true;
 
   const restaurantId = useMemo(() => {
     if (isStaff) {
@@ -272,18 +274,27 @@ export const ModalCreateOrder = ({
     const checked = e.target.checked;
     setIgnoreEmail(checked);
 
-    if (checked) {
-      setOrder((prev) => ({
-        ...prev,
-        clientEmail: DEFAULT_EMAIL,
-      }));
-    } else {
-      setOrder((prev) => ({
-        ...prev,
-        clientEmail: "",
-      }));
-    }
+    setOrder((prev) => ({
+      ...prev,
+      userId: checked ? null : prev.userId,
+      clientEmail: checked ? DEFAULT_EMAIL : "",
+    }));
   };
+
+  const handleSelectClient = useCallback((client) => {
+    if (!client?.id) return;
+    setIgnoreEmail(false);
+
+    setOrder((prev) => ({
+      ...prev,
+      userId: client.id,
+      clientName: client.name || "",
+      clientEmail: client.email || "",
+      contactPhone: client.phone || "SIN ESPECIFICAR",
+      deliveryAddress:
+        client.deliveryAddress || prev.deliveryAddress || "SIN ESPECIFICAR",
+    }));
+  }, []);
 
   const [isDiscount, setIsDiscount] = useState("SIN DESCUENTO");
 
@@ -449,6 +460,16 @@ export const ModalCreateOrder = ({
           }));
         }
       }
+      return;
+    }
+
+    if (name === "clientEmail") {
+      setOrder((prev) => ({
+        ...prev,
+        clientEmail: value,
+        userId: null,
+      }));
+
       return;
     }
 
@@ -735,8 +756,14 @@ export const ModalCreateOrder = ({
         paymentMethod: order.paymentMethod,
         clientEmail: order.clientEmail,
         clientName: order.clientName,
-        deliveryAddress: order.deliveryAddress,
-        contactPhone: order.contactPhone.trim() ? order.contactPhone : "",
+        deliveryAddress:
+          order.deliveryAddress.trim() !== ""
+            ? order.deliveryAddress
+            : "SIN ESPECIFICAR",
+        contactPhone:
+          order.contactPhone.trim() !== ""
+            ? order.contactPhone
+            : "SIN ESPECIFICAR",
         orderType: order.orderType,
         comentary: order.comentary,
         status: resolvedStatus,
@@ -1077,7 +1104,19 @@ export const ModalCreateOrder = ({
                   handleInputChange={handleInputChange}
                   ignoreEmail={ignoreEmail}
                   handleIgnoreEmail={handleIgnoreEmail}
-                  onSearchClient={() => toggleModal("clientsData", true)}
+                  canSearchClients={canSearchClients}
+                  onSearchClient={() => {
+                    if (!canSearchClients) {
+                      showAlert(
+                        "No tienes permisos para consultar clientes",
+                        "warning",
+                      );
+
+                      return;
+                    }
+
+                    toggleModal("clientsData", true);
+                  }}
                 />
               </Box>
             </Box>
@@ -1174,6 +1213,7 @@ export const ModalCreateOrder = ({
           show={modalState.clientsData}
           handleClose={() => toggleModal("clientsData", false)}
           restaurantId={restaurantId}
+          onSelectClient={handleSelectClient}
         />
       )}
     </>

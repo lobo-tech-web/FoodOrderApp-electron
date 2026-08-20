@@ -42,96 +42,65 @@ export const getOrderEditCapabilities = ({
         return {
             hasOpenCash: true,
             isTerminal: false,
-
             canEditItems: true,
             canEditClient: true,
             canEditPayment: true,
             canEditDelivery: true,
             canEditRider: true,
             canEditCommentary: true,
-
             canUpdateStatus: true,
             canCancel: true,
-
             canModifyAnything: true,
         };
     }
 
-    const hasOpenCash =
-        !isStaff ||
-        (
-            cashSession?.id &&
-            cashSession?.status === 'OPEN'
-        );
-
+    const hasOpenCash = !isStaff || (cashSession?.id && cashSession?.status === 'OPEN');
     const canEditPermission = hasOrderPermission(user, 'edit');
-
-    const canUpdateStatusPermission = hasOrderPermission(
-        user,
-        'updateStatus'
-    );
-
-    const canCancelPermission = hasOrderPermission(
-        user,
-        'cancel'
-    );
-
-    const isPending =
-        originalStatus === ORDER_STATUS.PENDING;
-
-    const isPreparing =
-        originalStatus === ORDER_STATUS.PREPARING;
-
-    const isShipping =
-        originalStatus === ORDER_STATUS.SHIPPING;
+    const canUpdateStatusPermission = hasOrderPermission(user, 'updateStatus');
+    const canCancelPermission = hasOrderPermission(user, 'cancel');
+    const isPending = originalStatus === ORDER_STATUS.PENDING;
+    const isPreparing = originalStatus === ORDER_STATUS.PREPARING;
+    // const isShipping = originalStatus === ORDER_STATUS.SHIPPING;
 
     return {
         hasOpenCash,
         isTerminal,
-
         canEditItems:
             hasOpenCash &&
             canEditPermission &&
             isPending,
-
         canEditClient:
             hasOpenCash &&
             canEditPermission &&
             (isPending || isPreparing),
-
         canEditPayment:
             hasOpenCash &&
             canEditPermission &&
             (isPending || isPreparing),
-
         canEditDelivery:
             hasOpenCash &&
             canEditPermission &&
             (isPending || isPreparing),
-
         canEditRider:
             hasOpenCash &&
             canEditPermission &&
             !isTerminal,
-
         canEditCommentary:
             hasOpenCash &&
             canEditPermission &&
             !isTerminal,
-
         canUpdateStatus:
             hasOpenCash &&
             canUpdateStatusPermission &&
             !isTerminal,
-
         canCancel:
             hasOpenCash &&
             canCancelPermission &&
             !isTerminal,
-
         canModifyAnything:
             hasOpenCash &&
-            !isTerminal,
+            !isTerminal &&
+            (canEditPermission || canUpdateStatusPermission || canCancelPermission),
     };
 };
 
@@ -141,7 +110,21 @@ export const getAllowedOrderStatuses = ({
     allowAllStatuses = false,
 }) => {
     if (allowAllStatuses) {
-        return Object.values(ORDER_STATUS);
+        const statuses = Object.values(ORDER_STATUS);
+
+        /*
+         * Única transición no permitida:
+         * FINALIZADO -> CANCELADO.
+         */
+        if (originalStatus === ORDER_STATUS.FINISHED) {
+            return statuses.filter(
+                (status) =>
+                    status !==
+                    ORDER_STATUS.CANCELLED
+            );
+        }
+
+        return statuses;
     }
 
     const transitions = {
@@ -168,10 +151,7 @@ export const getAllowedOrderStatuses = ({
         ...(transitions[originalStatus] || []),
     ];
 
-    if (
-        canCancel &&
-        !isTerminalOrderStatus(originalStatus)
-    ) {
+    if (canCancel && !isTerminalOrderStatus(originalStatus)) {
         result.push(ORDER_STATUS.CANCELLED);
     }
 

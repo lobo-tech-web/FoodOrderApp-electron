@@ -461,7 +461,6 @@ export const StaffOrderPanel = ({
                 sx={{
                   minHeight: 60,
                   textTransform: "none",
-
                   "&.Mui-selected": {
                     color: ORDER_STATUS[status].color,
                   },
@@ -586,7 +585,6 @@ export const StaffOrderPanel = ({
         showOrder={selectedOrder}
         showOrderIndex={selectedOrderIndex}
         cashSession={cashSession}
-        staffMode
         onOrderUpdated={fetchOrders}
       />
     </Box>

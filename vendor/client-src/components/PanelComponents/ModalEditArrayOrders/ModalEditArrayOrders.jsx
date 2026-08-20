@@ -47,6 +47,14 @@ import { useUser } from "@/context/Users.jsx";
 import { updateArrayOrderServices } from "@/services/orders.js";
 // ------------------
 
+// ---- Utils ----
+import {
+  ORDER_STATUS,
+  getAllowedOrderStatuses,
+  hasOrderPermission,
+} from "@/utils/orderEditRules.js";
+// ---------------
+
 // ---- STYLES ----
 const fieldStyles = {
   "& .MuiInputBase-root": {
@@ -137,18 +145,37 @@ export const ModalEditArrayOrders = ({
   showAlert,
   showOrders = [],
   refreshOrders,
+  cashSession = null,
 }) => {
   const theme = useTheme();
   const isXsScreen = useMediaQuery(theme.breakpoints.down("xs"));
 
   const [loading, setLoading] = useState(false);
-  const [extraPoints, setExtraPoints] = useState(0);
+  const [extraPoints, setExtraPoints] = useState("");
   const [status, setStatus] = useState("");
   const [rider, setRider] = useState(undefined);
   const [cancelReason, setCancelReason] = useState("");
 
   const { orderState, getRidersByRestaurant } = useOrders();
   const { userState } = useUser();
+
+  const currentUser = userState.user;
+
+  const isPrivilegedUser =
+    currentUser?.role === "admin" || currentUser?.role === "dev";
+
+  const isStaff = currentUser?.role === "staff";
+
+  const isCashOpen =
+    !isStaff || (cashSession?.id && cashSession?.status === "OPEN");
+
+  const canEdit = hasOrderPermission(currentUser, "edit");
+
+  const canUpdateStatus = hasOrderPermission(currentUser, "updateStatus");
+
+  const canCancel = hasOrderPermission(currentUser, "cancel");
+
+  const canEditBulkData = isPrivilegedUser || (isCashOpen && canEdit);
 
   const restaurantId = useMemo(() => {
     if (userState.user?.role === "staff") {
@@ -162,6 +189,31 @@ export const ModalEditArrayOrders = ({
     () => orderState?.riders || [],
     [orderState?.riders],
   );
+
+  const availableBulkStatuses = useMemo(() => {
+    if (!showOrders.length) {
+      return [];
+    }
+
+    const allowedStatusSets = showOrders.map(
+      (order) =>
+        new Set(
+          getAllowedOrderStatuses({
+            originalStatus: order.status,
+
+            canCancel,
+
+            allowAllStatuses: isPrivilegedUser,
+          }),
+        ),
+    );
+
+    return statusDisplay.filter((statusItem) =>
+      allowedStatusSets.every((allowedStatuses) =>
+        allowedStatuses.has(statusItem.value),
+      ),
+    );
+  }, [showOrders, canCancel, isPrivilegedUser]);
 
   const handlePointsChange = (e) => {
     // Solo permitir números positivos
@@ -191,9 +243,10 @@ export const ModalEditArrayOrders = ({
     try {
       const ordersData = {
         orderList: showOrders.map((order) => ({ id: order.id })),
-        ...(extraPoints !== "" && {
-          extraPoints: Number(extraPoints),
-        }),
+        ...(status === ORDER_STATUS.FINISHED &&
+          extraPoints !== "" && {
+            extraPoints: Number(extraPoints),
+          }),
         status,
         ...(rider !== undefined && { riderId: rider }),
         ...(status === "CANCELADO" && {
@@ -207,15 +260,16 @@ export const ModalEditArrayOrders = ({
       handleClose();
     } catch (error) {
       const errorMessage =
-        error ||
-        error?.message ||
-        error?.status?.message ||
-        "Error al actualizar los pedidos";
+        typeof error === "string"
+          ? error
+          : error?.message ||
+            error?.response?.data?.message ||
+            "Error al actualizar los pedidos";
       showAlert(errorMessage, "error");
     } finally {
       setLoading(false);
       setTimeout(async () => {
-        await refreshOrders();
+        await refreshOrders?.();
       }, 1500);
     }
   }, [
@@ -223,6 +277,7 @@ export const ModalEditArrayOrders = ({
     extraPoints,
     rider,
     cancelReason,
+    refreshOrders,
     showOrders,
     showAlert,
     handleClose,
@@ -367,29 +422,6 @@ export const ModalEditArrayOrders = ({
               ACTUALIZAR INFORMACIÓN
             </Typography>
 
-            {/* PUNTOS EXTRAS */}
-            <Box>
-              <Box sx={labelContainerStyle}>
-                <Typography sx={labelStyle}>PUNTOS EXTRAS</Typography>
-              </Box>
-              <TextField
-                fullWidth
-                type="text"
-                name="extraPoints"
-                value={extraPoints || 0}
-                onChange={handlePointsChange}
-                sx={fieldStyles}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <AddCircleOutlineIcon sx={{ color: "success.main" }} />
-                    </InputAdornment>
-                  ),
-                  inputProps: { min: 0 },
-                }}
-              />
-            </Box>
-
             {/* STATUS DEL PEDIDO */}
             <Box sx={{ mb: { xs: 2.5, sm: 3 } }}>
               <Box sx={labelContainerStyle}>
@@ -418,7 +450,7 @@ export const ModalEditArrayOrders = ({
                   gap: { xs: 1, sm: 1.2 },
                 }}
               >
-                {statusDisplay.map((item) => (
+                {availableBulkStatuses.map((item) => (
                   <SelectOptionCard
                     key={item.value}
                     selected={status === item.value}
@@ -431,6 +463,32 @@ export const ModalEditArrayOrders = ({
                 ))}
               </Box>
             </Box>
+
+            {/* PUNTOS EXTRAS */}
+            {canEditBulkData && status === ORDER_STATUS.FINISHED && (
+              <Box>
+                <Box sx={labelContainerStyle}>
+                  <Typography sx={labelStyle}>PUNTOS EXTRAS</Typography>
+                </Box>
+                <TextField
+                  fullWidth
+                  type="text"
+                  name="extraPoints"
+                  value={extraPoints || 0}
+                  placeholder="Sin puntos extras"
+                  onChange={handlePointsChange}
+                  sx={fieldStyles}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <AddCircleOutlineIcon sx={{ color: "success.main" }} />
+                      </InputAdornment>
+                    ),
+                    inputProps: { min: 0 },
+                  }}
+                />
+              </Box>
+            )}
 
             {status === "CANCELADO" && (
               <Box sx={{ mt: 2 }}>
@@ -450,7 +508,7 @@ export const ModalEditArrayOrders = ({
               </Box>
             )}
 
-            {availableRiders.length > 0 && (
+            {canEditBulkData && availableRiders.length > 0 && (
               <Box sx={{ mb: { xs: 2.5, sm: 3 } }}>
                 <Box sx={labelContainerStyle}>
                   <Typography sx={labelStyle}>
@@ -487,6 +545,15 @@ export const ModalEditArrayOrders = ({
                     description="Mantiene el cadete actual de cada pedido."
                     color="primary.main"
                     onClick={() => setRider(undefined)}
+                  />
+
+                  <SelectOptionCard
+                    selected={rider === null}
+                    icon={<CancelIcon />}
+                    title="QUITAR RIDER"
+                    description="Desasigna el cadete actual de los pedidos."
+                    color="error.main"
+                    onClick={() => setRider(null)}
                   />
 
                   {availableRiders.map((availableRider) => (
@@ -536,7 +603,9 @@ export const ModalEditArrayOrders = ({
           color="primary"
           startIcon={<SaveIcon />}
           onClick={handleSaveChanges}
-          disabled={showOrders.length === 0 || loading}
+          disabled={
+            showOrders.length === 0 || loading || !canUpdateStatus || !status
+          }
           sx={{
             fontFamily: "fontFamily.primary",
             minHeight: 44,

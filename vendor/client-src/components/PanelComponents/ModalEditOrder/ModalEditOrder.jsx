@@ -1,25 +1,25 @@
+import { useState, useEffect, useCallback, useMemo } from "react";
 import _ from "lodash";
-import { useCallback, useEffect, useMemo, useState } from "react";
 
 // ---- MATERIAL UI ----
 import {
-  Alert,
   Box,
   Button,
   Dialog,
-  DialogActions,
-  DialogContent,
   DialogTitle,
-  Divider,
-  IconButton,
+  DialogContent,
+  DialogActions,
   Typography,
+  IconButton,
+  Divider,
+  Alert,
 } from "@mui/material";
 // ICONS
 import {
-  AccessTime as AccessTimeIcon,
   Close as CloseIcon,
   Edit as EditIcon,
   Save as SaveIcon,
+  AccessTime as AccessTimeIcon,
 } from "@mui/icons-material";
 // ---------------------
 
@@ -34,24 +34,24 @@ import { deleteOrderService } from "@/services/orders.js";
 // ------------------
 
 // ---- COMPONENTS ----
-import { ConfirmDialogClose } from "@/components/ConfirmDialogClose/ConfirmDialogClose.jsx";
 import { LoadingInModal } from "@/components/LoadingInModal/LoadingInModal.jsx";
 import { SavingOverlay } from "@/components/LoadingInModal/SavingOverlay.jsx";
+import { ConfirmDialogClose } from "@/components/ConfirmDialogClose/ConfirmDialogClose.jsx";
+import { PrinterConfigModal } from "./PrinterConfig/PrinterConfigModal.jsx";
 import { ModalSelectProducts } from "./ModalSelectProducts/ModalSelectProducts.jsx";
+import { QuickEditOrder } from "./QuickEditOrder/QuickEditOrder.jsx";
 import { OrderManagementPanel } from "./OrderDetails/OrderManagementPanel.jsx";
 import { OrderSummaryPanel } from "./OrderDetails/OrderSummaryPanel.jsx";
-import { PrinterConfigModal } from "./PrinterConfig/PrinterConfigModal.jsx";
-import { QuickEditOrder } from "./QuickEditOrder/QuickEditOrder.jsx";
 // --------------------
 
 // ---- UTILS ----
 import { getProductOptionsForUI } from "@/utils/migrateCustomOptions.js";
 import {
-  calculateDiscount,
-  calculateFinalProductPrice,
-  calculateFinalTotal,
-  calculateProductTotals,
   cleanMoneyValue,
+  calculateFinalProductPrice,
+  calculateProductTotals,
+  calculateDiscount,
+  calculateFinalTotal,
 } from "@/utils/orderCalculations.js";
 import {
   getAllowedOrderStatuses,
@@ -70,7 +70,6 @@ export const ModalEditOrder = ({
   showOrder,
   showOrderIndex,
   cashSession = null,
-  staffMode = false,
   onOrderUpdated,
 }) => {
   const [loading, setLoading] = useState(false);
@@ -118,6 +117,7 @@ export const ModalEditOrder = ({
   }, [hasChanges, onClose]);
 
   const currentUser = userState.user;
+  const isStaff = currentUser?.role === "staff";
 
   const isPrivilegedUser =
     currentUser?.role === "admin" || currentUser?.role === "dev";
@@ -141,9 +141,7 @@ export const ModalEditOrder = ({
     });
   }, [originalStatus, editCapabilities.canCancel, isPrivilegedUser]);
 
-  const canSaveOrder =
-    !editCapabilities.isTerminal &&
-    (!staffMode || editCapabilities.hasOpenCash);
+  const canSaveOrder = editCapabilities.canModifyAnything;
 
   // ✅ ESTADOS PARA RIDERS
   const [editingRider, setEditingRider] = useState(false);
@@ -494,6 +492,8 @@ export const ModalEditOrder = ({
 
   const buildOrderUpdateData = useCallback(
     (statusOverride = null) => {
+      const finalStatus = statusOverride || order.status;
+
       return {
         tableid: order.tableid || "",
         cartItems: order.cartItems,
@@ -513,11 +513,11 @@ export const ModalEditOrder = ({
         contactPhone: order.contactPhone,
         orderType: order.orderType,
         comentary: order.comentary,
-        status: statusOverride || order.status,
+        status: finalStatus,
         extraPoints: Number(order.extraPoints) || 0,
-        riderId: order.riderId ? order.riderId : null,
+        riderId: order.riderId ?? null,
         cancelReason:
-          order.status === "CANCELADO" && originalStatus !== "CANCELADO"
+          finalStatus === "CANCELADO" && originalStatus !== "CANCELADO"
             ? cancelReason.trim()
             : undefined,
       };
@@ -584,11 +584,6 @@ export const ModalEditOrder = ({
       return;
     }
 
-    if (staffMode && !order.contactPhone.trim()) {
-      showAlert("El teléfono de contacto es requerido", "warning");
-      return;
-    }
-
     if (
       order.status === "CANCELADO" &&
       originalStatus !== "CANCELADO" &&
@@ -602,9 +597,7 @@ export const ModalEditOrder = ({
     setLoading(true);
     try {
       const updateData = buildOrderUpdateData();
-
       const response = await updateOrder(order.id, updateData);
-
       const savedOrder = {
         ...order,
         ...updateData,
@@ -923,7 +916,7 @@ export const ModalEditOrder = ({
             overflow: "auto",
           }}
         >
-          {staffMode && !editCapabilities.hasOpenCash && (
+          {isStaff && !editCapabilities.hasOpenCash && (
             <Alert severity="warning" sx={{ mb: 2 }}>
               La caja está cerrada. Este pedido se puede consultar, pero no
               modificar.

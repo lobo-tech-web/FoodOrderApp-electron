@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 // ---- Material UI ----
 import {
-  Alert,
+  Box,
   Button,
   Dialog,
   DialogActions,
@@ -21,6 +21,9 @@ import {
 } from "@mui/material";
 // Icons
 import {
+  Badge as BadgeIcon,
+  AttachMoney as AttachMoneyIcon,
+  LocalDining as LocalDiningIcon,
   Close as CloseIcon,
   Edit as EditIcon,
   Email as EmailIcon,
@@ -28,15 +31,19 @@ import {
   Person as PersonIcon,
   Phone as PhoneIcon,
   Save as SaveIcon,
-  Work as WorkIcon,
 } from "@mui/icons-material";
 // ---------------------
+
+// ---- Components ----
+import { StaffPermissionsEditor } from "./StaffPermissionsEditor/StaffPermissionsEditor.jsx";
+// --------------------
 
 // ---- Utils ----
 import {
   initialForm,
   normalizeStaffUsername,
   ROLE_OPTIONS,
+  getStaffRolePermissions,
 } from "@/utils/restaurantStaffUtils.js";
 // ---------------
 
@@ -48,6 +55,12 @@ const StaffFormFields = ({ form, onChange, isEditing = false }) => {
   const selectedRoleInfo = useMemo(() => {
     return ROLE_OPTIONS.find((role) => role.value === form.staffRole);
   }, [form.staffRole]);
+
+  const getEmployeeIcon = (role) => {
+    if (role === "manager") return <BadgeIcon color="primary" />;
+    if (role === "cashier") return <AttachMoneyIcon color="primary" />;
+    return <LocalDiningIcon color="primary" />;
+  };
 
   return (
     <Stack spacing={2}>
@@ -68,6 +81,7 @@ const StaffFormFields = ({ form, onChange, isEditing = false }) => {
             </InputAdornment>
           ),
         }}
+        sx={{ fontFamily: "fontFamily.secondary" }}
       />
 
       <TextField
@@ -82,6 +96,7 @@ const StaffFormFields = ({ form, onChange, isEditing = false }) => {
             </InputAdornment>
           ),
         }}
+        sx={{ fontFamily: "fontFamily.secondary" }}
       />
 
       <TextField
@@ -97,6 +112,7 @@ const StaffFormFields = ({ form, onChange, isEditing = false }) => {
             </InputAdornment>
           ),
         }}
+        sx={{ fontFamily: "fontFamily.secondary" }}
       />
 
       <TextField
@@ -111,10 +127,13 @@ const StaffFormFields = ({ form, onChange, isEditing = false }) => {
             </InputAdornment>
           ),
         }}
+        sx={{ fontFamily: "fontFamily.secondary" }}
       />
 
       <FormControl fullWidth>
-        <InputLabel>Rol del empleado</InputLabel>
+        <InputLabel sx={{ fontFamily: "fontFamily.secondary" }}>
+          Rol del empleado
+        </InputLabel>
 
         <Select
           label="Rol del empleado"
@@ -122,12 +141,17 @@ const StaffFormFields = ({ form, onChange, isEditing = false }) => {
           onChange={(event) => onChange("staffRole", event.target.value)}
           startAdornment={
             <InputAdornment position="start">
-              <WorkIcon color="primary" />
+              {getEmployeeIcon(form.staffRole)}
             </InputAdornment>
           }
+          sx={{ fontFamily: "fontFamily.primary" }}
         >
           {ROLE_OPTIONS.map((role) => (
-            <MenuItem key={role.value} value={role.value}>
+            <MenuItem
+              key={role.value}
+              value={role.value}
+              sx={{ fontFamily: "fontFamily.primary" }}
+            >
               {role.label}
             </MenuItem>
           ))}
@@ -135,15 +159,36 @@ const StaffFormFields = ({ form, onChange, isEditing = false }) => {
       </FormControl>
 
       {selectedRoleInfo && (
-        <Alert severity="info">
-          <Typography sx={{ fontWeight: "bold" }}>
-            {selectedRoleInfo.label}
-          </Typography>
+        <Paper
+          elevation={0}
+          sx={{
+            bgcolor: "background.default",
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+            p: 2,
+          }}
+        >
+          <Box sx={{ display: "flex", gap: 0.5 }}>
+            {getEmployeeIcon(form.staffRole)}
+            <Typography
+              variant="subtitle"
+              sx={{ fontFamily: "fontFamily.primary", color: "text.primary" }}
+            >
+              {selectedRoleInfo.label}
+            </Typography>
+          </Box>
 
-          <Typography sx={{ fontSize: 13 }}>
+          <Typography
+            sx={{
+              fontFamily: "fontFamily.secondary",
+              color: "primary.main",
+              fontSize: 13,
+            }}
+          >
             {selectedRoleInfo.description}
           </Typography>
-        </Alert>
+        </Paper>
       )}
     </Stack>
   );
@@ -161,19 +206,50 @@ export const ModalEditRestaurantStaff = ({
   useEffect(() => {
     if (!staff) return;
 
+    const staffRole = staff.staffRole || "cashier";
+
     setEditForm({
       name: staff.name || "",
       email: staff.email || "",
       password: "",
       phone: staff.phone || "",
-      staffRole: staff.staffRole || "cashier",
+      staffRole,
+      permissions: staff.permissions
+        ? JSON.parse(JSON.stringify(staff.permissions))
+        : getStaffRolePermissions(staffRole),
     });
   }, [staff]);
 
   const handleChange = (field, value) => {
+    if (field === "staffRole") {
+      setEditForm((prev) => ({
+        ...prev,
+        staffRole: value,
+        permissions: getStaffRolePermissions(value),
+      }));
+
+      return;
+    }
+
     setEditForm((prev) => ({
       ...prev,
       [field]: value,
+    }));
+  };
+
+  const handlePermissionChange = (moduleName, permissionName, checked) => {
+    setEditForm((prev) => ({
+      ...prev,
+
+      permissions: {
+        ...prev.permissions,
+
+        [moduleName]: {
+          ...prev.permissions?.[moduleName],
+
+          [permissionName]: checked,
+        },
+      },
     }));
   };
 
@@ -182,10 +258,21 @@ export const ModalEditRestaurantStaff = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="lg"
+      fullWidth
+      PaperProps={{
+        sx: {
+          maxHeight: "90vh",
+          borderRadius: 3,
+        },
+      }}
+    >
       <DialogTitle
         sx={{
-          bgcolor: "background.paper",
+          bgcolor: "background.main",
           borderBottom: "1px solid",
           borderColor: "divider",
         }}
@@ -209,29 +296,69 @@ export const ModalEditRestaurantStaff = ({
             </Typography>
           </Stack>
 
-          <IconButton onClick={onClose}>
+          <IconButton disabled={saving} onClick={onClose}>
             <CloseIcon />
           </IconButton>
         </Stack>
       </DialogTitle>
 
       <DialogContent sx={{ bgcolor: "background.default", pt: 3 }}>
-        <Paper
-          elevation={0}
+        <Box
           sx={{
-            p: 2,
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              md: "minmax(0, 0.85fr) minmax(0, 1.15fr)",
+            },
+            gap: 2,
             mt: 1,
-            border: "1px solid",
-            borderColor: "divider",
-            borderRadius: 2,
-            bgcolor: "background.paper",
           }}
         >
-          <StaffFormFields form={editForm} onChange={handleChange} isEditing />
-        </Paper>
+          {/* INFORMACIÓN PRINCIPAL */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              bgcolor: "background.main",
+              alignSelf: "start",
+            }}
+          >
+            <Typography
+              sx={{
+                fontFamily: "fontFamily.primary",
+                fontWeight: "bold",
+                mb: 2,
+              }}
+            >
+              INFORMACIÓN DEL EMPLEADO
+            </Typography>
+
+            <StaffFormFields
+              form={editForm}
+              onChange={handleChange}
+              isEditing
+            />
+          </Paper>
+
+          {/* PERMISOS */}
+          <StaffPermissionsEditor
+            permissions={editForm.permissions}
+            onChange={handlePermissionChange}
+          />
+        </Box>
       </DialogContent>
 
-      <DialogActions sx={{ bgcolor: "background.paper", p: 2 }}>
+      <DialogActions
+        sx={{
+          bgcolor: "background.paper",
+          borderTop: "1px solid",
+          borderColor: "divider",
+          p: 2,
+        }}
+      >
         <Button
           variant="outlined"
           color="inherit"

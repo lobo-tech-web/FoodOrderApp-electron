@@ -1,38 +1,38 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 // ---- Material UI ----
-import { Alert, Box, Button, Paper, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Paper, Stack, Typography } from "@mui/material";
 
 // Icons
 import {
   Add as AddIcon,
   EditNote as EditNoteIcon,
   Refresh as RefreshIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 // ---------------------
 
 // ---- Components ----
-import { ModalCreateOrder } from '@/components/PanelComponents/ModalCreateOrder/ModalCreateOrder.jsx';
-import { ModalEditArrayOrders } from '@/components/PanelComponents/ModalEditArrayOrders/ModalEditArrayOrders.jsx';
+import { ModalCreateOrder } from "@/components/PanelComponents/ModalCreateOrder/ModalCreateOrder.jsx";
+import { ModalEditArrayOrders } from "@/components/PanelComponents/ModalEditArrayOrders/ModalEditArrayOrders.jsx";
 // --------------------
 
 // ---- Utils ----
-import { ORDER_STATUS, hasOrderPermission } from '@/utils/orderEditRules.js';
+import { hasOrderPermission } from "@/utils/orderEditRules.js";
 // ---------------
 
 // ---- STYLES ----
 const buttonStyle = {
-  bgcolor: 'primary.main',
-  color: 'text.terciary',
-  fontFamily: 'fontFamily.terciary',
-  borderRadius: '8px',
+  bgcolor: "primary.main",
+  color: "text.terciary",
+  fontFamily: "fontFamily.terciary",
+  borderRadius: "8px",
   px: 3,
   py: 1,
-  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-  '&:hover': {
-    bgcolor: 'background.paper',
-    color: 'primary.main',
-    boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
+  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+  "&:hover": {
+    bgcolor: "background.paper",
+    color: "primary.main",
+    boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
   },
 };
 // ----------------
@@ -55,9 +55,9 @@ export const StaffOrderActionsBar = ({
     setModalState((prevState) => ({ ...prevState, [modal]: value }));
   };
 
-  const isCashOpen = cashSession?.id && cashSession?.status === 'OPEN';
-  const canCreate = hasOrderPermission(user, 'create');
-  const canUpdateStatus = hasOrderPermission(user, 'updateStatus');
+  const isCashOpen = cashSession?.id && cashSession?.status === "OPEN";
+  const canCreate = hasOrderPermission(user, "create");
+  const canUpdateStatus = hasOrderPermission(user, "updateStatus");
 
   return (
     <>
@@ -67,32 +67,32 @@ export const StaffOrderActionsBar = ({
           p: 1.5,
           mb: 2,
           borderRadius: 2,
-          border: '1px solid',
-          borderColor: 'divider',
-          bgcolor: 'background.paper',
+          border: "1px solid",
+          borderColor: "divider",
+          bgcolor: "background.paper",
         }}
       >
         <Stack
-          direction={{ xs: 'column', md: 'row' }}
+          direction={{ xs: "column", md: "row" }}
           justifyContent="space-between"
-          alignItems={{ xs: 'stretch', md: 'center' }}
+          alignItems={{ xs: "stretch", md: "center" }}
           spacing={1.5}
         >
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: "flex", gap: 2 }}>
             <Button
               variant="outlined"
               startIcon={<RefreshIcon />}
               onClick={onRefresh}
               disabled={loading}
-              sx={{ fontFamily: 'fontFamily.primary' }}
+              sx={{ fontFamily: "fontFamily.primary" }}
             >
               Actualizar
             </Button>
             <Box>
               <Typography
                 sx={{
-                  fontFamily: 'fontFamily.primary',
-                  fontWeight: 'bold',
+                  fontFamily: "fontFamily.primary",
+                  fontWeight: "bold",
                 }}
               >
                 GESTIÓN DE PEDIDOS
@@ -100,28 +100,28 @@ export const StaffOrderActionsBar = ({
 
               <Typography
                 sx={{
-                  fontFamily: 'fontFamily.secondary',
-                  color: 'text.secondary',
+                  fontFamily: "fontFamily.secondary",
+                  color: "text.secondary",
                   fontSize: 13,
                 }}
               >
                 {selectedOrders.length > 0
                   ? `${selectedOrders.length} pedido(s) seleccionado(s)`
-                  : 'Seleccioná pedidos desde la tabla para modificarlos juntos.'}
+                  : "Seleccioná pedidos desde la tabla para modificarlos juntos."}
               </Typography>
             </Box>
           </Box>
 
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
             <Button
               variant="contained"
               startIcon={<AddIcon />}
               disabled={!isCashOpen || !canCreate}
               onClick={() => {
-                toggleModal('createOrder', true);
+                toggleModal("createOrder", true);
                 setAutoRefreshEnabled(false);
               }}
-              sx={{ ...buttonStyle, bgcolor: 'success.main' }}
+              sx={{ ...buttonStyle, bgcolor: "success.main" }}
             >
               Nuevo pedido
             </Button>
@@ -133,7 +133,7 @@ export const StaffOrderActionsBar = ({
                 !isCashOpen || !canUpdateStatus || !selectedOrders.length
               }
               onClick={() => {
-                toggleModal('editArrayOrders', true);
+                toggleModal("editArrayOrders", true);
                 setAutoRefreshEnabled(false);
               }}
               sx={buttonStyle}
@@ -156,7 +156,7 @@ export const StaffOrderActionsBar = ({
         <ModalCreateOrder
           show={modalState.createOrder}
           onClose={() => {
-            toggleModal('createOrder', false);
+            toggleModal("createOrder", false);
             setAutoRefreshEnabled(true);
           }}
           showAlert={showAlert}
@@ -169,12 +169,13 @@ export const StaffOrderActionsBar = ({
         <ModalEditArrayOrders
           show={modalState.editArrayOrders}
           handleClose={() => {
-            toggleModal('editArrayOrders', false);
+            toggleModal("editArrayOrders", false);
             setAutoRefreshEnabled(true);
           }}
           showAlert={showAlert}
           showOrders={selectedOrders}
           refreshOrders={onRefresh}
+          cashSession={cashSession}
         />
       )}
     </>
