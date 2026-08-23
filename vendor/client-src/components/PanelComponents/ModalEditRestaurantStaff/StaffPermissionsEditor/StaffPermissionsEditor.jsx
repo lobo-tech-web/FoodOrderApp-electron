@@ -175,7 +175,7 @@ export const StaffPermissionsEditor = ({ permissions = {}, onChange }) => {
         <Chip
           size="small"
           color="primary"
-          variant="contained"
+          variant="filled"
           label={`${enabledCount} activos`}
           sx={{ fontFamily: "fontFamily.secondary" }}
         />

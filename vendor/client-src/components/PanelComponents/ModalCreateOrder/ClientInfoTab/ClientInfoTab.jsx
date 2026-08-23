@@ -6,7 +6,7 @@ import {
   Typography,
   Checkbox,
   FormControlLabel,
-} from '@mui/material';
+} from "@mui/material";
 // ICONS
 import {
   Search as SearchIcon,
@@ -15,11 +15,11 @@ import {
   PersonOutline as PersonOutlineIcon,
   LocationOnOutlined as LocationIcon,
   Person as PersonIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 
 // ---- SHARED ----
-import { SectionHeading } from '../shared/SectionHeading.jsx';
-import { FieldLabel } from '../shared/FieldLabel.jsx';
+import { SectionHeading } from "../shared/SectionHeading.jsx";
+import { FieldLabel } from "../shared/FieldLabel.jsx";
 // ----------------
 
 // ---- STYLES ----
@@ -27,7 +27,7 @@ import {
   fieldStyles,
   sectionCardStyle,
   innerCardStyle,
-} from '../styles/modalCreateOrder.styles.js';
+} from "../styles/modalCreateOrder.styles.js";
 // ----------------
 
 export const ClientInfoTab = ({
@@ -35,6 +35,7 @@ export const ClientInfoTab = ({
   handleInputChange,
   ignoreEmail,
   handleIgnoreEmail,
+  canSearchClients = true,
   onSearchClient,
 }) => {
   return (
@@ -45,15 +46,16 @@ export const ClientInfoTab = ({
         action={
           <Button
             onClick={onSearchClient}
+            disabled={!canSearchClients}
             variant="contained"
             color="primary"
             startIcon={<SearchIcon />}
             sx={{
-              fontFamily: 'fontFamily.primary',
-              color: 'text.terciary',
-              borderRadius: '8px',
+              fontFamily: "fontFamily.primary",
+              color: "text.terciary",
+              borderRadius: "8px",
               px: 2,
-              whiteSpace: 'nowrap',
+              whiteSpace: "nowrap",
             }}
           >
             BUSCAR CLIENTES
@@ -63,8 +65,8 @@ export const ClientInfoTab = ({
 
       <Typography
         sx={{
-          fontFamily: 'fontFamily.secondary',
-          color: 'text.secondary',
+          fontFamily: "fontFamily.secondary",
+          color: "text.secondary",
           fontSize: 13,
           mt: -1,
           mb: 2,
@@ -75,16 +77,16 @@ export const ClientInfoTab = ({
 
       <Box
         sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '1.15fr 0.85fr' },
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "1.15fr 0.85fr" },
           gap: 2,
         }}
       >
         <Paper elevation={0} sx={innerCardStyle}>
           <Typography
             sx={{
-              fontFamily: 'fontFamily.primary',
-              color: 'primary.main',
+              fontFamily: "fontFamily.primary",
+              color: "primary.main",
               fontSize: 17,
               mb: 1.5,
             }}
@@ -92,7 +94,7 @@ export const ClientInfoTab = ({
             DATOS BASICOS
           </Typography>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.4 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.4 }}>
             <Box>
               <FieldLabel icon={<PersonOutlineIcon fontSize="small" />}>
                 NOMBRE DEL CLIENTE
@@ -114,10 +116,10 @@ export const ClientInfoTab = ({
               </FieldLabel>
               <Box
                 sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { xs: '1fr', sm: '1fr auto' },
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr auto" },
                   gap: 1,
-                  alignItems: 'center',
+                  alignItems: "center",
                 }}
               >
                 <TextField
@@ -139,18 +141,18 @@ export const ClientInfoTab = ({
                       onChange={handleIgnoreEmail}
                       size="small"
                       sx={{
-                        color: 'primary.main',
-                        '&.Mui-checked': { color: 'primary.main' },
+                        color: "primary.main",
+                        "&.Mui-checked": { color: "primary.main" },
                       }}
                     />
                   }
                   label={
                     <Typography
                       sx={{
-                        fontFamily: 'fontFamily.primary',
+                        fontFamily: "fontFamily.primary",
                         fontSize: 12,
-                        color: 'text.primary',
-                        whiteSpace: 'nowrap',
+                        color: "text.primary",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       OMITIR EMAIL
@@ -181,12 +183,12 @@ export const ClientInfoTab = ({
         <Paper elevation={0} sx={innerCardStyle}>
           <Typography
             sx={{
-              fontFamily: 'fontFamily.primary',
-              color: 'primary.main',
+              fontFamily: "fontFamily.primary",
+              color: "primary.main",
               fontSize: 17,
               mb: 1.5,
-              display: 'flex',
-              alignItems: 'center',
+              display: "flex",
+              alignItems: "center",
               gap: 0.8,
             }}
           >
@@ -194,7 +196,7 @@ export const ClientInfoTab = ({
             DATOS DE ENTREGA
           </Typography>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.4 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.4 }}>
             <Box>
               <FieldLabel>DIRECCION DE ENTREGA</FieldLabel>
               <TextField

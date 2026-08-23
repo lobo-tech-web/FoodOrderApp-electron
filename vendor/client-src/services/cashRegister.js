@@ -3,6 +3,7 @@ import { apiWithToken } from './axiosConfig.js';
 const apiURLGetOpenCashSession = import.meta.env.VITE_API_CASH_REGISTER_GET_OPEN_SESSIONS;
 const apiURLGetCashSessions = import.meta.env.VITE_API_CASH_REGISTER_GET_CASH_SESSIONS;
 const apiURLGetCashReport = import.meta.env.VITE_API_CASH_REGISTER_GET_CASH_REPORT;
+const apiURLGetClosePreview = import.meta.env.VITE_API_CASH_REGISTER_GET_CLOSE_PREVIEW;
 const apiURLPostCashMovement = import.meta.env.VITE_API_CASH_REGISTER_POST_CASH_MOVEMENT;
 const apiURLPostOpenRegister = import.meta.env.VITE_API_CASH_REGISTER_POST_OPEN_REGISTER;
 const apiURLPostCloseRegister = import.meta.env.VITE_API_CASH_REGISTER_POST_CLOSE_REGISTER;
@@ -73,15 +74,30 @@ export const getCashSessionsService = async ({
 
 export const getCashSessionReportService = async (cashSessionId) => {
     try {
-        const query = buildQuery({
-            cashSessionId,
-        });
+        const query = buildQuery({ cashSessionId });
 
         const response = await apiWithToken.get(`${apiURLGetCashReport}${query}`);
 
         return response.data;
     } catch (error) {
         handleServiceError(error, 'Error al obtener reporte de caja');
+    }
+};
+
+export const getCashClosePreviewService = async (cashSessionId) => {
+    try {
+        if (!cashSessionId) throw new Error("cashSessionId requerido");
+
+        const query = buildQuery({ cashSessionId });
+
+        const response = await apiWithToken.get(`${apiURLGetClosePreview}${query}`);
+        return response.data;
+    } catch (error) {
+        throw new Error(
+            error?.response?.data?.message ||
+            error?.message ||
+            "Error al obtener el resumen de cierre"
+        );
     }
 };
 

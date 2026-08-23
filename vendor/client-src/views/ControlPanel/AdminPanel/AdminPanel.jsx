@@ -28,7 +28,13 @@ import { RestaurantStaffPanel } from "./RestaurantStaffPanel/RestaurantStaffPane
 import { RiderPanel } from "./RiderPanel/RiderPanel.jsx";
 import { StatsPanel } from "./StatsPanel/StatsPanel.jsx";
 import { UserPointsRestaurantPanel } from "./UserPointsRestaurantPanel/UserPointsRestaurantPanel.jsx";
+import { CashRegisterPanel } from "./CashRegisterPanel/CashRegisterPanel.jsx";
 // <-------------------
+
+// ---- Hooks ----
+// ELIMINAR EL DE LOS OTROS COMPONENTES Y UTILIZAR ESTE
+// import { useAlert } from "@/hooks/Alert.jsx";
+// ---------------
 
 // ---- CONTEXT ----
 import { useOrders } from "@/context/Orders.jsx";
@@ -139,6 +145,7 @@ export const AdminPanel = () => {
               {activeTab === 42 && "REPORTE DE VENTAS POR CATEGORÍA"}
               {activeTab === 5 && "GESTIÓN DE CADETES"}
               {activeTab === 6 && "GESTIÓN DE EMPLEADOS"}
+              {activeTab === 7 && "GESTIÓN DE CAJA"}
             </Typography>
           </Toolbar>
         </AppBar>
@@ -213,6 +220,7 @@ export const AdminPanel = () => {
           )}
           {activeTab === 5 && <RiderPanel user={user} />}
           {activeTab === 6 && <RestaurantStaffPanel user={user} />}
+          {activeTab === 7 && <CashRegisterPanel user={user} />}
         </Box>
       </Box>
     </ThemeProvider>

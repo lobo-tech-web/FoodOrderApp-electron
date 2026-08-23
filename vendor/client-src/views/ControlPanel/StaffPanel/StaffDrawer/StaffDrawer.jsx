@@ -40,6 +40,7 @@ import lobotechLogo from "@/assets/main/logo-lobotech-oj.png";
 
 // ---- COMPONENTS ----
 import { ThemeToggle } from "@/components/ThemeToggle/ThemeToggle.jsx";
+import { StaffCashDrawer } from "./StaffCashDrawer.jsx";
 // --------------------
 
 export const StaffDrawer = ({
@@ -48,6 +49,10 @@ export const StaffDrawer = ({
   setActiveTab,
   onLogout,
   onCloseMobile,
+  cashSession,
+  onCashMovement,
+  onCloseCash,
+  onViewCashHistory,
 }) => {
   const handleAction = (tabIndex) => {
     setActiveTab(tabIndex);
@@ -396,6 +401,22 @@ export const StaffDrawer = ({
           />
         </ListItemButton>
       </List>
+
+      <Box
+        sx={{
+          px: 1.5,
+          pt: 1,
+        }}
+      >
+        <StaffCashDrawer
+          user={user}
+          cashSession={cashSession}
+          onMovement={onCashMovement}
+          onCloseCash={onCloseCash}
+          onGoToOrders={() => handleAction(1)}
+          onViewHistory={onViewCashHistory}
+        />
+      </Box>
 
       {/* SECCIÓN FINAL: LOGOUT */}
       <Box sx={{ p: 2, mt: "auto" }}>

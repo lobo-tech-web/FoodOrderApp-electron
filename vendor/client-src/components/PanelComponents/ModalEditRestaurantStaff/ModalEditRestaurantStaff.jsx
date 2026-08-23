@@ -172,7 +172,7 @@ const StaffFormFields = ({ form, onChange, isEditing = false }) => {
           <Box sx={{ display: "flex", gap: 0.5 }}>
             {getEmployeeIcon(form.staffRole)}
             <Typography
-              variant="subtitle"
+              variant="subtitle1"
               sx={{ fontFamily: "fontFamily.primary", color: "text.primary" }}
             >
               {selectedRoleInfo.label}

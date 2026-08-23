@@ -32,7 +32,10 @@ import { useOrders } from "@/context/Orders.jsx";
 import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
 import { StaffDrawer } from "./StaffDrawer/StaffDrawer.jsx";
 import { CashRegisterGate } from "./CashRegisterGate/CashRegisterGate.jsx";
+import { CashMovementModal } from "./CashMovementModal/CashMovementModal.jsx";
+import { CashCloseModal } from "./CashCloseModal/CashCloseModal.jsx";
 import { StaffOrderPanel } from "./StaffOrderPanel/StaffOrderPanel.jsx";
+import { CashRegisterHistoryPanel } from "./CashRegisterHistoryPanel/CashRegisterHistoryPanel.jsx";
 // --------------------
 
 // ---- STYLES ----
@@ -46,6 +49,7 @@ const STAFF_PANEL_TITLES = {
   22: "PERSONALIZACIONES",
   3: "FIDELIZACIÓN DE CLIENTES",
   4: "CADETES",
+  5: "REGISTRO DE CAJAS",
 };
 // ----------------
 
@@ -117,6 +121,9 @@ export const StaffPanel = () => {
   const staffUser = userState.user;
 
   const [cashSession, setCashSession] = useState(null);
+  const [cashMovementDialog, setCashMovementDialog] = useState(false);
+  const [cashCloseDialogOpen, setCashCloseDialogOpen] = useState(false);
+
   const initialLoadKeyRef = useRef("");
 
   const handleCashSessionChange = useCallback((nextSession) => {
@@ -254,6 +261,19 @@ export const StaffPanel = () => {
               setActiveTab={setActiveTab}
               onLogout={handleLogout}
               onCloseMobile={() => setMobileOpen(false)}
+              cashSession={cashSession}
+              onCashMovement={() => {
+                setMobileOpen(false);
+                setCashMovementDialog(true);
+              }}
+              onCloseCash={() => {
+                setMobileOpen(false);
+                setCashCloseDialogOpen(true);
+              }}
+              onViewCashHistory={() => {
+                setActiveTab(5);
+                setMobileOpen(false);
+              }}
             />
           </Drawer>
 
@@ -277,6 +297,10 @@ export const StaffPanel = () => {
               activeTab={activeTab}
               setActiveTab={setActiveTab}
               onLogout={handleLogout}
+              cashSession={cashSession}
+              onCashMovement={() => setCashMovementDialog(true)}
+              onCloseCash={() => setCashCloseDialogOpen(true)}
+              onViewCashHistory={() => setActiveTab(5)}
             />
           </Drawer>
         </Box>
@@ -294,13 +318,13 @@ export const StaffPanel = () => {
         >
           <Toolbar />
 
-          {isOrdersTab(activeTab) && (
-            <CashRegisterGate
-              user={staffUser}
-              showAlert={showAlert}
-              onCashSessionChange={handleCashSessionChange}
-            />
-          )}
+          <CashRegisterGate
+            user={staffUser}
+            cashSession={cashSession}
+            showAlert={showAlert}
+            onCashSessionChange={handleCashSessionChange}
+            showPrompt={isOrdersTab(activeTab)}
+          />
 
           {(activeTab === 1 || activeTab === 11) && (
             <StaffOrderPanel
@@ -345,7 +369,32 @@ export const StaffPanel = () => {
               description="Más adelante agregamos la gestión de cadetes para empleados habilitados."
             />
           )}
+
+          {activeTab === 5 && (
+            <CashRegisterHistoryPanel user={staffUser} showAlert={showAlert} />
+          )}
         </Box>
+
+        <CashMovementModal
+          open={cashMovementDialog}
+          user={staffUser}
+          cashSession={cashSession}
+          showAlert={showAlert}
+          onClose={() => setCashMovementDialog(false)}
+          onMovementCreated={() => {}}
+        />
+
+        <CashCloseModal
+          open={cashCloseDialogOpen}
+          user={staffUser}
+          cashSession={cashSession}
+          showAlert={showAlert}
+          onClose={() => setCashCloseDialogOpen(false)}
+          onClosed={() => {
+            setCashCloseDialogOpen(false);
+            handleCashSessionChange(null);
+          }}
+        />
         {AlertComponent}
       </Box>
     </ThemeProvider>

@@ -1,5 +1,4 @@
 export const initialCashForm = {
-    registerCode: 'MAIN',
     registerName: 'Caja Principal',
     openingAmount: '',
     note: '',

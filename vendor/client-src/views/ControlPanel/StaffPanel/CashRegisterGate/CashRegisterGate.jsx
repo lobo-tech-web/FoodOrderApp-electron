@@ -33,8 +33,13 @@ import {
 import { formatMoney, hasPermission } from "@/utils/cashRegisterUtils.js";
 // ---------------
 
-export const CashRegisterGate = ({ user, showAlert, onCashSessionChange }) => {
-  const [cashSession, setCashSession] = useState(null);
+export const CashRegisterGate = ({
+  user,
+  cashSession,
+  showAlert,
+  onCashSessionChange,
+  showPrompt = true,
+}) => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -63,7 +68,7 @@ export const CashRegisterGate = ({ user, showAlert, onCashSessionChange }) => {
   const isKitchen = user?.staffRole === "kitchen";
 
   const fetchOpenCashSession = useCallback(async () => {
-    if (!restaurantId || isKitchen) return;
+    if (!restaurantId) return;
     if (requestInFlightRef.current) return;
 
     requestInFlightRef.current = true;
@@ -75,7 +80,6 @@ export const CashRegisterGate = ({ user, showAlert, onCashSessionChange }) => {
         registerCode: "MAIN",
       });
 
-      setCashSession(response || null);
       onCashSessionChangeRef.current?.(response || null);
     } catch (error) {
       showAlertRef.current?.(
@@ -86,7 +90,7 @@ export const CashRegisterGate = ({ user, showAlert, onCashSessionChange }) => {
       requestInFlightRef.current = false;
       setLoading(false);
     }
-  }, [restaurantId, isKitchen]);
+  }, [restaurantId]);
 
   useEffect(() => {
     fetchOpenCashSession();
@@ -101,7 +105,6 @@ export const CashRegisterGate = ({ user, showAlert, onCashSessionChange }) => {
         restaurantId,
       });
 
-      setCashSession(response);
       onCashSessionChangeRef.current?.(response);
 
       showAlertRef.current?.("Caja abierta correctamente", "success");
@@ -113,9 +116,7 @@ export const CashRegisterGate = ({ user, showAlert, onCashSessionChange }) => {
     }
   };
 
-  if (isKitchen) {
-    return null;
-  }
+  if (!showPrompt || isKitchen) return null;
 
   if (loading) {
     return (
@@ -138,6 +139,8 @@ export const CashRegisterGate = ({ user, showAlert, onCashSessionChange }) => {
     );
   }
 
+  if (cashSession) return null;
+
   return (
     <>
       <Paper
@@ -147,8 +150,8 @@ export const CashRegisterGate = ({ user, showAlert, onCashSessionChange }) => {
           mb: 2,
           borderRadius: 3,
           border: "1px solid",
-          borderColor: cashSession ? "success.main" : "warning.main",
-          bgcolor: cashSession ? "success.main" : "warning.main",
+          borderColor: "primary.main",
+          bgcolor: "background.main",
         }}
       >
         <Stack

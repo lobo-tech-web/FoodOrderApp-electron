@@ -33,7 +33,8 @@ import {
   Savings as SavingsIcon,
   Storefront as StorefrontIcon,
   Today as TodayIcon,
-  Work as WorkIcon,
+  Badge as BadgeIcon,
+  PointOfSale as PointOfSaleIcon,
 } from "@mui/icons-material";
 //------------------
 
@@ -513,11 +514,42 @@ export const AdminDrawer = ({
           }}
         >
           <ListItemIcon sx={{ minWidth: 40 }}>
-            <WorkIcon />
+            <BadgeIcon />
           </ListItemIcon>
           <ListItemText
             primary="Empleados"
             primaryTypographyProps={{ fontSize: "0.9rem" }}
+          />
+        </ListItemButton>
+
+        {/* CAJA */}
+        <ListItemButton
+          selected={activeTab === 7}
+          onClick={() => handleAction(7)}
+          sx={{
+            fontFamily: "fontFamily.secondary",
+            borderRadius: 2,
+            mb: 0.5,
+
+            "&.Mui-selected": {
+              bgcolor: "primary.main",
+              color: "text.terciary",
+
+              "& .MuiListItemIcon-root": {
+                color: "text.terciary",
+              },
+            },
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <PointOfSaleIcon />
+          </ListItemIcon>
+
+          <ListItemText
+            primary="Caja"
+            primaryTypographyProps={{
+              fontSize: "0.9rem",
+            }}
           />
         </ListItemButton>
       </List>
