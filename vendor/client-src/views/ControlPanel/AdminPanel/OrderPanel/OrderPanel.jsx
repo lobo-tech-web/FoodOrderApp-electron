@@ -13,19 +13,7 @@ import {
   Typography,
   Checkbox,
   TablePagination,
-  Tabs,
-  Tab,
-  Chip,
 } from "@mui/material";
-// ICONS
-import {
-  MoreHoriz as MoreHorizIcon,
-  Pending as PendingIcon,
-  FactCheck as FactCheckIcon,
-  DeliveryDining as DeliveryDiningIcon,
-  CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon,
-} from "@mui/icons-material";
 // -----------------------
 
 // ---- COMPONENTS ----
@@ -33,6 +21,7 @@ import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent
 import { PanelNavBar } from "@/components/PanelComponents/PanelNavBar/PanelNavBar.jsx";
 import { ModalEditOrder } from "@/components/PanelComponents/ModalEditOrder/ModalEditOrder.jsx";
 import { OrderInfo } from "./OrderInfo/OrderInfo.jsx";
+import { OrderTableFilters } from "./OrderTableFilters/OrderTableFilters.jsx";
 import { AutoRefreshIndicator } from "./AutoRefreshIndicator/AutoRefreshIndicator.jsx";
 import { OrderStatusIndicator } from "./OrderStatusIndicator/OrderStatusIndicator.jsx";
 import { OrderSummaryIndicator } from "./OrderSummaryIndicator/OrderSummaryIndicator.jsx";
@@ -63,24 +52,6 @@ const tableHeadStyle = {
   py: 0.5,
 };
 // ----------------
-
-const ORDER_STATUS = {
-  TODOS: { color: "#f59e0b", icon: <MoreHorizIcon fontSize="small" /> },
-  "PENDIENTE A CONFIRMAR": {
-    color: "#ff9800",
-    icon: <PendingIcon fontSize="small" />,
-  }, // Rojo
-  "EN PREPARACIÓN": {
-    color: "#2196f3",
-    icon: <FactCheckIcon fontSize="small" />,
-  }, // Ámbar
-  "EN ENVIO": {
-    color: "#9c27b0",
-    icon: <DeliveryDiningIcon fontSize="small" />,
-  }, // Azul
-  FINALIZADO: { color: "#4caf50", icon: <CheckCircleIcon fontSize="small" /> }, // Verde
-  CANCELADO: { color: "#f44336", icon: <CancelIcon fontSize="small" /> }, // Gris
-};
 
 export const OrderPanel = ({ user, externalView }) => {
   const isElectronApp =
@@ -165,25 +136,69 @@ export const OrderPanel = ({ user, externalView }) => {
 
   // FILTRADO DE PEDIDOS
   const [statusFilter, setStatusFilter] = useState("TODOS");
+  const [orderTypeFilter, setOrderTypeFilter] = useState("TODOS");
 
-  const handleStatusChange = (event, newValue) => {
+  const handleStatusChange = (newValue) => {
     setStatusFilter(newValue);
     setPage(0);
     setSelectedOrdersCheckbox([]);
   };
 
+  const handleOrderTypeChange = (newValue) => {
+    setOrderTypeFilter(newValue);
+    setPage(0);
+    setSelectedOrdersCheckbox([]);
+  };
+
+  const handleClearTableFilters = () => {
+    setStatusFilter("TODOS");
+    setOrderTypeFilter("TODOS");
+    setPage(0);
+    setSelectedOrdersCheckbox([]);
+  };
+
+  const ordersFilteredByType = useMemo(() => {
+    if (orderTypeFilter === "TODOS") return allOrders;
+
+    return allOrders.filter((order) => order.orderType === orderTypeFilter);
+  }, [allOrders, orderTypeFilter]);
+
   const filteredOrders = useMemo(() => {
-    if (statusFilter === "TODOS") return allOrders;
-    return allOrders.filter((order) => order.status === statusFilter);
-  }, [allOrders, statusFilter]);
+    if (statusFilter === "TODOS") return ordersFilteredByType;
+
+    return ordersFilteredByType.filter(
+      (order) => order.status === statusFilter,
+    );
+  }, [ordersFilteredByType, statusFilter]);
 
   const statusCounts = useMemo(() => {
-    const counts = { TODOS: allOrders.length };
-    allOrders.forEach((order) => {
+    const counts = {
+      TODOS: ordersFilteredByType.length,
+    };
+
+    ordersFilteredByType.forEach((order) => {
       counts[order.status] = (counts[order.status] || 0) + 1;
     });
+
     return counts;
-  }, [allOrders]);
+  }, [ordersFilteredByType]);
+
+  const orderTypeCounts = useMemo(() => {
+    const baseOrders =
+      statusFilter === "TODOS"
+        ? allOrders
+        : allOrders.filter((order) => order.status === statusFilter);
+
+    const counts = {
+      TODOS: baseOrders.length,
+    };
+
+    baseOrders.forEach((order) => {
+      counts[order.orderType] = (counts[order.orderType] || 0) + 1;
+    });
+
+    return counts;
+  }, [allOrders, statusFilter]);
 
   const fetchOrders = useCallback(
     async (isAutoRefresh = false) => {
@@ -387,92 +402,16 @@ export const OrderPanel = ({ user, externalView }) => {
         </Typography>
 
         {/* BARRA DE FILTROS POR ESTADO */}
-        <Paper
-          elevation={0}
-          sx={{
-            mb: 0.5,
-            bgcolor: "background.paper",
-            borderRadius: 2,
-            border: "1px solid",
-            borderColor: "divider",
-          }}
-        >
-          <Tabs
-            value={statusFilter}
-            onChange={handleStatusChange}
-            variant="scrollable"
-            scrollButtons="auto"
-            sx={{
-              px: 1,
-              "& .MuiTabs-indicator": {
-                height: 3,
-                borderRadius: "3px 3px 0 0",
-                bgcolor: ORDER_STATUS[statusFilter]?.color || "primary.main",
-              },
-            }}
-          >
-            {Object.keys(ORDER_STATUS).map((status) => (
-              <Tab
-                key={status}
-                value={status}
-                label={
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    {/* ICONO */}
-                    <Box
-                      sx={{
-                        display: "flex",
-                        color:
-                          statusFilter === status
-                            ? ORDER_STATUS[status].color
-                            : "text.disabled",
-                      }}
-                    >
-                      {ORDER_STATUS[status].icon}
-                    </Box>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontFamily: "fontFamily.secondary",
-                        fontSize: "0.75rem",
-                      }}
-                    >
-                      {status}
-                    </Typography>
-                    {/* BADGE CON CONTADOR */}
-                    {statusCounts[status] > 0 && (
-                      <Chip
-                        label={statusCounts[status]}
-                        size="small"
-                        variant="outlined"
-                        sx={{
-                          fontFamily: "fontFamily.secondary",
-                          fontSize: "0.60rem",
-                          px: 0.7,
-                          py: 0.1,
-                          borderRadius: 5,
-                          transition: "all 0.3s",
-                          color:
-                            statusFilter === status
-                              ? ORDER_STATUS[status].color
-                              : "text.primary",
-                          borderColor:
-                            statusFilter === status
-                              ? ORDER_STATUS[status].color
-                              : "text.secondary",
-                        }}
-                      />
-                    )}
-                  </Box>
-                }
-                sx={{
-                  minHeight: 60,
-                  textTransform: "none",
-                  "&.Mui-selected": { color: ORDER_STATUS[status].color },
-                }}
-              />
-            ))}
-          </Tabs>
-        </Paper>
+        <OrderTableFilters
+          statusFilter={statusFilter}
+          orderTypeFilter={orderTypeFilter}
+          statusCounts={statusCounts}
+          orderTypeCounts={orderTypeCounts}
+          totalFilteredOrders={filteredOrders.length}
+          onStatusChange={handleStatusChange}
+          onOrderTypeChange={handleOrderTypeChange}
+          onClearFilters={handleClearTableFilters}
+        />
 
         <TableContainer
           sx={{
@@ -551,17 +490,34 @@ export const OrderPanel = ({ user, externalView }) => {
                 sx={{
                   fontFamily: "fontFamily.secondary",
                   color: "text.primary",
+                  fontSize: "1rem",
+                  mb: 1,
                 }}
               >
-                No hay pedidos con estado:
+                No hay pedidos para los filtros seleccionados
               </Typography>
               <Typography
                 sx={{
                   fontFamily: "fontFamily.secondary",
-                  color: ORDER_STATUS[statusFilter].color || "text.primary",
+                  color: "text.secondary",
+                  fontSize: "0.9rem",
                 }}
               >
-                {statusFilter}
+                Estado:{" "}
+                <Box
+                  component="span"
+                  sx={{ color: "primary.main", fontWeight: 800 }}
+                >
+                  {statusFilter}
+                </Box>
+                {" · "}
+                Entrega:{" "}
+                <Box
+                  component="span"
+                  sx={{ color: "primary.main", fontWeight: 800 }}
+                >
+                  {orderTypeFilter === "TODOS" ? "TODAS" : orderTypeFilter}
+                </Box>
               </Typography>
             </Box>
           )}
