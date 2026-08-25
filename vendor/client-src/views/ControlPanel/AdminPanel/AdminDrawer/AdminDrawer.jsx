@@ -79,7 +79,17 @@ export const AdminDrawer = ({
           alignItems: "center",
         }}
       >
-        <ThemeToggle size="small" showLabel />
+        <Box
+          sx={{
+            width: "100%",
+            px: 1.5,
+            mb: 0.5,
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <ThemeToggle size="small" showLabel />
+        </Box>
         <Box
           sx={{
             width: { xs: "140px", sm: "180px", md: "160px" },

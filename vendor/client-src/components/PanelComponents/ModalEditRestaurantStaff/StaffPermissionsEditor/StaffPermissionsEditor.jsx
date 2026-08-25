@@ -51,6 +51,12 @@ const PERMISSION_GROUPS = [
         label: "Cancelar pedidos",
         description: "Permite cancelar pedidos indicando un motivo.",
       },
+      {
+        key: "readAudit",
+        label: "Ver auditorías",
+        description:
+          "Permite consultar quién realizó modificaciones sobre los pedidos.",
+      },
     ],
   },
   {

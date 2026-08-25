@@ -1,4 +1,5 @@
 export const fieldStyles = {
+    fontFamily: 'fontFamily.primary',
     width: '100%',
     '& .MuiInputBase-root': {
         minHeight: { xs: 40, sm: 44, md: 46 },
@@ -76,4 +77,34 @@ export const actionButtonSx = {
     fontFamily: 'fontFamily.terciary',
     fontWeight: 900,
     letterSpacing: '0.4px',
+};
+
+export const sectionInfoCardStyle = {
+    p: { xs: 1.4, sm: 1.6 },
+    borderRadius: 3,
+    bgcolor: "background.main",
+    border: "1px solid",
+    borderColor: "rgba(245, 166, 35, 0.28)",
+    minWidth: 0,
+};
+
+export const sectionInfoHeaderStyle = {
+    display: "flex",
+    alignItems: "center",
+    gap: 1,
+    mb: 1.4,
+};
+
+export const sectionInfoTitleStyle = {
+    fontFamily: "fontFamily.primary",
+    color: "text.primary",
+    fontSize: { xs: "0.82rem", sm: "0.9rem" },
+    fontWeight: 900,
+    textTransform: "uppercase",
+    lineHeight: 1,
+};
+
+export const optionInfoGridStyle = {
+    display: "grid",
+    gap: 1,
 };
