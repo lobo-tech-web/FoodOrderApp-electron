@@ -38,6 +38,24 @@ import {
 import { formatMoney, hasPermission } from "@/utils/cashRegisterUtils.js";
 // ---------------
 
+const formatArgentinaDateTime = (value) => {
+  if (!value) return "-";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return new Intl.DateTimeFormat("es-AR", {
+    timeZone: "America/Argentina/Buenos_Aires",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+};
+
 export const CashRegisterHistoryPanel = ({ user, refreshKey, showAlert }) => {
   const [loading, setLoading] = useState(false);
 

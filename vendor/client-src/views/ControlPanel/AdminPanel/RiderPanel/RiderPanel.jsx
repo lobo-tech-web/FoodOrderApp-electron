@@ -11,8 +11,6 @@ import {
   TableRow,
   Paper,
   Typography,
-  Tabs,
-  Tab,
   TablePagination,
   Card,
   Stack,
@@ -26,8 +24,6 @@ import {
 import {
   Edit as EditIcon,
   Moped as MopedIcon,
-  CalendarToday as CalendarTodayIcon,
-  QueryStats as QueryStatsIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
   KeyboardArrowUp as KeyboardArrowUpIcon,
   Person as PersonIcon,
@@ -40,6 +36,9 @@ import {
 import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
 import { PanelNavBar } from "@/components/PanelComponents/PanelNavBar/PanelNavBar.jsx";
 import { ModalCreateEditRider } from "@/components/PanelComponents/ModalCreateEditRider/ModalCreateEditRider.jsx";
+import { ModalRiderCashClosure } from "@/components/PanelComponents/ModalRiderCashClosure/ModalRiderCashClosure.jsx";
+import { PendingRiderClosuresPanel } from "./PendingRiderClosuresPanel/PendingRiderClosuresPanel.jsx";
+import { RiderCashClosuresHistory } from "./RiderCashClosuresHistory/RiderCashClosuresHistory.jsx";
 // --------------------
 
 // ---- CONTEXT ----
@@ -56,12 +55,6 @@ import { formatCurrency } from "@/utils/orderCalculations.js";
 // ---------------
 
 // ---- STYLES ----
-const tabStyles = {
-  fontFamily: "fontFamily.primary",
-  color: "text.secondary",
-  borderRadius: 1,
-};
-
 const tableHeadStyle = {
   color: "primary.main",
   textAlign: "center",
@@ -282,7 +275,21 @@ const CollapsibleRow = ({ group, isMobile, sortBy, sortOrder, handleSort }) => {
   );
 };
 
-export const RiderPanel = ({ user }) => {
+const TAB_MONTH = 0;
+const TAB_TOTAL = 1;
+const TAB_RIDERS = 2;
+const TAB_CLOSURES = 3;
+const TAB_CLOSURES_HISTORY = 4;
+
+const RIDER_EXTERNAL_VIEW_MAP = {
+  5: TAB_RIDERS,
+  51: TAB_CLOSURES,
+  52: TAB_CLOSURES_HISTORY,
+  53: TAB_MONTH,
+  54: TAB_TOTAL,
+};
+
+export const RiderPanel = ({ user, externalView = 5 }) => {
   const isElectronApp =
     typeof window !== "undefined" && Boolean(window.electronAPI);
   const { AlertComponent, showAlert } = useAlert();
@@ -320,14 +327,28 @@ export const RiderPanel = ({ user }) => {
   const [date, setDate] = useState({});
 
   // TABS
-  const [activeTab, setActiveTab] = useState(0);
+  const selectedInternalTab = useMemo(() => {
+    return RIDER_EXTERNAL_VIEW_MAP[externalView] ?? TAB_RIDERS;
+  }, [externalView]);
+
+  const [activeTab, setActiveTab] = useState(selectedInternalTab);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // Cambiar de pestaña
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
-    setPage(0); // Resetear la paginación al cambiar de pestaña
+  const [closuresRefreshKey, setClosuresRefreshKey] = useState(0);
+  const isStatsTab = activeTab === TAB_MONTH || activeTab === TAB_TOTAL;
+  const isRidersTab = activeTab === TAB_RIDERS;
+  const isClosuresTab = activeTab === TAB_CLOSURES;
+  const isClosuresHistoryTab = activeTab === TAB_CLOSURES_HISTORY;
+
+  const [selectedRiderClosure, setSelectedRiderClosure] = useState(null);
+
+  const handleOpenClosureModal = (rider) => {
+    setSelectedRiderClosure(rider);
+  };
+
+  const handleCloseClosureModal = () => {
+    setSelectedRiderClosure(null);
   };
 
   const {
@@ -339,8 +360,9 @@ export const RiderPanel = ({ user }) => {
 
   // Memoización para agrupar las filas por fecha
   const groupedStats = useMemo(() => {
+    if (!isStatsTab) return [];
+
     const rows = orderState.ridersStats?.rows || [];
-    if (activeTab === 2) return []; // No aplica para la pestaña de lista
 
     const groups = rows.reduce((acc, curr) => {
       const dateKey = curr.period || "Sin fecha";
@@ -359,14 +381,14 @@ export const RiderPanel = ({ user }) => {
     }, {});
 
     return Object.values(groups);
-  }, [orderState.ridersStats, activeTab]);
+  }, [orderState.ridersStats, isStatsTab]);
 
   const fetchStats = async () => {
     setLoading(true);
     try {
-      if (activeTab === 0) {
+      if (activeTab === TAB_MONTH) {
         await getDailyRidersStats(user.id);
-      } else if (activeTab === 1) {
+      } else if (activeTab === TAB_TOTAL) {
         await getAllRidersStats(user.id);
       } else {
         await getRidersByRestaurant(user.id);
@@ -374,13 +396,23 @@ export const RiderPanel = ({ user }) => {
       setPage(0);
       const today = getDateNowDayjs();
       setDate(today);
+
       showAlert("Riders actualizados correctamente!", "success");
     } catch (error) {
       console.error("Error al obtener las estadisticas:", error);
+      showAlert(
+        error.message || "Error al obtener información de cadetes",
+        "error",
+      );
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    setActiveTab(selectedInternalTab);
+    setPage(0);
+  }, [selectedInternalTab]);
 
   useEffect(() => {
     fetchStats();
@@ -405,81 +437,8 @@ export const RiderPanel = ({ user }) => {
         showAlert={showAlert}
       />
 
-      <Card sx={{ mb: 2, borderRadius: 2, overflow: "hidden" }}>
-        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <Tabs
-            value={activeTab}
-            onChange={handleTabChange}
-            variant={"standard"}
-            sx={{
-              px: 2,
-              pt: 1,
-              "& .MuiTabs-indicator": {
-                bgcolor: "primary.main",
-              },
-            }}
-          >
-            <Tab
-              icon={<CalendarTodayIcon sx={{ color: "primary.main" }} />}
-              iconPosition="start"
-              label={
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    color: "primary.main",
-                    gap: 1,
-                  }}
-                >
-                  ENVIOS DEL MES
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "text.primary" }}
-                  >{`${date.month}/${date.year}`}</Typography>
-                </Box>
-              }
-              sx={tabStyles}
-            />
-
-            <Tab
-              icon={<QueryStatsIcon sx={{ color: "primary.main" }} />}
-              iconPosition="start"
-              label={
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    color: "primary.main",
-                  }}
-                >
-                  ESTADISTICAS TOTALES
-                </Box>
-              }
-              sx={tabStyles}
-            />
-
-            <Tab
-              icon={<MopedIcon sx={{ color: "primary.main" }} />}
-              iconPosition="start"
-              label={
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    color: "primary.main",
-                  }}
-                >
-                  RIDERS (CADETES)
-                </Box>
-              }
-              sx={tabStyles}
-            />
-          </Tabs>
-        </Box>
-      </Card>
-
       {/* CARDS DE RESUMEN - RESPONSIVE */}
-      {activeTab !== 2 && (
+      {isStatsTab && (
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={3}>
           {[
             {
@@ -542,105 +501,117 @@ export const RiderPanel = ({ user }) => {
         </Stack>
       )}
 
-      <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
-        <Table
-          aria-label="collapsible table"
-          sx={{ minWidth: activeTab !== 2 ? 760 : 520 }}
-        >
-          <TableHead sx={{ bgcolor: "background.paper" }}>
-            {activeTab !== 2 ? (
-              <TableRow sx={{ textAlign: "center" }}>
-                <TableCell />
-                <TableCell sx={tableHeadStyle}>FECHA / PERIODO</TableCell>
-                {!isMobile && (
-                  <TableCell sx={tableHeadStyle}>CANT. CADETES</TableCell>
-                )}
-                <TableCell sx={tableHeadStyle}>TOTAL VIAJES</TableCell>
-                <TableCell sx={tableHeadStyle}>TOTAL RECAUDACIÓN</TableCell>
-              </TableRow>
-            ) : (
-              <TableRow sx={{ textAlign: "center" }}>
-                <TableCell sx={tableHeadStyle}>CADETE</TableCell>
-                <TableCell sx={tableHeadStyle}>CONTACTO</TableCell>
-                <TableCell sx={tableHeadStyle}>ACCIONES</TableCell>
-              </TableRow>
-            )}
-          </TableHead>
-          <TableBody>
-            {activeTab !== 2
-              ? groupedStats
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((group, index) => (
-                    <CollapsibleRow
-                      key={index}
-                      group={group}
-                      isMobile={isMobile}
-                      sortBy={sortBy}
-                      sortOrder={sortOrder}
-                      handleSort={handleSort}
-                    />
-                  ))
-              : orderState.riders.map((r) => (
-                  <TableRow key={r.id} sx={{ textAlign: "center" }}>
-                    <TableCell sx={tableBodyStyle}>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 2,
-                        }}
-                      >
-                        <Avatar
-                          sx={{
-                            bgcolor: "primary.main",
-                            color: "text.terciary",
-                            fontFamily: "fontFamily.secondary",
-                          }}
-                        >
-                          {r.name.charAt(0)}
-                        </Avatar>
-                        <Typography
-                          variant="subtitle2"
-                          sx={{
-                            fontFamily: "fontFamily.secondary",
-                            width: 140,
-                            textAlign: "left",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {r.name}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={tableBodyStyle}>{r.phone}</TableCell>
-                    <TableCell sx={tableBodyStyle}>
-                      <IconButton onClick={() => handleOpenEditRider(r)}>
-                        <EditIcon color="primary" />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-          </TableBody>
-        </Table>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={
-            activeTab !== 2 ? groupedStats.length : orderState.riders.length
-          }
-          page={page}
-          rowsPerPage={rowsPerPage}
-          onPageChange={(e, newPage) => setPage(newPage)}
-          onRowsPerPageChange={(e) =>
-            setRowsPerPage(parseInt(e.target.value, 10))
-          }
+      {isClosuresTab ? (
+        <PendingRiderClosuresPanel
+          restaurantId={user.id}
+          showAlert={showAlert}
+          refreshKey={closuresRefreshKey}
+          onOpenClosure={handleOpenClosureModal}
         />
-      </TableContainer>
+      ) : isClosuresHistoryTab ? (
+        <RiderCashClosuresHistory
+          restaurantId={user.id}
+          riders={orderState.riders || []}
+          showAlert={showAlert}
+        />
+      ) : (
+        <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
+          <Table
+            aria-label="collapsible table"
+            sx={{ minWidth: isStatsTab ? 760 : 520 }}
+          >
+            <TableHead sx={{ bgcolor: "background.paper" }}>
+              {isStatsTab ? (
+                <TableRow sx={{ textAlign: "center" }}>
+                  <TableCell />
+                  <TableCell sx={tableHeadStyle}>FECHA / PERIODO</TableCell>
+                  {!isMobile && (
+                    <TableCell sx={tableHeadStyle}>CANT. CADETES</TableCell>
+                  )}
+                  <TableCell sx={tableHeadStyle}>TOTAL VIAJES</TableCell>
+                  <TableCell sx={tableHeadStyle}>TOTAL RECAUDACIÓN</TableCell>
+                </TableRow>
+              ) : (
+                <TableRow sx={{ textAlign: "center" }}>
+                  <TableCell sx={tableHeadStyle}>CADETE</TableCell>
+                  <TableCell sx={tableHeadStyle}>CONTACTO</TableCell>
+                  <TableCell sx={tableHeadStyle}>ACCIONES</TableCell>
+                </TableRow>
+              )}
+            </TableHead>
+            <TableBody>
+              {isStatsTab
+                ? groupedStats
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((group, index) => (
+                      <CollapsibleRow
+                        key={index}
+                        group={group}
+                        isMobile={isMobile}
+                        sortBy={sortBy}
+                        sortOrder={sortOrder}
+                        handleSort={handleSort}
+                      />
+                    ))
+                : orderState.riders.map((r) => (
+                    <TableRow key={r.id} sx={{ textAlign: "center" }}>
+                      <TableCell sx={tableBodyStyle}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 2,
+                          }}
+                        >
+                          <Avatar
+                            sx={{
+                              bgcolor: "primary.main",
+                              color: "text.terciary",
+                              fontFamily: "fontFamily.secondary",
+                            }}
+                          >
+                            {r.name.charAt(0)}
+                          </Avatar>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              fontFamily: "fontFamily.secondary",
+                              width: 140,
+                              textAlign: "left",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {r.name}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={tableBodyStyle}>{r.phone}</TableCell>
+                      <TableCell sx={tableBodyStyle}>
+                        <IconButton onClick={() => handleOpenEditRider(r)}>
+                          <EditIcon color="primary" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+            </TableBody>
+          </Table>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={isStatsTab ? groupedStats.length : orderState.riders.length}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            onPageChange={(e, newPage) => setPage(newPage)}
+            onRowsPerPageChange={(e) =>
+              setRowsPerPage(parseInt(e.target.value, 10))
+            }
+          />
+        </TableContainer>
+      )}
 
-      {AlertComponent}
       {modalEditRider && (
         <ModalCreateEditRider
           show={modalEditRider}
@@ -650,6 +621,21 @@ export const RiderPanel = ({ user }) => {
           isEditing={true}
         />
       )}
+
+      <ModalRiderCashClosure
+        open={Boolean(selectedRiderClosure)}
+        onClose={handleCloseClosureModal}
+        restaurantId={user.id}
+        rider={selectedRiderClosure}
+        showAlert={showAlert}
+        onClosed={async () => {
+          handleCloseClosureModal();
+          setClosuresRefreshKey((prev) => prev + 1);
+          await fetchStats();
+        }}
+      />
+
+      {AlertComponent}
     </Box>
   );
 };

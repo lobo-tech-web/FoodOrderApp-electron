@@ -27,9 +27,11 @@ import {
   Logout as LogoutIcon,
   LunchDining as LunchDiningIcon,
   Moped as MopedIcon,
+  RequestQuote as RequestQuoteIcon,
   PeopleAlt as PeopleAltIcon,
   QueryStats as QueryStatsIcon,
   ReceiptLong as ReceiptLongIcon,
+  Plagiarism as PlagiarismIcon,
   Savings as SavingsIcon,
   Storefront as StorefrontIcon,
   Today as TodayIcon,
@@ -61,6 +63,10 @@ export const AdminDrawer = ({
   const [openOrders, setOpenOrders] = useState(false);
   const [openProducts, setOpenProducts] = useState(false);
   const [openStats, setOpenStats] = useState(false);
+  const [openRiders, setOpenRiders] = useState(false);
+
+  const riderTabs = [5, 51, 52, 53, 54];
+  const isRidersSelected = riderTabs.includes(activeTab);
 
   return (
     <Box
@@ -259,6 +265,28 @@ export const AdminDrawer = ({
               </ListItemIcon>
               <ListItemText
                 primary="Historial"
+                primaryTypographyProps={{ fontSize: "0.85rem" }}
+              />
+            </ListItemButton>
+
+            <ListItemButton
+              selected={activeTab === 13}
+              onClick={() => handleAction(13)}
+              sx={{
+                fontFamily: "fontFamily.secondary",
+                pl: 4,
+                borderRadius: 2,
+                mb: 0.5,
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <PlagiarismIcon
+                  fontSize="small"
+                  color={activeTab === 13 ? "primary" : "inherit"}
+                />
+              </ListItemIcon>
+              <ListItemText
+                primary="Auditoria de pedidos"
                 primaryTypographyProps={{ fontSize: "0.85rem" }}
               />
             </ListItemButton>
@@ -486,8 +514,8 @@ export const AdminDrawer = ({
 
         {/* CADETES */}
         <ListItemButton
-          selected={activeTab === 5}
-          onClick={() => handleAction(5)}
+          selected={isRidersSelected}
+          onClick={() => setOpenRiders(!openRiders)}
           sx={{
             fontFamily: "fontFamily.secondary",
             borderRadius: 2,
@@ -502,11 +530,138 @@ export const AdminDrawer = ({
           <ListItemIcon sx={{ minWidth: 40 }}>
             <MopedIcon />
           </ListItemIcon>
+
           <ListItemText
             primary="Cadetes"
             primaryTypographyProps={{ fontSize: "0.9rem" }}
           />
+
+          {openRiders ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </ListItemButton>
+
+        <Collapse in={openRiders} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {/* MIS CADETES */}
+            <ListItemButton
+              selected={activeTab === 5}
+              onClick={() => handleAction(5)}
+              sx={{
+                fontFamily: "fontFamily.secondary",
+                pl: 4,
+                borderRadius: 2,
+                mb: 0.5,
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <MopedIcon
+                  fontSize="small"
+                  color={activeTab === 5 ? "primary" : "inherit"}
+                />
+              </ListItemIcon>
+
+              <ListItemText
+                primary="Mis Cadetes"
+                primaryTypographyProps={{ fontSize: "0.85rem" }}
+              />
+            </ListItemButton>
+
+            {/* CIERRES PENDIENTES */}
+            <ListItemButton
+              selected={activeTab === 51}
+              onClick={() => handleAction(51)}
+              sx={{
+                fontFamily: "fontFamily.secondary",
+                pl: 4,
+                borderRadius: 2,
+                mb: 0.5,
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <RequestQuoteIcon
+                  fontSize="small"
+                  color={activeTab === 51 ? "primary" : "inherit"}
+                />
+              </ListItemIcon>
+
+              <ListItemText
+                primary="Cierre de turno"
+                primaryTypographyProps={{ fontSize: "0.85rem" }}
+              />
+            </ListItemButton>
+
+            {/* HISTORIAL DE CIERRES */}
+            <ListItemButton
+              selected={activeTab === 52}
+              onClick={() => handleAction(52)}
+              sx={{
+                fontFamily: "fontFamily.secondary",
+                pl: 4,
+                borderRadius: 2,
+                mb: 0.5,
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <HistoryIcon
+                  fontSize="small"
+                  color={activeTab === 52 ? "primary" : "inherit"}
+                />
+              </ListItemIcon>
+
+              <ListItemText
+                primary="Historial de Cierres"
+                primaryTypographyProps={{ fontSize: "0.85rem" }}
+              />
+            </ListItemButton>
+
+            {/* ENVIOS DEL MES */}
+            <ListItemButton
+              selected={activeTab === 53}
+              onClick={() => handleAction(53)}
+              sx={{
+                fontFamily: "fontFamily.secondary",
+                pl: 4,
+                borderRadius: 2,
+                mb: 0.5,
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <CalendarMonthIcon
+                  fontSize="small"
+                  color={activeTab === 53 ? "primary" : "inherit"}
+                />
+              </ListItemIcon>
+
+              <ListItemText
+                primary="Envíos del Mes"
+                primaryTypographyProps={{ fontSize: "0.85rem" }}
+              />
+            </ListItemButton>
+
+            {/* ESTADISTICAS TOTALES */}
+            <ListItemButton
+              selected={activeTab === 54}
+              onClick={() => handleAction(54)}
+              sx={{
+                fontFamily: "fontFamily.secondary",
+                pl: 4,
+                borderRadius: 2,
+                mb: 0.5,
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <QueryStatsIcon
+                  fontSize="small"
+                  color={activeTab === 54 ? "primary" : "inherit"}
+                />
+              </ListItemIcon>
+
+              <ListItemText
+                primary="Estadísticas Totales"
+                primaryTypographyProps={{ fontSize: "0.85rem" }}
+              />
+            </ListItemButton>
+          </List>
+        </Collapse>
 
         {/* EMPLEADOS */}
         <ListItemButton

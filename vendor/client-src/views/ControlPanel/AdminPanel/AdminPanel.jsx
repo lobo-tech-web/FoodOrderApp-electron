@@ -23,6 +23,7 @@ import { CategoryPanel } from "./CategoryPanel/CategoryPanel.jsx";
 import { CustomOptionPanel } from "./CustomOptionPanel/CustomOptionPanel.jsx";
 import { LocalSettingsPanel } from "./LocalSettingsPanel/LocalSettingsPanel.jsx";
 import { OrderPanel } from "./OrderPanel/OrderPanel.jsx";
+import { OrderAuditPanel } from "./OrderPanel/OrderAuditPanel/OrderAuditPanel.jsx";
 import { ProductPanel } from "./ProductPanel/ProductPanel.jsx";
 import { RestaurantStaffPanel } from "./RestaurantStaffPanel/RestaurantStaffPanel.jsx";
 import { RiderPanel } from "./RiderPanel/RiderPanel.jsx";
@@ -136,6 +137,7 @@ export const AdminPanel = () => {
               {activeTab === 1 && "PEDIDOS DE HOY"}
               {activeTab === 11 && "PEDIDOS DEL MES"}
               {activeTab === 12 && "HISTORIAL DE PEDIDOS"}
+              {activeTab === 13 && "AUDITORIA DE PEDIDOS"}
               {activeTab === 2 && "GESTIÓN DE CATEGORÍAS"}
               {activeTab === 21 && "CATÁLOGO DE PRODUCTOS"}
               {activeTab === 22 && "GESTIÓN DE PERSONALIZACIÓNES"}
@@ -143,7 +145,11 @@ export const AdminPanel = () => {
               {activeTab === 4 && "ESTADÍSTICAS DE VENTAS DIARIAS"}
               {activeTab === 41 && "ESTADÍSTICAS DE VENTAS MENSUALES"}
               {activeTab === 42 && "REPORTE DE VENTAS POR CATEGORÍA"}
-              {activeTab === 5 && "GESTIÓN DE CADETES"}
+              {activeTab === 5 && "MIS CADETES"}
+              {activeTab === 51 && "CIERRES PENDIENTES DE CADETES"}
+              {activeTab === 52 && "HISTORIAL DE CIERRES DE CADETES"}
+              {activeTab === 53 && "ENVÍOS DEL MES DE CADETES"}
+              {activeTab === 54 && "ESTADÍSTICAS TOTALES DE CADETES"}
               {activeTab === 6 && "GESTIÓN DE EMPLEADOS"}
               {activeTab === 7 && "GESTIÓN DE CAJA"}
             </Typography>
@@ -211,6 +217,7 @@ export const AdminPanel = () => {
           {(activeTab === 1 || activeTab === 11 || activeTab === 12) && (
             <OrderPanel user={user} externalView={activeTab} />
           )}
+          {activeTab === 13 && <OrderAuditPanel user={user} />}
           {activeTab === 2 && <CategoryPanel user={user} />}
           {activeTab === 21 && <ProductPanel user={user} />}
           {activeTab === 22 && <CustomOptionPanel user={user} />}
@@ -218,7 +225,9 @@ export const AdminPanel = () => {
           {(activeTab === 4 || activeTab === 41 || activeTab === 42) && (
             <StatsPanel user={user} externalView={activeTab} />
           )}
-          {activeTab === 5 && <RiderPanel user={user} />}
+          {[5, 51, 52, 53, 54].includes(activeTab) && (
+            <RiderPanel user={user} externalView={activeTab} />
+          )}
           {activeTab === 6 && <RestaurantStaffPanel user={user} />}
           {activeTab === 7 && <CashRegisterPanel user={user} />}
         </Box>

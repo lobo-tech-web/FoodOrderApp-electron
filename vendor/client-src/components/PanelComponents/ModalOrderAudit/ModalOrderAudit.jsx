@@ -14,11 +14,16 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-// Icons
+// Iconss
 import {
   Close as CloseIcon,
   History as HistoryIcon,
   Person as PersonIcon,
+  Add as AddIcon,
+  Edit as EditIcon,
+  Pending as PendingIcon,
+  Cancel as CancelIcon,
+  AttachMoney as MoneyIcon,
 } from "@mui/icons-material";
 // ---------------------
 
@@ -40,6 +45,14 @@ const ACTION_COLORS = {
   STATUS_CHANGE: "primary",
   PAYMENT_CHANGE: "warning",
   CANCEL: "error",
+};
+
+const ACTION_ICONS = {
+  CREATE: <AddIcon />,
+  UPDATE: <EditIcon />,
+  STATUS_CHANGE: <PendingIcon />,
+  PAYMENT_CHANGE: <MoneyIcon />,
+  CANCEL: <CancelIcon />,
 };
 
 const FIELD_LABELS = {
@@ -168,7 +181,7 @@ export const ModalOrderAudit = ({ open, orderId, onClose, showAlert }) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>
+      <DialogTitle sx={{ bgcolor: "background.main" }}>
         <Stack
           direction="row"
           justifyContent="space-between"
@@ -177,12 +190,7 @@ export const ModalOrderAudit = ({ open, orderId, onClose, showAlert }) => {
           <Stack direction="row" spacing={1} alignItems="center">
             <HistoryIcon color="primary" />
 
-            <Typography
-              sx={{
-                fontFamily: "fontFamily.primary",
-                fontWeight: "bold",
-              }}
-            >
+            <Typography variant="h6" sx={{ fontFamily: "fontFamily.primary" }}>
               AUDITORÍA PEDIDO #{orderId}
             </Typography>
           </Stack>
@@ -213,7 +221,7 @@ export const ModalOrderAudit = ({ open, orderId, onClose, showAlert }) => {
             sx={{
               py: 4,
               textAlign: "center",
-              color: "text.secondary",
+              color: "text.primary",
             }}
           >
             Este pedido todavía no posee registros de auditoría.
@@ -246,8 +254,10 @@ export const ModalOrderAudit = ({ open, orderId, onClose, showAlert }) => {
                     <Box>
                       <Chip
                         size="small"
+                        icon={ACTION_ICONS[log.action] || <EditIcon />}
                         color={ACTION_COLORS[log.action] || "default"}
                         label={ACTION_LABELS[log.action] || log.action}
+                        sx={{ fontFamily: "fontFamily.secondary" }}
                       />
 
                       <Stack
@@ -260,30 +270,56 @@ export const ModalOrderAudit = ({ open, orderId, onClose, showAlert }) => {
                       >
                         <PersonIcon fontSize="small" color="primary" />
 
-                        <Typography fontWeight="bold">
+                        <Typography
+                          sx={{
+                            fontFamily: "fontFamily.secondary",
+                            textTransform: "uppercase",
+                          }}
+                        >
                           {log.changedByNameSnapshot || "Sistema"}
                         </Typography>
 
-                        <Typography color="text.secondary" fontSize={13}>
+                        <Typography
+                          sx={{
+                            fontFamily: "fontFamily.secondary",
+                            fontSize: 13,
+                            textTransform: "lowercase",
+                          }}
+                        >
                           ({log.changedByType})
                         </Typography>
                       </Stack>
                     </Box>
 
-                    <Typography color="text.secondary" fontSize={13}>
+                    <Typography
+                      sx={{ fontFamily: "fontFamily.secondary", fontSize: 13 }}
+                    >
                       {formatDate(log.createdAt)}
                     </Typography>
                   </Stack>
 
                   {log.reason && (
-                    <Typography
-                      sx={{
-                        mt: 1,
-                        color: "text.secondary",
-                      }}
-                    >
-                      Motivo: {log.reason}
-                    </Typography>
+                    <Box sx={{ display: "flex", gap: 1 }}>
+                      <Typography
+                        sx={{
+                          fontFamily: "fontFamily.secondary",
+                          color: "primary.main",
+                          mt: 1,
+                        }}
+                      >
+                        Motivo:
+                      </Typography>
+
+                      <Typography
+                        sx={{
+                          fontFamily: "fontFamily.secondary",
+                          color: "text.primary",
+                          mt: 1,
+                        }}
+                      >
+                        {log.reason}
+                      </Typography>
+                    </Box>
                   )}
 
                   {changes.length > 0 && (
@@ -299,16 +335,49 @@ export const ModalOrderAudit = ({ open, orderId, onClose, showAlert }) => {
                           <Box key={change.field}>
                             <Typography
                               sx={{
-                                fontWeight: "bold",
+                                fontFamily: "fontFamily.primary",
                                 fontSize: 13,
+                                textTransform: "uppercase",
                               }}
                             >
                               {change.label}
                             </Typography>
 
-                            <Typography color="text.secondary" fontSize={13}>
-                              {change.before} → {change.after}
-                            </Typography>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                gap: 1,
+                                alignItems: "center",
+                              }}
+                            >
+                              <Typography
+                                sx={{
+                                  fontFamily: "fontFamily.secondary",
+                                  color: "text.secondary",
+                                  fontSize: 13,
+                                }}
+                              >
+                                {change.before}
+                              </Typography>
+                              <Typography
+                                sx={{
+                                  fontFamily: "fontFamily.secondary",
+                                  color: "text.primary",
+                                  fontSize: 14,
+                                }}
+                              >
+                                →
+                              </Typography>
+                              <Typography
+                                sx={{
+                                  fontFamily: "fontFamily.secondary",
+                                  color: "success.main",
+                                  fontSize: 13,
+                                }}
+                              >
+                                {change.after}
+                              </Typography>
+                            </Box>
                           </Box>
                         ))}
                       </Stack>

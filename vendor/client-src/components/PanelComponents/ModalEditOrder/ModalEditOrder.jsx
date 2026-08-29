@@ -20,6 +20,7 @@ import {
   Edit as EditIcon,
   Save as SaveIcon,
   AccessTime as AccessTimeIcon,
+  Plagiarism as PlagiarismIcon,
 } from "@mui/icons-material";
 // ---------------------
 
@@ -42,6 +43,7 @@ import { ModalSelectProducts } from "./ModalSelectProducts/ModalSelectProducts.j
 import { QuickEditOrder } from "./QuickEditOrder/QuickEditOrder.jsx";
 import { OrderManagementPanel } from "./OrderDetails/OrderManagementPanel.jsx";
 import { OrderSummaryPanel } from "./OrderDetails/OrderSummaryPanel.jsx";
+import { ModalOrderAudit } from "../ModalOrderAudit/ModalOrderAudit.jsx";
 // --------------------
 
 // ---- UTILS ----
@@ -75,6 +77,7 @@ export const ModalEditOrder = ({
   const [loading, setLoading] = useState(false);
   const [loadingOrderDetail, setLoadingOrderDetail] = useState(false);
   const [showPrinterConfig, setShowPrinterConfig] = useState(false);
+  const [showOrderAudit, setShowOrderAudit] = useState(false);
 
   const { orderState, getOrderById, updateOrder, getRidersByRestaurant } =
     useOrders();
@@ -117,6 +120,13 @@ export const ModalEditOrder = ({
   }, [hasChanges, onClose]);
 
   const currentUser = userState.user;
+
+  const canReadAudit =
+    currentUser?.role === "admin" ||
+    currentUser?.role === "dev" ||
+    (currentUser?.role === "staff" &&
+      currentUser?.permissions?.orders?.readAudit === true);
+
   const isStaff = currentUser?.role === "staff";
 
   const isPrivilegedUser =
@@ -890,6 +900,25 @@ export const ModalEditOrder = ({
               </Box>
             )}
 
+            {/* Auditoria de pedido */}
+            {canReadAudit && showOrder?.id && (
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<PlagiarismIcon />}
+                onClick={() => setShowOrderAudit(true)}
+                sx={{
+                  display: {
+                    xs: "none",
+                    sm: "inline-flex",
+                  },
+                  fontFamily: "fontFamily.primary",
+                }}
+              >
+                Auditoría
+              </Button>
+            )}
+
             <IconButton
               onClick={handleClose}
               disabled={loading}
@@ -1055,6 +1084,13 @@ export const ModalEditOrder = ({
       <PrinterConfigModal
         open={showPrinterConfig}
         onClose={() => setShowPrinterConfig(false)}
+      />
+
+      <ModalOrderAudit
+        open={showOrderAudit}
+        orderId={showOrder?.id || null}
+        showAlert={showAlert}
+        onClose={() => setShowOrderAudit(false)}
       />
     </>
   );
