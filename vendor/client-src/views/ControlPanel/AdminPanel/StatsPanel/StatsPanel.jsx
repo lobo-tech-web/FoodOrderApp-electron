@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from "react";
 
 // ---- MATERIAL UI ----
 import {
@@ -13,41 +13,43 @@ import {
   Typography,
   TablePagination,
   Button,
-} from '@mui/material';
+} from "@mui/material";
 // ICONS
-import PrintIcon from '@mui/icons-material/Print';
+import PrintIcon from "@mui/icons-material/Print";
 // ---------------------
 
 // ---- COMPONENTS ----
-import { LoadingComponent } from '@/components/LoadingComponent/LoadingComponent.jsx';
-import { PanelNavBar } from '@/components/PanelComponents/PanelNavBar/PanelNavBar.jsx';
-import { PrintDailySalesTicket } from './PrintDailySalesTicket/PrintDailySalesTicket.jsx';
-import { CategorySalesReport } from './CategorySalesReport.jsx';
+import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
+import { PanelNavBar } from "@/components/PanelComponents/PanelNavBar/PanelNavBar.jsx";
+import { PrintDailySalesTicket } from "./PrintDailySalesTicket/PrintDailySalesTicket.jsx";
+import { CategorySalesReport } from "./CategorySalesReport.jsx";
 // --------------------
 
 // ---- CONTEXT ----
-import { useOrders } from '@/context/Orders.jsx';
+import { useOrders } from "@/context/Orders.jsx";
 // -----------------
 
 // ---- HOOKS ----
-import { useAlert } from '@/hooks/Alert.jsx';
+import { useAlert } from "@/hooks/Alert.jsx";
 // ---------------
 
 // ---- STYLES ----
 const tableHeadStyle = {
-  color: 'primary.main',
-  textAlign: 'center',
-  fontFamily: 'fontFamily.primary',
+  color: "primary.main",
+  textAlign: "center",
+  fontFamily: "fontFamily.primary",
 };
 
 const tableBodyStyle = {
-  color: 'text.primary',
-  textAlign: 'center',
-  fontFamily: 'fontFamily.secondary',
+  color: "text.primary",
+  textAlign: "center",
+  fontFamily: "fontFamily.secondary",
 };
 // ----------------
 
 export const StatsPanel = ({ user, externalView }) => {
+  const isElectronApp =
+    typeof window !== "undefined" && Boolean(window.electronAPI);
   const { AlertComponent, showAlert } = useAlert();
   const [loading, setLoading] = useState(false);
 
@@ -73,7 +75,7 @@ export const StatsPanel = ({ user, externalView }) => {
   const { orderState, getMonthlyOrderStats, getDailyOrderStats } = useOrders();
   const orderStats = useMemo(
     () => orderState.orderStats || [],
-    [orderState.orderStats]
+    [orderState.orderStats],
   );
 
   const fetchStats = useCallback(async () => {
@@ -87,10 +89,10 @@ export const StatsPanel = ({ user, externalView }) => {
         await getMonthlyOrderStats(user.id);
       }
       setPage(0);
-      showAlert('Estadisticas Actualizadas!', 'success');
+      showAlert("Estadisticas Actualizadas!", "success");
     } catch (error) {
-      console.error('Error al obtener las estadisticas:', error);
-      showAlert?.('Error al obtener las estadísticas', 'error');
+      console.error("Error al obtener las estadisticas:", error);
+      showAlert?.("Error al obtener las estadísticas", "error");
     } finally {
       setLoading(false);
     }
@@ -121,10 +123,19 @@ export const StatsPanel = ({ user, externalView }) => {
     setSelectedDayStats(null);
   };
 
-  if (loading) return <LoadingComponent message={'Cargando estadisticas...'} />;
+  if (loading) return <LoadingComponent message={"Cargando estadisticas..."} />;
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box
+      sx={{
+        width: "100%",
+        height: isElectronApp ? "calc(100vh - 112px)" : "auto",
+        overflowY: isElectronApp ? "auto" : "visible",
+        overflowX: isElectronApp ? "auto" : "visible",
+        pr: isElectronApp ? 1 : 0,
+        pb: isElectronApp ? 3 : 0,
+      }}
+    >
       {/* PANELNAVBAR DE LOS PEDIDOS */}
       <PanelNavBar isStatsPanel={true} handleRefresh={fetchStats} />
 
@@ -135,12 +146,12 @@ export const StatsPanel = ({ user, externalView }) => {
         ) : (
           <Typography
             sx={{
-              display: 'flex',
-              alignContent: 'center',
-              justifyContent: 'center',
-              width: '100%',
-              paddingTop: '10rem',
-              fontFamily: 'fontFamily.primary',
+              display: "flex",
+              alignContent: "center",
+              justifyContent: "center",
+              width: "100%",
+              paddingTop: "10rem",
+              fontFamily: "fontFamily.primary",
             }}
           >
             NO HAY REPORTES MENSUALES DISPONIBLES.
@@ -148,39 +159,39 @@ export const StatsPanel = ({ user, externalView }) => {
         )
       ) : orderStats.length > 0 ? (
         <Paper
-          sx={{ width: '100%', mb: 2, borderRadius: 2, overflow: 'hidden' }}
+          sx={{ width: "100%", mb: 2, borderRadius: 2, overflow: "hidden" }}
         >
           <Typography
             variant="h6"
             sx={{
-              fontFamily: 'fontFamily.primary',
-              display: 'flex',
-              justifyContent: 'center',
-              color: 'text.primary',
+              fontFamily: "fontFamily.primary",
+              display: "flex",
+              justifyContent: "center",
+              color: "text.primary",
               m: 2,
             }}
           >
-            {activeTab === 0 ? 'VENTAS DIARIAS' : 'VENTAS MENSUALES'}
+            {activeTab === 0 ? "VENTAS DIARIAS" : "VENTAS MENSUALES"}
           </Typography>
           <TableContainer>
             <Table aria-label="collapsible table">
-              <TableHead sx={{ bgcolor: 'background.paper' }}>
-                <TableRow sx={{ textAlign: 'center' }}>
+              <TableHead sx={{ bgcolor: "background.paper" }}>
+                <TableRow sx={{ textAlign: "center" }}>
                   <TableCell sx={tableHeadStyle}>FECHA</TableCell>
                   <TableCell sx={tableHeadStyle}>TOTAL DE PEDIDOS</TableCell>
                   <TableCell sx={tableHeadStyle}>VENTA TOTAL</TableCell>
                   <TableCell sx={tableHeadStyle}>IMPRIMIR VENTAS</TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody sx={{ bgcolor: 'background.default' }}>
+              <TableBody sx={{ bgcolor: "background.default" }}>
                 {(rowsPerPage > 0
                   ? orderStats.slice(
                       page * rowsPerPage,
-                      page * rowsPerPage + rowsPerPage
+                      page * rowsPerPage + rowsPerPage,
                     )
                   : orderStats
                 ).map((stats, index) => (
-                  <TableRow key={index} sx={{ textAlign: 'center' }}>
+                  <TableRow key={index} sx={{ textAlign: "center" }}>
                     <TableCell component="th" scope="row" sx={tableBodyStyle}>
                       {activeTab === 0
                         ? `${stats?.date?.day} - ${stats?.date?.monthName} - ${stats?.date?.year}`
@@ -190,7 +201,7 @@ export const StatsPanel = ({ user, externalView }) => {
                       {stats?.totalOrders}
                     </TableCell>
                     <TableCell component="th" scope="row" sx={tableBodyStyle}>
-                      ${stats?.totalAmount?.toLocaleString('es-AR')}
+                      ${stats?.totalAmount?.toLocaleString("es-AR")}
                     </TableCell>
                     <TableCell component="th" scope="row" sx={tableBodyStyle}>
                       <Button
@@ -199,11 +210,11 @@ export const StatsPanel = ({ user, externalView }) => {
                         onClick={() => handleOpenPrintModal(stats)}
                         size="small"
                         sx={{
-                          fontFamily: 'fontFamily.terciary',
-                          borderColor: 'primary.main',
-                          color: 'primary.main',
-                          '&:hover': {
-                            bgcolor: 'primary.secondary',
+                          fontFamily: "fontFamily.terciary",
+                          borderColor: "primary.main",
+                          color: "primary.main",
+                          "&:hover": {
+                            bgcolor: "primary.secondary",
                           },
                         }}
                       >
@@ -229,9 +240,9 @@ export const StatsPanel = ({ user, externalView }) => {
                 `${from}–${to} de ${count !== -1 ? count : `más de ${to}`}`
               }
               sx={{
-                fontFamily: 'fontFamily.primary',
-                bgcolor: 'background.paper',
-                color: 'text.primary',
+                fontFamily: "fontFamily.primary",
+                bgcolor: "background.paper",
+                color: "text.primary",
               }}
             />
           )}
@@ -239,12 +250,12 @@ export const StatsPanel = ({ user, externalView }) => {
       ) : (
         <Typography
           sx={{
-            display: 'flex',
-            alignContent: 'center',
-            justifyContent: 'center',
-            width: '100%',
-            paddingTop: '10rem',
-            fontFamily: 'fontFamily.primary',
+            display: "flex",
+            alignContent: "center",
+            justifyContent: "center",
+            width: "100%",
+            paddingTop: "10rem",
+            fontFamily: "fontFamily.primary",
           }}
         >
           NO HAY ESTADÍSTICAS DISPONIBLES.
@@ -259,7 +270,7 @@ export const StatsPanel = ({ user, externalView }) => {
           open={isPrintModalOpen}
           onClose={handleClosePrintModal}
           dayStats={selectedDayStats}
-          restaurantName={user.restaurantName || 'LOCAL'}
+          restaurantName={user.restaurantName || "LOCAL"}
         />
       )}
     </Box>

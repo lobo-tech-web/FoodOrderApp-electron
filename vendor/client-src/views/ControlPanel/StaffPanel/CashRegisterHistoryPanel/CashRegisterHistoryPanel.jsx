@@ -57,6 +57,8 @@ const formatArgentinaDateTime = (value) => {
 };
 
 export const CashRegisterHistoryPanel = ({ user, refreshKey, showAlert }) => {
+  const isElectronApp =
+    typeof window !== "undefined" && Boolean(window.electronAPI);
   const [loading, setLoading] = useState(false);
 
   const [sessions, setSessions] = useState([]);
@@ -114,7 +116,16 @@ export const CashRegisterHistoryPanel = ({ user, refreshKey, showAlert }) => {
   if (reportLoading) return <LoadingComponent message="Cargando detalle..." />;
 
   return (
-    <>
+    <Box
+      sx={{
+        width: "100%",
+        height: isElectronApp ? "calc(100vh - 112px)" : "auto",
+        overflowY: isElectronApp ? "auto" : "visible",
+        overflowX: isElectronApp ? "auto" : "visible",
+        pr: isElectronApp ? 1 : 0,
+        pb: isElectronApp ? 3 : 0,
+      }}
+    >
       <Paper
         elevation={0}
         sx={{
@@ -247,6 +258,34 @@ export const CashRegisterHistoryPanel = ({ user, refreshKey, showAlert }) => {
                       Código: {session.registerCode}
                     </Typography> */}
 
+                    <Stack
+                      direction={{ xs: "column", sm: "row" }}
+                      spacing={{ xs: 0.2, sm: 1.5 }}
+                      sx={{ mt: 0.5 }}
+                    >
+                      <Typography
+                        sx={{
+                          fontFamily: "fontFamily.secondary",
+                          color: "text.secondary",
+                          fontSize: 12,
+                        }}
+                      >
+                        Apertura: {formatArgentinaDateTime(session.openedAt)}
+                      </Typography>
+
+                      {session.closedAt && (
+                        <Typography
+                          sx={{
+                            fontFamily: "fontFamily.secondary",
+                            color: "text.secondary",
+                            fontSize: 12,
+                          }}
+                        >
+                          Cierre: {formatArgentinaDateTime(session.closedAt)}
+                        </Typography>
+                      )}
+                    </Stack>
+
                     <Typography
                       sx={{
                         fontFamily: "fontFamily.secondary",
@@ -368,6 +407,6 @@ export const CashRegisterHistoryPanel = ({ user, refreshKey, showAlert }) => {
           </Button>
         </DialogActions>
       </Dialog>
-    </>
+    </Box>
   );
 };

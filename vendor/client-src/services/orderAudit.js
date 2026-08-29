@@ -13,7 +13,6 @@ const handleServiceError = (error, fallbackMessage) => {
     throw {
         message: error?.message || fallbackMessage,
     };
-
 };
 
 export const getOrderAuditLogsService = async (orderId) => {

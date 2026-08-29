@@ -24,6 +24,8 @@ import {
   Pending as PendingIcon,
   Cancel as CancelIcon,
   AttachMoney as MoneyIcon,
+  Paid as PaidIcon,
+  MoneyOff as MoneyOffIcon,
 } from "@mui/icons-material";
 // ---------------------
 
@@ -31,21 +33,18 @@ import {
 import { getOrderAuditLogsService } from "@/services/orderAudit.js";
 // -------------------
 
-const ACTION_LABELS = {
-  CREATE: "Pedido creado",
-  UPDATE: "Pedido modificado",
-  STATUS_CHANGE: "Estado modificado",
-  PAYMENT_CHANGE: "Pago modificado",
-  CANCEL: "Pedido cancelado",
-};
-
-const ACTION_COLORS = {
-  CREATE: "success",
-  UPDATE: "info",
-  STATUS_CHANGE: "primary",
-  PAYMENT_CHANGE: "warning",
-  CANCEL: "error",
-};
+// ---- Utils ----
+import {
+  ACTION_LABELS,
+  ACTION_COLORS,
+  getChanges,
+  formatDate,
+} from "@/utils/orderAuditUtils.js";
+import { statusOptions } from "@/utils/components/StatusUtils.jsx";
+import { orderTypeOptions } from "@/utils/components/OrderTypeUtils.jsx";
+import { paymentMethods } from "@/utils/components/PaymentUtils.jsx";
+import { discountMethods } from "@/utils/components/DiscountUtils.jsx";
+// ---------------
 
 const ACTION_ICONS = {
   CREATE: <AddIcon />,
@@ -55,103 +54,84 @@ const ACTION_ICONS = {
   CANCEL: <CancelIcon />,
 };
 
-const FIELD_LABELS = {
-  status: "Estado",
-  clientName: "Cliente",
-  clientEmail: "Email",
-  contactPhone: "Teléfono",
-  deliveryAddress: "Dirección",
-  orderType: "Entrega",
-  paymentMethod: "Método de pago",
-  deliverycost: "Costo de delivery",
-  servicetax: "Servicio",
-  discount: "Descuento",
-  discountamount: "Monto descuento",
-  extraPoints: "Puntos adicionales",
-  riderId: "Cadete",
-  comentary: "Comentario",
-  cartItems: "Productos",
-  totalAmount: "Total",
-  totalRewardPoints: "Puntos otorgados",
-  totalRedeemPoints: "Puntos canjeados",
+const findOptionIcon = (options, value) => {
+  return options.find((option) => option.value === value)?.icon || null;
 };
 
-const AUDIT_VISIBLE_FIELDS = [
-  "status",
-  "clientName",
-  "clientEmail",
-  "contactPhone",
-  "deliveryAddress",
-  "orderType",
-  "paymentMethod",
-  "cartItems",
-  "deliverycost",
-  "servicetax",
-  "discount",
-  "discountamount",
-  "extraPoints",
-  "riderId",
-  "comentary",
-  "totalAmount",
-  "totalRewardPoints",
-  "totalRedeemPoints",
-];
-
-const parseData = (value) => {
-  if (!value) return {};
-
-  if (typeof value === "object") {
-    return value;
+const getAuditValueIcon = (field, value) => {
+  if (!value && value !== 0) {
+    return null;
   }
 
-  try {
-    return JSON.parse(value);
-  } catch {
-    return {};
+  switch (field) {
+    case "status":
+      return findOptionIcon(statusOptions, value);
+
+    case "orderType":
+      return findOptionIcon(orderTypeOptions, value);
+
+    case "paymentMethod":
+      return findOptionIcon(paymentMethods, value);
+
+    case "isPaid":
+      return value === true || value === "true" ? (
+        <PaidIcon sx={{ color: "success.main" }} />
+      ) : (
+        <MoneyOffIcon sx={{ color: "warning.main" }} />
+      );
+
+    case "discount":
+      return findOptionIcon(discountMethods, "PORCENTAJE");
+
+    case "discountamount":
+      return findOptionIcon(discountMethods, "MONTO");
+
+    default:
+      return null;
   }
 };
 
-const formatValue = (field, value) => {
-  if (field === "cartItems" && Array.isArray(value)) {
-    return `${value.length} producto(s)`;
-  }
+const AuditValue = ({
+  field,
+  rawValue,
+  formattedValue,
+  color = "text.primary",
+}) => {
+  const icon = getAuditValueIcon(field, rawValue);
 
-  if (value === null || value === undefined || value === "") {
-    return "-";
-  }
+  return (
+    <Stack
+      direction="row"
+      spacing={0.6}
+      alignItems="center"
+      sx={{
+        minWidth: 0,
+      }}
+    >
+      {icon && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            flexShrink: 0,
+            "& svg": { fontSize: 18 },
+          }}
+        >
+          {icon}
+        </Box>
+      )}
 
-  if (typeof value === "object") {
-    return JSON.stringify(value);
-  }
-
-  return String(value);
-};
-
-const getChanges = (log) => {
-  const before = parseData(log.beforeData);
-  const after = parseData(log.afterData);
-
-  if (log.action === "CREATE") return [];
-
-  return AUDIT_VISIBLE_FIELDS.filter(
-    (field) =>
-      JSON.stringify(before?.[field]) !== JSON.stringify(after?.[field]),
-  ).map((field) => ({
-    field,
-    label: FIELD_LABELS[field] || field,
-    before: formatValue(field, before?.[field]),
-    after: formatValue(field, after?.[field]),
-  }));
-};
-
-const formatDate = (date) => {
-  if (!date) return "-";
-
-  return new Intl.DateTimeFormat("es-AR", {
-    timeZone: "America/Argentina/Buenos_Aires",
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(date));
+      <Typography
+        sx={{
+          fontFamily: "fontFamily.secondary",
+          color,
+          fontSize: 13,
+        }}
+      >
+        {formattedValue}
+      </Typography>
+    </Stack>
+  );
 };
 
 export const ModalOrderAudit = ({ open, orderId, onClose, showAlert }) => {
@@ -167,7 +147,6 @@ export const ModalOrderAudit = ({ open, orderId, onClose, showAlert }) => {
 
       try {
         const response = await getOrderAuditLogsService(orderId);
-
         setLogs(Array.isArray(response) ? response : []);
       } catch (error) {
         showAlert?.(error?.message || "Error al obtener auditoría", "error");
@@ -345,38 +324,36 @@ export const ModalOrderAudit = ({ open, orderId, onClose, showAlert }) => {
 
                             <Box
                               sx={{
+                                mt: 0.4,
                                 display: "flex",
                                 gap: 1,
                                 alignItems: "center",
+                                flexWrap: "wrap",
                               }}
                             >
+                              <AuditValue
+                                field={change.field}
+                                rawValue={change.beforeValue}
+                                formattedValue={change.before}
+                                color="text.secondary"
+                              />
+
                               <Typography
                                 sx={{
                                   fontFamily: "fontFamily.secondary",
                                   color: "text.secondary",
-                                  fontSize: 13,
-                                }}
-                              >
-                                {change.before}
-                              </Typography>
-                              <Typography
-                                sx={{
-                                  fontFamily: "fontFamily.secondary",
-                                  color: "text.primary",
-                                  fontSize: 14,
+                                  fontSize: 15,
                                 }}
                               >
                                 →
                               </Typography>
-                              <Typography
-                                sx={{
-                                  fontFamily: "fontFamily.secondary",
-                                  color: "success.main",
-                                  fontSize: 13,
-                                }}
-                              >
-                                {change.after}
-                              </Typography>
+
+                              <AuditValue
+                                field={change.field}
+                                rawValue={change.afterValue}
+                                formattedValue={change.after}
+                                color="success.main"
+                              />
                             </Box>
                           </Box>
                         ))}

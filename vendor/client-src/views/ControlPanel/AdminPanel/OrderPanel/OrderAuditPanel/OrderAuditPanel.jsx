@@ -40,60 +40,14 @@ import { getDailyOrderAuditService } from "@/services/orderAudit.js";
 import { useAlert } from "@/hooks/Alert.jsx";
 // ---------------
 
-// ---- HELPERS ----
-const ACTION_LABELS = {
-  UPDATE: "Modificación",
-  STATUS_CHANGE: "Estado",
-  CANCEL: "Cancelación",
-  ITEM_ADD: "Producto agregado",
-  ITEM_REMOVE: "Producto eliminado",
-  DISCOUNT: "Descuento",
-  PAYMENT_CHANGE: "Pago",
-  REFUND: "Reintegro",
-};
-
-const ACTION_COLORS = {
-  UPDATE: "info",
-  STATUS_CHANGE: "primary",
-  CANCEL: "error",
-  ITEM_ADD: "success",
-  ITEM_REMOVE: "warning",
-  DISCOUNT: "secondary",
-  PAYMENT_CHANGE: "warning",
-  REFUND: "error",
-};
-
-const getArgentinaToday = () => {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Argentina/Buenos_Aires",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date());
-
-  const values = Object.fromEntries(
-    parts.map((part) => [part.type, part.value]),
-  );
-
-  return [values.year, values.month, values.day].join("-");
-};
-
-const formatArgentinaDateTime = (value) => {
-  if (!value) return "-";
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-
-  return new Intl.DateTimeFormat("es-AR", {
-    timeZone: "America/Argentina/Buenos_Aires",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(date);
-};
+// ---- Utils ----
+import {
+  ACTION_SHORT_LABELS,
+  ACTION_COLORS,
+  getArgentinaToday,
+  formatDate,
+} from "@/utils/orderAuditUtils";
+// ---------------
 
 export const OrderAuditPanel = ({ user }) => {
   const { AlertComponent, showAlert } = useAlert();
@@ -443,7 +397,7 @@ export const OrderAuditPanel = ({ user }) => {
                                 size="small"
                                 color={ACTION_COLORS[action] || "default"}
                                 label={`${
-                                  ACTION_LABELS[action] || action
+                                  ACTION_SHORT_LABELS[action] || action
                                 } · ${count}`}
                               />
                             ),
@@ -480,7 +434,7 @@ export const OrderAuditPanel = ({ user }) => {
                             fontSize: 13,
                           }}
                         >
-                          {formatArgentinaDateTime(order.lastChangedAt)}
+                          {formatDate(order.lastChangedAt)}
                         </Typography>
                       </TableCell>
 

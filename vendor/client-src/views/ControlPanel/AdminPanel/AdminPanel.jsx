@@ -32,11 +32,6 @@ import { UserPointsRestaurantPanel } from "./UserPointsRestaurantPanel/UserPoint
 import { CashRegisterPanel } from "./CashRegisterPanel/CashRegisterPanel.jsx";
 // <-------------------
 
-// ---- Hooks ----
-// ELIMINAR EL DE LOS OTROS COMPONENTES Y UTILIZAR ESTE
-// import { useAlert } from "@/hooks/Alert.jsx";
-// ---------------
-
 // ---- CONTEXT ----
 import { useOrders } from "@/context/Orders.jsx";
 import { useProducts } from "@/context/Products.jsx";
@@ -62,7 +57,7 @@ export const AdminPanel = () => {
   // CONTEXT
   const { lobotechTheme } = useLobotechThemeContext();
   const { getAllProducts, getAllCategorys } = useProducts();
-  const { getMonthlyOrderStats, getRidersByRestaurant } = useOrders();
+  const { getRidersByRestaurant } = useOrders();
   const { userState, userLogOut } = useUser();
   const user = useMemo(() => userState.user || {}, [userState.user]);
 
@@ -81,7 +76,6 @@ export const AdminPanel = () => {
       try {
         await getAllProducts(user.id);
         await getAllCategorys(user.id);
-        await getMonthlyOrderStats(user.id);
         await getRidersByRestaurant(user.id);
       } catch (error) {
         console.error("Error al obtener productos y categorías:", error);
@@ -91,14 +85,7 @@ export const AdminPanel = () => {
     };
 
     fetchData();
-  }, [
-    user,
-    navigate,
-    getAllProducts,
-    getAllCategorys,
-    getMonthlyOrderStats,
-    getRidersByRestaurant,
-  ]);
+  }, [user, navigate, getAllProducts, getAllCategorys, getRidersByRestaurant]);
 
   if (loading) return <LoadingComponent />;
 

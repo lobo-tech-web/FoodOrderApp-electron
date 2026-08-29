@@ -96,6 +96,7 @@ export const AdminDrawer = ({
         >
           <ThemeToggle size="small" showLabel />
         </Box>
+
         <Box
           sx={{
             width: { xs: "140px", sm: "180px", md: "160px" },
@@ -177,7 +178,12 @@ export const AdminDrawer = ({
       <List sx={{ px: 1 }}>
         {/* PEDIDOS */}
         <ListItemButton
-          selected={activeTab === 1 || activeTab === 11 || activeTab === 12}
+          selected={
+            activeTab === 1 ||
+            activeTab === 11 ||
+            activeTab === 12 ||
+            activeTab === 13
+          }
           onClick={() => setOpenOrders(!openOrders)}
           sx={{
             fontFamily: "fontFamily.secondary",
