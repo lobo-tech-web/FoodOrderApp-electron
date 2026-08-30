@@ -1,6 +1,6 @@
 {
   "name": "foodorderapp-admin-electron",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "FoodOrderApp desktop administration and local ordering application",
   "main": "main.js",
   "scripts": {
