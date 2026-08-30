@@ -14,6 +14,12 @@ const escapeHtml = (value) =>
 const normalizeUpper = (value, fallback = '') =>
   String(value || fallback).trim().toUpperCase();
 
+const isOrderPaid = (order = {}) =>
+  order.isPaid === true ||
+  order.isPaid === 'true' ||
+  order.isPaid === 1 ||
+  order.isPaid === '1';
+
 const getOrderDateParts = (order = {}) => {
   const now = new Date();
   const orderDate = order.orderDate || {};
@@ -121,6 +127,9 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
   const orderNumber = getOrderNumber(order, options);
   const orderType = normalizeUpper(order.orderType, 'SIN TIPO');
   const orderTypeClass = getOrderTypeClass(orderType);
+  const paidLabelHtml = isOrderPaid(order)
+    ? '<div class="paid-label">PAGADO</div>'
+    : '';
 
   return `<!doctype html>
   <html>
@@ -157,6 +166,18 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
         .header {
           text-align: center;
           padding-bottom: 1mm;
+        }
+        .paid-label {
+          display: inline-block;
+          margin: 0 0 1mm;
+          padding: 0.8mm 4.5mm;
+          border: 2px solid #000;
+          color: #000;
+          background: #fff;
+          font-size: 16px;
+          font-weight: 900;
+          line-height: 1;
+          letter-spacing: 0;
         }
         .order-number {
           padding: 0.8mm;
@@ -262,6 +283,7 @@ export const buildOrderKitchenHtml = (order = {}, options = {}) => {
     <body>
       <main class="cook-order-container">
         <header class="header">
+          ${paidLabelHtml}
           <h1 class="order-number">PEDIDO #${escapeHtml(orderNumber)}</h1>
           <div class="date-time">${escapeHtml(date)} - ${escapeHtml(time)}</div>
           <div class="${escapeHtml(orderTypeClass)}">${escapeHtml(orderType)}</div>

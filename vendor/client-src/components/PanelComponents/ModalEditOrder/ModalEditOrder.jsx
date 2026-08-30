@@ -550,18 +550,23 @@ export const ModalEditOrder = ({
       const updateData = buildOrderUpdateData(nextStatus);
 
       const response = await updateOrder(order.id, updateData);
+      const responseOrder = response?.order || null;
 
       const savedOrder = {
         ...order,
         ...updateData,
-        status: response?.order?.status || nextStatus,
+        status: responseOrder?.status || nextStatus,
         totalAmount: updateData.totalAmount,
         totalRewardPoints: updateData.totalRewardPoints,
         totalRedeemPoints: updateData.totalRedeemPoints,
         discountamount: updateData.discountamount,
         discount: updateData.discount,
-        riderId: response?.order?.riderId ?? updateData.riderId,
-        rider: response?.order?.rider ?? order.rider ?? null,
+        isPaid: responseOrder?.isPaid ?? Boolean(order.isPaid),
+        paidAt: responseOrder
+          ? (responseOrder.paidAt ?? null)
+          : (order.paidAt ?? null),
+        riderId: responseOrder?.riderId ?? updateData.riderId,
+        rider: responseOrder?.rider ?? order.rider ?? null,
       };
 
       setOrder(savedOrder);
@@ -608,12 +613,18 @@ export const ModalEditOrder = ({
     try {
       const updateData = buildOrderUpdateData();
       const response = await updateOrder(order.id, updateData);
+      const responseOrder = response?.order || null;
+
       const savedOrder = {
         ...order,
         ...updateData,
-        status: response?.order?.status || updateData.status,
-        riderId: response?.order?.riderId ?? updateData.riderId,
-        rider: response?.order?.rider ?? order.rider ?? null,
+        status: responseOrder?.status || updateData.status,
+        isPaid: responseOrder?.isPaid ?? Boolean(order.isPaid),
+        paidAt: responseOrder
+          ? (responseOrder.paidAt ?? null)
+          : (order.paidAt ?? null),
+        riderId: responseOrder?.riderId ?? updateData.riderId,
+        rider: responseOrder?.rider ?? order.rider ?? null,
       };
 
       setOrder(savedOrder);
@@ -696,6 +707,8 @@ export const ModalEditOrder = ({
           discountamount: cleanMoneyValue(fullOrder.discountamount).toNumber(),
           totalAmount: cleanMoneyValue(fullOrder.totalAmount).toNumber(),
           paymentMethod: fullOrder.paymentMethod || "",
+          isPaid: fullOrder.isPaid === true,
+          paidAt: fullOrder.paidAt || null,
           clientEmail: fullOrder.clientEmail || "",
           clientName: fullOrder.clientName || "",
           deliveryAddress: fullOrder.deliveryAddress || "",

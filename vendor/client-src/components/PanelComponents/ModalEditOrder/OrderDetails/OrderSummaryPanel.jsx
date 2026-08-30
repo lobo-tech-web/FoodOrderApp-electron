@@ -1,10 +1,20 @@
-import { Box, Paper, Stack, Typography, Button, Divider } from "@mui/material";
+import {
+  Box,
+  Paper,
+  Stack,
+  Typography,
+  Button,
+  Divider,
+  Chip,
+} from "@mui/material";
 // Icons
 import {
   Settings as SettingsIcon,
   ShoppingCart as ShoppingCartIcon,
   Money as MoneyIcon,
   TwoWheeler as TwoWheelerIcon,
+  Paid as PaidIcon,
+  AccessTime as AccessTimeIcon,
 } from "@mui/icons-material";
 
 // ---- Components ----
@@ -16,6 +26,7 @@ import { PrintCookOrder } from "../PrintCookOrder/PrintCookOrder.jsx";
 import { formatCurrency } from "@/utils/orderCalculations.js";
 import { orderTypeOptions } from "@/utils/components/OrderTypeUtils.jsx";
 import { paymentMethods } from "@/utils/components/PaymentUtils.jsx";
+import { formatDate } from "@/utils/orderAuditUtils.js";
 // ---------------
 
 // ---- Styles ----
@@ -118,7 +129,6 @@ export const OrderSummaryPanel = ({
           sx={{
             color: "text.primary",
             fontFamily: "fontFamily.primary",
-            fontWeight: 900,
             textAlign: "center",
             textTransform: "uppercase",
           }}
@@ -130,14 +140,67 @@ export const OrderSummaryPanel = ({
           sx={{
             color: "primary.main",
             fontFamily: "fontFamily.primary",
-            fontWeight: 900,
             fontSize: { xs: 30, sm: 36 },
             textAlign: "center",
-            mb: 2,
+            mb: 1.5,
           }}
         >
           {formatCurrency(finalOrderTotal)}
         </Typography>
+
+        {/* ESTADO DEL COBRO */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 0.8,
+            mb: 2,
+          }}
+        >
+          <Chip
+            size="small"
+            icon={order.isPaid ? <PaidIcon /> : <AccessTimeIcon />}
+            label={
+              order.isPaid
+                ? "PEDIDO PAGADO"
+                : order.status === "CANCELADO"
+                  ? "NO COBRADO"
+                  : "PAGO PENDIENTE"
+            }
+            color={
+              order.isPaid
+                ? "success"
+                : order.status === "CANCELADO"
+                  ? "default"
+                  : "warning"
+            }
+            variant={order.isPaid ? "filled" : "outlined"}
+            sx={{
+              fontFamily: "fontFamily.primary",
+              px: 0.5,
+              "& .MuiChip-icon": {
+                fontSize: 18,
+              },
+            }}
+          />
+
+          {order.isPaid && (
+            <Typography
+              sx={{
+                fontFamily: "fontFamily.secondary",
+                color: "text.secondary",
+                fontSize: 11,
+                textAlign: "center",
+              }}
+            >
+              {order.paidAt
+                ? `Cobrado el ${formatDate(order.paidAt)}`
+                : "Cobro registrado"}
+            </Typography>
+          )}
+        </Box>
 
         <Divider sx={{ borderColor: "text.primary", my: 2 }} />
 

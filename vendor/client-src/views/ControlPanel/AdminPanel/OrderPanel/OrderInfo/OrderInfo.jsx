@@ -1,21 +1,25 @@
 // ---- MATERIAL UI ----
 import {
   Box,
-  Checkbox,
-  Chip,
-  IconButton,
-  TableCell,
-  TableRow,
-  Tooltip,
   Typography,
+  TableRow,
+  TableCell,
+  IconButton,
+  Chip,
+  Checkbox,
+  Tooltip,
+  CircularProgress,
 } from "@mui/material";
 // ICONS
 import {
   Edit as EditIcon,
-  Moped as MopedIcon,
   Person as PersonIcon,
-  Restaurant as RestaurantIcon,
   Smartphone as SmartphoneIcon,
+  Restaurant as RestaurantIcon,
+  Moped as MopedIcon,
+  Paid as PaidIcon,
+  Schedule as PendingPaymentIcon,
+  MoneyOff as UnpaidIcon,
 } from "@mui/icons-material";
 // ---------------------
 
@@ -42,6 +46,9 @@ export const OrderInfo = ({
   handleOpenModal,
   disableSelection = false,
   disableEdit = false,
+  onMarkPaid,
+  disableMarkPaid = false,
+  paymentUpdating = false,
 }) => {
   const handleColor = (status) => {
     if (status === "FINALIZADO") return "#4caf50";
@@ -72,6 +79,47 @@ export const OrderInfo = ({
 
   const displayID = totalInList - globalIndex;
 
+  const formatPaidAt = (value) => {
+    if (!value) return null;
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    return new Intl.DateTimeFormat("es-AR", {
+      timeZone: "America/Argentina/Buenos_Aires",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(date);
+  };
+
+  const paymentStatus = order.isPaid
+    ? {
+        label: "PAGADO",
+        color: "success",
+        variant: "filled",
+        icon: <PaidIcon />,
+      }
+    : order.status === "CANCELADO"
+      ? {
+          label: "NO COBRADO",
+          color: "default",
+          variant: "outlined",
+          icon: <UnpaidIcon />,
+        }
+      : {
+          label: "PENDIENTE",
+          color: "warning",
+          variant: "outlined",
+          icon: <PendingPaymentIcon />,
+        };
+
   return (
     <TableRow
       selected={isSelected}
@@ -79,15 +127,12 @@ export const OrderInfo = ({
         transition: "background-color 0.2s ease, box-shadow 0.2s ease",
         bgcolor: isSelected ? "rgba(245, 158, 11, 0.14)" : "transparent",
         boxShadow: isSelected ? "inset 4px 0 0 #f59e0b" : "none",
-
         "&:hover": {
           bgcolor: isSelected ? "rgba(245, 158, 11, 0.20)" : "action.hover",
         },
-
         "&.Mui-selected": {
           bgcolor: "rgba(245, 158, 11, 0.14)",
         },
-
         "&.Mui-selected:hover": {
           bgcolor: "rgba(245, 158, 11, 0.20)",
         },
@@ -229,6 +274,7 @@ export const OrderInfo = ({
           >
             {formatCurrency(order.totalAmount)}
           </Typography>
+
           <Typography
             variant="caption"
             sx={{
@@ -246,6 +292,37 @@ export const OrderInfo = ({
           >
             {order.paymentMethod}
           </Typography>
+
+          <Tooltip
+            arrow
+            title={
+              order.isPaid
+                ? order.paidAt
+                  ? `Pagado el ${formatPaidAt(order.paidAt)}`
+                  : "Pedido pagado"
+                : order.status === "CANCELADO"
+                  ? "Pedido cancelado sin cobro registrado"
+                  : "Pago pendiente"
+            }
+          >
+            <Chip
+              size="small"
+              icon={paymentStatus.icon}
+              label={paymentStatus.label}
+              color={paymentStatus.color}
+              variant={paymentStatus.variant}
+              sx={{
+                mt: 0.3,
+                height: 22,
+                fontFamily: "fontFamily.secondary",
+                fontWeight: 800,
+                fontSize: "0.66rem",
+                "& .MuiChip-icon": {
+                  fontSize: 15,
+                },
+              }}
+            />
+          </Tooltip>
         </Box>
       </TableCell>
 
@@ -434,17 +511,75 @@ export const OrderInfo = ({
           }}
         />
       </TableCell>
+
       <TableCell align="center">
-        <Tooltip title="Editar pedido" arrow>
-          <IconButton
-            disabled={disableEdit}
-            onClick={() => handleOpenModal(order, displayID)}
-            size="small"
-            sx={{ color: "primary.main" }}
-          >
-            <EditIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 0.6,
+          }}
+        >
+          {!order.isPaid &&
+            order.status !== "CANCELADO" &&
+            typeof onMarkPaid === "function" && (
+              <Tooltip
+                title={
+                  disableMarkPaid
+                    ? "No tenés permisos para registrar el pago"
+                    : "Marcar pedido como pagado"
+                }
+                arrow
+              >
+                <Box>
+                  <IconButton
+                    disabled={disableMarkPaid || paymentUpdating}
+                    onClick={() => onMarkPaid(order, displayID)}
+                    size="small"
+                    sx={{
+                      width: 30,
+                      height: 30,
+                      color: "success.main",
+                      border: "1px solid",
+                      borderColor: "success.main",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        bgcolor: "rgba(76, 175, 80, 0.10)",
+                        transform: "translateY(-1px)",
+                      },
+                      "&.Mui-disabled": {
+                        borderColor: "action.disabled",
+                      },
+                    }}
+                  >
+                    {paymentUpdating ? (
+                      <CircularProgress size={15} color="inherit" />
+                    ) : (
+                      <PaidIcon fontSize="small" />
+                    )}
+                  </IconButton>
+                </Box>
+              </Tooltip>
+            )}
+
+          <Tooltip title="Editar pedido" arrow>
+            <Box>
+              <IconButton
+                disabled={disableEdit}
+                onClick={() => handleOpenModal(order, displayID)}
+                size="small"
+                sx={{
+                  width: 30,
+                  height: 30,
+                  color: "primary.main",
+                }}
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </Tooltip>
+        </Box>
       </TableCell>
     </TableRow>
   );

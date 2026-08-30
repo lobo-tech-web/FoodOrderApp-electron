@@ -27,6 +27,7 @@ import { OrderStatusIndicator } from "./OrderStatusIndicator/OrderStatusIndicato
 import { OrderSummaryIndicator } from "./OrderSummaryIndicator/OrderSummaryIndicator.jsx";
 import { RiderCountIndicator } from "./RiderCountIndicator/RiderCountIndicator.jsx";
 import { RiderSummaryIndicator } from "./RiderSummaryIndicator/RiderSummaryIndicator.jsx";
+import { ModalConfirmOrderPaid } from "@/components/PanelComponents/ModalConfirmOrderPaid/ModalConfirmOrderPaid.jsx";
 // ---------------------
 
 // ---- CONTEXT ----
@@ -84,8 +85,13 @@ export const OrderPanel = ({ user, externalView }) => {
   }, [externalView]);
 
   // TRAEMOS LAS ORDENES DEL CONTEXT
-  const { orderState, getAllOrders, filterOrderByDate, getRidersByRestaurant } =
-    useOrders();
+  const {
+    orderState,
+    getAllOrders,
+    filterOrderByDate,
+    getRidersByRestaurant,
+    updateOrder,
+  } = useOrders();
 
   const allOrders = useMemo(() => orderState.orders || [], [orderState.orders]);
   const availableRiders = useMemo(
@@ -133,6 +139,50 @@ export const OrderPanel = ({ user, externalView }) => {
     setAutoRefreshEnabled(true);
     setOpenModal(false);
   }, []);
+
+  const [paymentConfirm, setPaymentConfirm] = useState({
+    open: false,
+    order: null,
+    displayID: null,
+  });
+
+  const [payingOrderId, setPayingOrderId] = useState(null);
+
+  const handleOpenPaymentConfirm = useCallback(
+    (order, displayID) => {
+      if (!order?.id) return;
+
+      if (order.isPaid) {
+        showAlert("Este pedido ya se encuentra pagado", "info");
+        return;
+      }
+
+      if (order.status === "CANCELADO") {
+        showAlert(
+          "No se puede registrar el pago desde esta acción en un pedido cancelado",
+          "warning",
+        );
+        return;
+      }
+
+      setPaymentConfirm({
+        open: true,
+        order,
+        displayID,
+      });
+    },
+    [showAlert],
+  );
+
+  const handleClosePaymentConfirm = useCallback(() => {
+    if (payingOrderId) return;
+
+    setPaymentConfirm({
+      open: false,
+      order: null,
+      displayID: null,
+    });
+  }, [payingOrderId]);
 
   // FILTRADO DE PEDIDOS
   const [statusFilter, setStatusFilter] = useState("TODOS");
@@ -249,6 +299,46 @@ export const OrderPanel = ({ user, externalView }) => {
       user?.id,
     ],
   );
+
+  const handleConfirmMarkPaid = useCallback(async () => {
+    const targetOrder = paymentConfirm.order;
+    if (!targetOrder?.id || targetOrder.isPaid || payingOrderId) {
+      return;
+    }
+
+    setPayingOrderId(targetOrder.id);
+
+    try {
+      await updateOrder(targetOrder.id, {
+        isPaid: true,
+        auditReason: "Pedido marcado como pagado desde acceso rápido",
+      });
+
+      showAlert(
+        `Pedido N° ${
+          paymentConfirm.displayID || targetOrder.id
+        } marcado como pagado`,
+        "success",
+      );
+
+      setPaymentConfirm({
+        open: false,
+        order: null,
+        displayID: null,
+      });
+
+      // Refresco silencioso:
+      // no reemplaza la tabla por LoadingComponent.
+      await fetchOrders(true);
+    } catch (error) {
+      showAlert(
+        error?.message || "No se pudo marcar el pedido como pagado",
+        "error",
+      );
+    } finally {
+      setPayingOrderId(null);
+    }
+  }, [paymentConfirm, payingOrderId, updateOrder, showAlert, fetchOrders]);
 
   // ✅ FUNCIÓN QUE SOLO SE EJECUTA SI ESTAMOS EN LA PESTAÑA DE HOY
   const fetchTodayOrdersOnly = useCallback(async () => {
@@ -479,6 +569,8 @@ export const OrderPanel = ({ user, externalView }) => {
                         handleSelectOrders={handleSelectOrders}
                         selectedOrdersCheckbox={selectedOrdersCheckbox}
                         handleOpenModal={handleOpenModal}
+                        onMarkPaid={handleOpenPaymentConfirm}
+                        paymentUpdating={payingOrderId === order.id}
                       />
                     );
                   })}
@@ -543,6 +635,15 @@ export const OrderPanel = ({ user, externalView }) => {
           />
         )}
       </Paper>
+
+      <ModalConfirmOrderPaid
+        open={paymentConfirm.open}
+        order={paymentConfirm.order}
+        displayID={paymentConfirm.displayID}
+        loading={Boolean(payingOrderId)}
+        onClose={handleClosePaymentConfirm}
+        onConfirm={handleConfirmMarkPaid}
+      />
       {/* MODAL EDIT ORDER */}
       <ModalEditOrder
         show={openModal}
@@ -550,6 +651,7 @@ export const OrderPanel = ({ user, externalView }) => {
         showAlert={showAlert}
         showOrder={selectedOrder}
         showOrderIndex={selectedOrderIndex}
+        onOrderUpdated={() => fetchOrders(true)}
       />
       {AlertComponent}
     </Box>

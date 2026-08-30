@@ -12,6 +12,8 @@ export const initialUpdateOrderState = {
     discountamount: 0,
     totalAmount: 0,
     paymentMethod: '',
+    isPaid: false,
+    paidAt: null,
     clientEmail: '',
     clientName: '',
     deliveryAddress: '',
@@ -39,6 +41,8 @@ export const initialCreateOrderState = {
     discount: 0,
     discountamount: 0,
     paymentMethod: '',
+    isPaid: false,
+    paidAt: null,
     clientEmail: '',
     clientName: '',
     deliveryAddress: '',
@@ -69,17 +73,18 @@ export const normalizeOrderForCompare = (orderData) => {
             })),
             productComment: item.productComment || '',
         })),
-
         deliverycost: Number(orderData.deliverycost) || 0,
         servicetax: Number(orderData.servicetax) || 0,
-
         // Si querés detectar cambios de descuento por porcentaje:
         discount: Number(orderData.discount) || 0,
-
         // Si usás descuento por monto, NO lo omitas:
         discountamount: Number(orderData.discountamount) || 0,
-
         paymentMethod: orderData.paymentMethod || '',
+        isPaid:
+            orderData.isPaid === true ||
+            orderData.isPaid === 'true' ||
+            orderData.isPaid === 1 ||
+            orderData.isPaid === '1',
         clientEmail: orderData.clientEmail || '',
         clientName: orderData.clientName || '',
         deliveryAddress: orderData.deliveryAddress || '',

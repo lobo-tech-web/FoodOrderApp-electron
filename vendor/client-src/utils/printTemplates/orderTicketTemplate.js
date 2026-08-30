@@ -15,6 +15,12 @@ const escapeHtml = (value) =>
 const normalizeUpper = (value, fallback = '') =>
   String(value || fallback).trim().toUpperCase();
 
+const isOrderPaid = (order = {}) =>
+  order.isPaid === true ||
+  order.isPaid === 'true' ||
+  order.isPaid === 1 ||
+  order.isPaid === '1';
+
 const getOrderDateParts = (order = {}) => {
   const now = new Date();
   const orderDate = order.orderDate || {};
@@ -214,6 +220,9 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
   const showSubtotal =
     isLocalOrderTicket ||
     serviceTax > 0 || deliveryCost > 0 || discountAmount > 0;
+  const paidLabelHtml = isOrderPaid(order)
+    ? '<div class="ticket-paid-label">PAGADO</div>'
+    : '';
 
   return `<!doctype html>
   <html>
@@ -268,6 +277,17 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
         .ticket-header {
           text-align: center;
           padding: 1.4mm 0 1.4mm;
+        }
+        .ticket-paid-label {
+          display: inline-block;
+          margin: 0 0 1mm;
+          padding: 0.7mm 4mm;
+          color: #000;
+          background: #fff;
+          font-size: 16px;
+          font-weight: 900;
+          line-height: 1;
+          letter-spacing: 0;
         }
         .ticket-business {
           font-size: 18px;
@@ -438,6 +458,7 @@ export const buildOrderTicketHtml = (order = {}, options = {}) => {
         ${logoUrl ? `<img class="ticket-watermark" src="${escapeHtml(logoUrl)}" alt="" />` : ''}
         <div class="ticket-content">
           <header class="ticket-header">
+            ${paidLabelHtml}
             <h1 class="ticket-business">${escapeHtml(ticketTitle)}</h1>
             <div class="ticket-order-badge">${escapeHtml(ticketBadge)}</div>
             <p class="ticket-date">${escapeHtml(date)} - ${escapeHtml(time)}</p>
