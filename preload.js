@@ -16,6 +16,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('update-status', listener);
     return () => ipcRenderer.removeListener('update-status', listener);
   },
+  onToggleOfflineMode: (callback) => {
+    const listener = (_event, enabled) => callback(Boolean(enabled));
+    ipcRenderer.on('offline-mode:toggle', listener);
+    return () => ipcRenderer.removeListener('offline-mode:toggle', listener);
+  },
+  setOfflineStatus: (status) =>
+    ipcRenderer.invoke('offline-mode:set-status', status),
   installUpdate: () => ipcRenderer.invoke('updates:install'),
   listPrinters: () => ipcRenderer.invoke('printers:list'),
   getPrinterConfig: () => ipcRenderer.invoke('printers:get-config'),

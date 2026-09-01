@@ -76,7 +76,8 @@ export const LocalOrders = () => {
   const navigate = useNavigate();
   const { lobotechTheme } = useLobotechThemeContext();
   const { userState, getClientByUserNumber } = useUser();
-  const { productState, getAllProducts } = useProducts();
+  const { productState, getAllProducts, getAllCategorys, getAllCustomOptions } =
+    useProducts();
   const { addOrder, filterOrderByDate } = useOrders();
   const { printHtml } = useThermalPrinter();
   const { AlertComponent, showAlert } = useAlert();
@@ -107,13 +108,17 @@ export const LocalOrders = () => {
     setLoading(true);
     setLoadError("");
     try {
-      await getAllProducts(user.id);
+      await Promise.all([
+        getAllProducts(user.id),
+        getAllCategorys(user.id),
+        getAllCustomOptions(user.id),
+      ]);
     } catch (error) {
       setLoadError(error?.message || String(error));
     } finally {
       setLoading(false);
     }
-  }, [getAllProducts, user.id]);
+  }, [getAllCategorys, getAllCustomOptions, getAllProducts, user.id]);
 
   useEffect(() => {
     if (!user.id || user.role !== "admin") {
@@ -438,10 +443,15 @@ export const LocalOrders = () => {
       const globalIndex = refreshedOrders.findIndex(
         (order) => order.id === savedOrder?.id,
       );
+      const matchedOrder =
+        globalIndex >= 0 ? refreshedOrders[globalIndex] : null;
       const orderIndex =
-        globalIndex >= 0
+        matchedOrder?.dailyOrderNumber ||
+        savedOrder?.dailyOrderNumber ||
+        savedOrder?.orderIndex ||
+        (globalIndex >= 0
           ? refreshedOrders.length - globalIndex
-          : refreshedOrders.length || undefined;
+          : refreshedOrders.length || undefined);
       const order = {
         ...orderData,
         ...savedOrder,

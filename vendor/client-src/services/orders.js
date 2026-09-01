@@ -187,6 +187,24 @@ export const addNewOrderServices = async (orderData) => {
     }
 };
 
+export const syncOfflineOrdersServices = async (ordersData = []) => {
+    try {
+        const response = await apiWithToken.post(`${apiPostURLOrders}/sync`, { ordersData });
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw {
+                status: error.response.status,
+                message: error.response.data.message || "Error desconocido en la respuesta del servidor",
+            };
+        } else {
+            throw {
+                message: error.message || "Error desconocido al intentar conectarse al servidor"
+            };
+        }
+    }
+};
+
 export const getDailyOrdersStatsServices = async (restaurantId) => {
     try {
         const response = await apiWithToken.get(`${apiGetDailyStatsURLOrders}?restaurantId=${restaurantId}`);

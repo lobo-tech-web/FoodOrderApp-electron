@@ -1,4 +1,4 @@
-import { api, apiWithToken } from './axiosConfig.js';
+import { api, apiWithToken, getDesktopClientHeaders } from './axiosConfig.js';
 
 // ---- Urls ----
 const apiURLMainRestaurantStaff = import.meta.env.VITE_API_RESTAURANT_STAFF_MAIN_ROUTER;
@@ -57,7 +57,8 @@ export const createRestaurantStaffService = async (data) => {
 export const loginRestaurantStaffService = async (data) => {
     try {
         const response = await api.post(apiURLLoginRestaurantStaff,
-            { data }
+            { data },
+            { headers: getDesktopClientHeaders() }
         );
 
         return response.data;

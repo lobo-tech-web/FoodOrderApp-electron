@@ -1,6 +1,4 @@
 const RUNTIME_STORAGE_KEYS = new Set([
-  "token",
-  "user",
   "last_client_id",
 ]);
 
@@ -48,10 +46,6 @@ export const clearDesktopRuntimeSession = () => {
     console.warn("No se pudo limpiar localStorage de sesion:", error);
   }
 
-  try {
-    window.secureStorage?.removeItem("token");
-    window.secureStorage?.removeItem("user");
-  } catch (error) {
-    console.warn("No se pudo limpiar secureStorage de sesion:", error);
-  }
+  // No limpiamos token/user: permite reabrir Electron con la ultima sesion
+  // cacheada si Railway o la base de datos estan temporalmente caidos.
 };

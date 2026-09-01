@@ -4,6 +4,7 @@ import {
   useReducer,
   useMemo,
   useCallback,
+  useEffect,
 } from "react";
 
 // ---- ORDERS SERVICE ----
@@ -12,6 +13,7 @@ import {
   getByOrderIDServices,
   updateOrderServices,
   addNewOrderServices,
+  syncOfflineOrdersServices,
   filterOrderByDateServices,
   filterOrdersByNamePhoneServices,
   getMonthlyOrdersServices,
@@ -30,6 +32,24 @@ import {
   getAllRidersStatsServices,
 } from "@/services/riders.js";
 // ------------------------
+
+// ---- OFFLINE STORAGE ----
+import {
+  cacheOrdersForDate,
+  createOfflineOrder,
+  getCachedOrdersForDate,
+  getOrderDateKey,
+  getPendingOfflineOrders,
+  isForcedOfflineMode,
+  isNetworkError,
+  markOfflineOrderSyncError,
+  markOfflineOrderSynced,
+  markOfflineOrderSyncing,
+  mergeOrdersWithOffline,
+  setBackendReachable,
+  updateOfflineOrder,
+} from "@/utils/offlineStorage.js";
+// -------------------------
 
 // ---- CREACIÓN DEL CONTEXTO ----
 export const OrdersContext = createContext();
@@ -67,7 +87,10 @@ const ACTION_TYPES = {
   ADD_ORDER_TO_RIDER: "ADD_ORDER_TO_RIDER",
   GET_DAILY_RIDERS_STATS: "GET_DAILY_RIDERS_STATS",
   GET_ALL_RIDERS_STATS: "GET_ALL_RIDERS_STATS",
+  REPLACE_ORDER: "REPLACE_ORDER",
 };
+
+let offlineSyncInProgress = false;
 
 // REDUCER
 const orderReducer = (state, action) => {
@@ -102,6 +125,18 @@ const orderReducer = (state, action) => {
         ...state,
         allOrders: updatedAllOrders,
         orders: updatedOrders,
+      };
+    }
+
+    case ACTION_TYPES.REPLACE_ORDER: {
+      const { previousId, order: replacementOrder } = action.payload;
+      const replaceOrder = (currentOrder) =>
+        currentOrder.id === previousId ? replacementOrder : currentOrder;
+
+      return {
+        ...state,
+        allOrders: state.allOrders.map(replaceOrder),
+        orders: state.orders.map(replaceOrder),
       };
     }
 
@@ -219,13 +254,34 @@ export const OrderProvider = ({ children }) => {
   const getAllOrders = useCallback(
     async (userId = null, restaurantId = null) => {
       try {
+        if (isForcedOfflineMode()) {
+          const offlineOrders = mergeOrdersWithOffline([], restaurantId);
+          dispatch({
+            type: ACTION_TYPES.GET_ALL_ORDERS,
+            payload: offlineOrders,
+          });
+          return offlineOrders;
+        }
+
         const response = await getAllOrdersServices(userId, restaurantId);
+        setBackendReachable(true);
+        const mergedOrders = mergeOrdersWithOffline(response, restaurantId);
         dispatch({
           type: ACTION_TYPES.GET_ALL_ORDERS,
-          payload: response,
+          payload: mergedOrders,
         });
-        return response;
+        return mergedOrders;
       } catch (error) {
+        if (isNetworkError(error)) {
+          setBackendReachable(false);
+          const offlineOrders = mergeOrdersWithOffline([], restaurantId);
+          dispatch({
+            type: ACTION_TYPES.GET_ALL_ORDERS,
+            payload: offlineOrders,
+          });
+          return offlineOrders;
+        }
+
         throw error.response?.data?.message || error.message;
       }
     },
@@ -243,7 +299,17 @@ export const OrderProvider = ({ children }) => {
 
   const addOrder = useCallback(async (data) => {
     try {
+      if (isForcedOfflineMode()) {
+        const offlineOrder = createOfflineOrder(data);
+        dispatch({
+          type: ACTION_TYPES.ADD_ORDER,
+          payload: offlineOrder,
+        });
+        return offlineOrder;
+      }
+
       const response = await addNewOrderServices(data);
+      setBackendReachable(true);
       const createdOrder = response?.order || response;
       dispatch({
         type: ACTION_TYPES.ADD_ORDER,
@@ -251,19 +317,46 @@ export const OrderProvider = ({ children }) => {
       });
       return createdOrder;
     } catch (error) {
+      if (isNetworkError(error)) {
+        setBackendReachable(false);
+        const offlineOrder = createOfflineOrder(data);
+        dispatch({
+          type: ACTION_TYPES.ADD_ORDER,
+          payload: offlineOrder,
+        });
+        return offlineOrder;
+      }
+
       throw error.response?.data?.message || error.message;
     }
   }, []);
 
   const updateOrder = useCallback(async (orderId, updateData) => {
     try {
+      if (String(orderId).startsWith("offline-") || isForcedOfflineMode()) {
+        const updatedOfflineOrder = updateOfflineOrder(orderId, updateData);
+
+        if (updatedOfflineOrder) {
+          dispatch({
+            type: ACTION_TYPES.UPDATE_ORDER,
+            payload: { order: updatedOfflineOrder },
+          });
+          return { order: updatedOfflineOrder };
+        }
+      }
+
       const response = await updateOrderServices(orderId, updateData);
+      setBackendReachable(true);
       dispatch({
         type: ACTION_TYPES.UPDATE_ORDER,
         payload: response,
       });
       return response;
     } catch (error) {
+      if (isNetworkError(error)) {
+        setBackendReachable(false);
+      }
+
       throw error.response?.data?.message || error.message;
     }
   }, []);
@@ -276,19 +369,63 @@ export const OrderProvider = ({ children }) => {
   }, []);
 
   const filterOrderByDate = useCallback(async (day, month, year, userId) => {
+    const dateKey = getOrderDateKey({ day, month, year });
+    const dateFilter = { day, month, year };
+
     try {
+      if (isForcedOfflineMode()) {
+        const cachedOrders = getCachedOrdersForDate(userId, dateKey);
+        const mergedOrders = mergeOrdersWithOffline(
+          cachedOrders,
+          userId,
+          dateKey,
+          dateFilter,
+        );
+
+        dispatch({
+          type: ACTION_TYPES.FILTER_BY_DATE,
+          payload: mergedOrders,
+        });
+        return mergedOrders;
+      }
+
       const response = await filterOrderByDateServices(
         day,
         month,
         year,
         userId,
       );
+      setBackendReachable(true);
+      cacheOrdersForDate(userId, dateKey, response);
+      const mergedOrders = mergeOrdersWithOffline(
+        response,
+        userId,
+        dateKey,
+        dateFilter,
+      );
       dispatch({
         type: ACTION_TYPES.FILTER_BY_DATE,
-        payload: response,
+        payload: mergedOrders,
       });
-      return response;
+      return mergedOrders;
     } catch (error) {
+      if (isNetworkError(error)) {
+        setBackendReachable(false);
+        const cachedOrders = getCachedOrdersForDate(userId, dateKey);
+        const mergedOrders = mergeOrdersWithOffline(
+          cachedOrders,
+          userId,
+          dateKey,
+          dateFilter,
+        );
+
+        dispatch({
+          type: ACTION_TYPES.FILTER_BY_DATE,
+          payload: mergedOrders,
+        });
+        return mergedOrders;
+      }
+
       throw error.response?.data?.message || error.message;
     }
   }, []);
@@ -410,6 +547,97 @@ export const OrderProvider = ({ children }) => {
     }
   }, []);
 
+  const syncOfflineOrders = useCallback(async () => {
+    if (isForcedOfflineMode()) return [];
+    if (offlineSyncInProgress) return [];
+
+    const pendingOrders = getPendingOfflineOrders();
+    if (!pendingOrders.length) return [];
+
+    offlineSyncInProgress = true;
+
+    try {
+      const ordersData = pendingOrders.map((offlineOrder) => {
+        markOfflineOrderSyncing(offlineOrder.id);
+
+        const {
+          id: _offlineId,
+          offlineOrder: _offlineOrder,
+          offlineSyncStatus: _offlineSyncStatus,
+          offlineSyncError: _offlineSyncError,
+          offlineCreatedAt: _offlineCreatedAt,
+          offlineUpdatedAt: _offlineUpdatedAt,
+          offlineSyncedAt: _offlineSyncedAt,
+          serverOrderId: _serverOrderId,
+          ...orderData
+        } = offlineOrder;
+
+        return orderData;
+      });
+
+      const response = await syncOfflineOrdersServices(ordersData);
+      const syncedOrders = response?.syncedOrders || [];
+      const failedOrders = response?.failedOrders || [];
+
+      syncedOrders.forEach(({ clientOfflineId, order }) => {
+        const offlineOrder = pendingOrders.find(
+          (item) => item.clientOfflineId === clientOfflineId,
+        );
+        if (!offlineOrder) return;
+
+        const syncedOrder = markOfflineOrderSynced(offlineOrder.id, order);
+        dispatch({
+          type: ACTION_TYPES.REPLACE_ORDER,
+          payload: {
+            previousId: offlineOrder.id,
+            order: syncedOrder || order,
+          },
+        });
+      });
+
+      failedOrders.forEach(({ clientOfflineId, message }) => {
+        const offlineOrder = pendingOrders.find(
+          (item) => item.clientOfflineId === clientOfflineId,
+        );
+        if (!offlineOrder) return;
+
+        markOfflineOrderSyncError(offlineOrder.id, message);
+      });
+
+      setBackendReachable(true);
+      return syncedOrders;
+    } catch (error) {
+      pendingOrders.forEach((order) => {
+        markOfflineOrderSyncError(order.id, error);
+      });
+
+      if (isNetworkError(error)) {
+        setBackendReachable(false);
+      }
+
+      throw error;
+    } finally {
+      offlineSyncInProgress = false;
+    }
+  }, []);
+
+  useEffect(() => {
+    const attemptSync = () => {
+      if (!window.navigator.onLine || isForcedOfflineMode()) return;
+      syncOfflineOrders().catch(() => {});
+    };
+
+    attemptSync();
+
+    window.addEventListener("online", attemptSync);
+    const intervalId = window.setInterval(attemptSync, 60000);
+
+    return () => {
+      window.removeEventListener("online", attemptSync);
+      window.clearInterval(intervalId);
+    };
+  }, [syncOfflineOrders]);
+
   const contextValue = useMemo(
     () => ({
       orderState,
@@ -428,6 +656,7 @@ export const OrderProvider = ({ children }) => {
       addOrderToRider,
       getDailyRidersStats,
       getAllRidersStats,
+      syncOfflineOrders,
     }),
     [
       orderState,
@@ -446,6 +675,7 @@ export const OrderProvider = ({ children }) => {
       addOrderToRider,
       getDailyRidersStats,
       getAllRidersStats,
+      syncOfflineOrders,
     ],
   );
 

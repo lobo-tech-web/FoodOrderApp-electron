@@ -631,13 +631,20 @@ export const ModalCreateOrder = ({
           );
 
           if (globalIndex >= 0) {
-            return refreshedOrders.length - globalIndex;
+            const matchedOrder = refreshedOrders[globalIndex];
+
+            return (
+              matchedOrder?.dailyOrderNumber ||
+              savedOrder?.dailyOrderNumber ||
+              refreshedOrders.length - globalIndex
+            );
           }
 
           if (attempt < 2) await wait(350);
         }
 
         return (
+          savedOrder?.dailyOrderNumber ||
           savedOrder?.orderIndex ||
           savedOrder?.orderNumber ||
           savedOrder?.number ||
@@ -647,6 +654,7 @@ export const ModalCreateOrder = ({
       } catch (error) {
         console.error("No se pudo obtener el numero del pedido:", error);
         return (
+          savedOrder?.dailyOrderNumber ||
           savedOrder?.orderIndex ||
           savedOrder?.orderNumber ||
           savedOrder?.number

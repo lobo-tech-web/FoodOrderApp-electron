@@ -72,6 +72,14 @@ export const apiOptionalToken = axios.create({
     baseURL: mainURL,
 });
 
+export const getDesktopClientHeaders = () => {
+    if (typeof window !== 'undefined' && window.electronAPI) {
+        return { 'x-lobotech-client': 'electron-admin' };
+    }
+
+    return {};
+};
+
 const getOptionalValidToken = () => {
     const token = window.localStorage.getItem('token');
 

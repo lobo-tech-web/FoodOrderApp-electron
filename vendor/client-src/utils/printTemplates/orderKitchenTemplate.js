@@ -35,6 +35,7 @@ const getOrderDateParts = (order = {}) => {
 };
 
 const getOrderNumber = (order = {}, options = {}) =>
+  order.dailyOrderNumber ||
   options.orderIndex ||
   order.orderIndex ||
   order.orderNumber ||

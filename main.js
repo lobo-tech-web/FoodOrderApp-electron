@@ -22,6 +22,11 @@ const devServerUrl = process.env.ELECTRON_RENDERER_URL;
 const isDevelopment = Boolean(devServerUrl);
 const SECURE_STORAGE_KEYS = new Set(['token', 'user', 'loginCredentials']);
 let mainWindow;
+let offlineMenuState = {
+  forcedOffline: false,
+  backendReachable: true,
+  pendingOrders: 0,
+};
 const printerManager = createPrinterManager(app, BrowserWindow, {
   onKitchenPrint: () => shell.beep(),
 });
@@ -91,6 +96,17 @@ const removeSecureValue = (key) => {
   delete storage[key];
   writeSecureStorage(storage);
   return true;
+};
+
+const refreshMainMenu = () => {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+
+  setMainMenu(
+    mainWindow,
+    isDevelopment,
+    () => checkForUpdates(mainWindow, { manual: true }),
+    offlineMenuState
+  );
 };
 
 ipcMain.on('secure-storage:get', (event, key) => {
@@ -194,6 +210,22 @@ ipcMain.handle('updates:install', (event) => {
   return installDownloadedUpdate();
 });
 
+ipcMain.handle('offline-mode:set-status', (event, payload = {}) => {
+  if (!isAuthorizedRenderer(event.sender)) {
+    return { updated: false, reason: 'unauthorized' };
+  }
+
+  offlineMenuState = {
+    ...offlineMenuState,
+    forcedOffline: Boolean(payload.forcedOffline),
+    backendReachable: payload.backendReachable !== false,
+    pendingOrders: Number(payload.pendingOrders || 0),
+  };
+
+  refreshMainMenu();
+  return { updated: true };
+});
+
 const createWindow = async () => {
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -241,9 +273,7 @@ const createWindow = async () => {
     await mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
   }
 
-  setMainMenu(mainWindow, isDevelopment, () =>
-    checkForUpdates(mainWindow, { manual: true })
-  );
+  refreshMainMenu();
 
   setupAutoUpdater(mainWindow);
 };

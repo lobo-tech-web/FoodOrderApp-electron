@@ -21,6 +21,10 @@ import {
 } from "../services/users.js";
 // <-----------------
 
+// ---- OFFLINE STORAGE ----
+import { cacheRestaurantData } from "@/utils/offlineStorage.js";
+// -------------------------
+
 // CREACIÓN DEL CONTEXTO ------>
 export const UserContext = createContext();
 // <----------------------------
@@ -60,6 +64,25 @@ const ACTION_TYPES = {
 
 const updateUserLocalStorage = (user) =>
   window.localStorage.setItem("user", JSON.stringify(user));
+
+const cacheRestaurantUserConfig = (user = {}) => {
+  if (!user?.id) return;
+
+  cacheRestaurantData(user.id, {
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      businessName: user.businessName,
+      businessLogoUrl: user.businessLogoUrl,
+      paymentMethods: user.paymentMethods,
+      enabledOrderTypes: user.enabledOrderTypes,
+      mercadoPagoLink: user.mercadoPagoLink,
+      transferPaymentAlias: user.transferPaymentAlias,
+      tablesConfig: user.tablesConfig,
+    },
+  });
+};
 
 // ---- REDUCER ----
 const userReducer = (state, action) => {
@@ -434,6 +457,7 @@ export const UserProvider = ({ children }) => {
     try {
       const { user: loggedInUser, token } = await userLoginService(user);
       window.localStorage.setItem("token", token);
+      cacheRestaurantUserConfig(loggedInUser);
       dispatch({
         type: ACTION_TYPES.LOGIN_USER,
         payload: loggedInUser,

@@ -77,7 +77,18 @@ export const OrderInfo = ({
     (selectedOrder) => selectedOrder.id === order.id,
   );
 
-  const displayID = totalInList - globalIndex;
+  const displayID =
+    order.dailyOrderNumber ||
+    order.orderIndex ||
+    order.orderNumber ||
+    order.number ||
+    totalInList - globalIndex;
+  const localDisplayID =
+    order.clientOfflineOrderNumber &&
+    order.dailyOrderNumber &&
+    Number(order.clientOfflineOrderNumber) !== Number(order.dailyOrderNumber)
+      ? order.clientOfflineOrderNumber
+      : null;
 
   const formatPaidAt = (value) => {
     if (!value) return null;
@@ -178,6 +189,20 @@ export const OrderInfo = ({
           >
             {displayID}
           </Typography>
+
+          {localDisplayID && (
+            <Typography
+              variant="caption"
+              sx={{
+                fontFamily: "fontFamily.secondary",
+                fontSize: "0.65rem",
+                color: "warning.main",
+                fontWeight: 800,
+              }}
+            >
+              Local #{localDisplayID}
+            </Typography>
+          )}
 
           <Typography
             variant="caption"

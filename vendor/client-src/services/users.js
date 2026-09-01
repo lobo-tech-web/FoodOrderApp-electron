@@ -1,4 +1,4 @@
-import { api, apiWithToken } from "./axiosConfig";
+import { api, apiWithToken, getDesktopClientHeaders } from "./axiosConfig";
 
 // URLS --------->
 const apiMainURLUsers = import.meta.env.VITE_API_USERS_MAIN_ROUTER;
@@ -185,7 +185,9 @@ export const registerUserService = async (userData) => {
 // INICIO DE SESIÓN USUARIO
 export const userLoginService = async (user) => {
     try {
-        const response = await api.post(apiLoginURLUsers, user);
+        const response = await api.post(apiLoginURLUsers, user, {
+            headers: getDesktopClientHeaders(),
+        });
         return response.data;
     } catch (error) {
         if (error.response) {

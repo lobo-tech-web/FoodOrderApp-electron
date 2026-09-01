@@ -19,6 +19,16 @@ import {
 } from '../services/customOption.js';
 // -------------------
 
+// ---- OFFLINE STORAGE ----
+import {
+  cacheRestaurantData,
+  getCachedRestaurantData,
+  isForcedOfflineMode,
+  isNetworkError,
+  setBackendReachable,
+} from '@/utils/offlineStorage.js';
+// -------------------------
+
 // CREACIÓN DEL CONTEXTO
 export const ProductContext = createContext();
 
@@ -234,13 +244,34 @@ export const ProductProvider = ({ children }) => {
 
   const getAllProducts = useCallback(async (userId) => {
     try {
+      if (isForcedOfflineMode()) {
+        const cachedProducts = getCachedRestaurantData(userId).products || [];
+        dispatch({
+          type: ACTION_TYPES.GET_ALL_PRODUCTS,
+          payload: cachedProducts,
+        });
+        return cachedProducts;
+      }
+
       const response = await getAllProductsService(userId);
+      setBackendReachable(true);
+      cacheRestaurantData(userId, { products: response });
       dispatch({
         type: ACTION_TYPES.GET_ALL_PRODUCTS,
         payload: response,
       });
       return response;
     } catch (error) {
+      if (isNetworkError(error)) {
+        setBackendReachable(false);
+        const cachedProducts = getCachedRestaurantData(userId).products || [];
+        dispatch({
+          type: ACTION_TYPES.GET_ALL_PRODUCTS,
+          payload: cachedProducts,
+        });
+        return cachedProducts;
+      }
+
       throw error.response?.data?.message || error.message;
     }
   }, []);
@@ -329,13 +360,34 @@ export const ProductProvider = ({ children }) => {
 
   const getAllCategorys = useCallback(async (userId) => {
     try {
+      if (isForcedOfflineMode()) {
+        const cachedCategorys = getCachedRestaurantData(userId).categorys || [];
+        dispatch({
+          type: ACTION_TYPES.GET_ALL_CATEGORYS,
+          payload: cachedCategorys,
+        });
+        return cachedCategorys;
+      }
+
       const response = await getAllCategoryServices(userId);
+      setBackendReachable(true);
+      cacheRestaurantData(userId, { categorys: response });
       dispatch({
         type: ACTION_TYPES.GET_ALL_CATEGORYS,
         payload: response,
       });
       return response;
     } catch (error) {
+      if (isNetworkError(error)) {
+        setBackendReachable(false);
+        const cachedCategorys = getCachedRestaurantData(userId).categorys || [];
+        dispatch({
+          type: ACTION_TYPES.GET_ALL_CATEGORYS,
+          payload: cachedCategorys,
+        });
+        return cachedCategorys;
+      }
+
       throw error.response?.data?.message || error.message;
     }
   }, []);
@@ -373,12 +425,36 @@ export const ProductProvider = ({ children }) => {
 
   const getAllCustomOptions = useCallback(async (userId) => {
     try {
+      if (isForcedOfflineMode()) {
+        const cachedCustomOptions =
+          getCachedRestaurantData(userId).customOptions || [];
+        dispatch({
+          type: ACTION_TYPES.GET_ALL_CUSTOM_OPTIONS,
+          payload: cachedCustomOptions,
+        });
+        return cachedCustomOptions;
+      }
+
       const response = await getCustomOptionByRestaurantServices(userId);
+      setBackendReachable(true);
+      cacheRestaurantData(userId, { customOptions: response });
       dispatch({
         type: ACTION_TYPES.GET_ALL_CUSTOM_OPTIONS,
         payload: response,
       });
+      return response;
     } catch (error) {
+      if (isNetworkError(error)) {
+        setBackendReachable(false);
+        const cachedCustomOptions =
+          getCachedRestaurantData(userId).customOptions || [];
+        dispatch({
+          type: ACTION_TYPES.GET_ALL_CUSTOM_OPTIONS,
+          payload: cachedCustomOptions,
+        });
+        return cachedCustomOptions;
+      }
+
       throw error.response?.data?.message || error.message;
     }
   }, []);

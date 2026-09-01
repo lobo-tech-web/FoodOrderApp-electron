@@ -3,8 +3,18 @@ const { app, Menu } = require('electron');
 const setMainMenu = (
   mainWindow,
   isDevelopment = false,
-  onCheckForUpdates = () => { }
+  onCheckForUpdates = () => { },
+  offlineState = {}
 ) => {
+  const forcedOffline = Boolean(offlineState.forcedOffline);
+  const backendReachable = offlineState.backendReachable !== false;
+  const pendingOrders = Number(offlineState.pendingOrders || 0);
+  const statusLabel = forcedOffline
+    ? `Estado: sin conexion manual${pendingOrders ? ` (${pendingOrders} pendientes)` : ''}`
+    : backendReachable
+      ? `Estado: conectado${pendingOrders ? ` (${pendingOrders} pendientes)` : ''}`
+      : `Estado: backend sin conexion${pendingOrders ? ` (${pendingOrders} pendientes)` : ''}`;
+
   const template = [
     {
       label: 'Pedidos',
@@ -29,6 +39,15 @@ const setMainMenu = (
           label: 'Impresoras',
           accelerator: 'CmdOrCtrl+Shift+P',
           click: () => mainWindow.webContents.send('open-printer-config'),
+        },
+        { type: 'separator' },
+        {
+          label: 'Trabajar sin conexion',
+          type: 'checkbox',
+          checked: forcedOffline,
+          accelerator: 'CmdOrCtrl+Shift+O',
+          click: (menuItem) =>
+            mainWindow.webContents.send('offline-mode:toggle', menuItem.checked),
         },
       ],
     },
@@ -58,6 +77,10 @@ const setMainMenu = (
       submenu: [
         {
           label: `Version ${app.getVersion()}`,
+          enabled: false,
+        },
+        {
+          label: statusLabel,
           enabled: false,
         },
         { type: 'separator' },
