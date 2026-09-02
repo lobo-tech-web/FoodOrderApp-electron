@@ -8,6 +8,7 @@ const apiPutPassURLUsers = import.meta.env.VITE_API_USERS_PUT_PASS_ROUTER;
 const apiPutAdminPassURLUsers = import.meta.env.VITE_API_USERS_PUT_PASS_ADMIN_ROUTER;
 const apiRegURLUsers = import.meta.env.VITE_API_USERS_POST_REGISTER_ROUTER;
 const apiLoginURLUsers = import.meta.env.VITE_API_USERS_POST_LOGIN_ROUTER;
+const apiRefreshDesktopTokenURLUsers = `${apiMainURLUsers}/refresh-desktop-token`;
 const apiForgotPasswordURLUsers = import.meta.env.VITE_API_USERS_POST_RESTORE_PASS_ROUTER;
 const apiDeleteURLUsers = import.meta.env.VITE_API_USERS_DELETE_ROUTER;
 // <--------------
@@ -208,6 +209,28 @@ export const userLoginService = async (user) => {
                 message: error.message || "Error desconocido al intentar conectarse al servidor"
             };
         }
+    }
+};
+
+export const refreshDesktopTokenService = async () => {
+    try {
+        const response = await apiWithToken.post(
+            apiRefreshDesktopTokenURLUsers,
+            {},
+            { headers: getDesktopClientHeaders() }
+        );
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw {
+                status: error.response.status,
+                message: error.response.data.message || "Error desconocido en la respuesta del servidor",
+            };
+        }
+
+        throw {
+            message: error.message || "Error desconocido al intentar renovar la sesion",
+        };
     }
 };
 

@@ -14,6 +14,7 @@ import CloudDoneIcon from "@mui/icons-material/CloudDone";
 import CloudOffIcon from "@mui/icons-material/CloudOff";
 import SyncIcon from "@mui/icons-material/Sync";
 import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
+import { jwtDecode } from "jwt-decode";
 import {
   Alert,
   Box,
@@ -31,6 +32,12 @@ import { AdminLogin } from "./components/AdminLogin/AdminLogin.jsx";
 import { LocalOrders } from "./components/LocalOrders/LocalOrders.jsx";
 import { clearDesktopRuntimeSession } from "./utils/desktopSessionCleanup.js";
 import { checkBackendHealthService } from "@/services/health.js";
+import { refreshDesktopTokenService } from "@/services/users.js";
+
+const DESKTOP_TOKEN_REFRESH_STORAGE_KEY = "lobotech:desktop-token:last-refresh";
+const DESKTOP_TOKEN_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000;
+const DESKTOP_TOKEN_REFRESH_MIN_AGE_MS = 20 * 60 * 60 * 1000;
+const DESKTOP_TOKEN_REFRESH_THRESHOLD_MS = 48 * 60 * 60 * 1000;
 
 const getHomePathByRole = (role) => {
   if (role === "dev") return "/dev-control-panel";
@@ -173,6 +180,7 @@ const OfflineStatusIndicator = ({
 export const AdminDesktopApp = () => {
   const { syncOfflineOrders } = useOrders();
   const reconnectInProgressRef = useRef(false);
+  const tokenRefreshInProgressRef = useRef(false);
   const [printerConfigOpen, setPrinterConfigOpen] = useState(false);
   const [updateState, setUpdateState] = useState(null);
   const [updateMessage, setUpdateMessage] = useState(null);
@@ -313,6 +321,61 @@ export const AdminDesktopApp = () => {
     [syncOfflineOrders],
   );
 
+  const refreshDesktopToken = useCallback(async () => {
+    if (!window.electronAPI || tokenRefreshInProgressRef.current) return false;
+
+    const status = getOfflineStatusSnapshot();
+    if (
+      status.forcedOffline ||
+      status.browserOnline === false ||
+      status.backendReachable === false
+    ) {
+      return false;
+    }
+
+    const token = window.localStorage.getItem("token");
+    if (!token) return false;
+
+    try {
+      const decoded = jwtDecode(token);
+      const expiresAt = Number(decoded?.exp || 0) * 1000;
+      const now = Date.now();
+
+      if (!expiresAt || expiresAt <= now) return false;
+
+      const lastRefreshAt = Number(
+        window.localStorage.getItem(DESKTOP_TOKEN_REFRESH_STORAGE_KEY) || 0,
+      );
+      const shouldRefreshByAge =
+        !lastRefreshAt ||
+        now - lastRefreshAt >= DESKTOP_TOKEN_REFRESH_MIN_AGE_MS;
+      const shouldRefreshByExpiration =
+        expiresAt - now <= DESKTOP_TOKEN_REFRESH_THRESHOLD_MS;
+
+      if (!shouldRefreshByAge && !shouldRefreshByExpiration) return false;
+
+      tokenRefreshInProgressRef.current = true;
+      const response = await refreshDesktopTokenService();
+
+      if (response?.token) {
+        window.localStorage.setItem("token", response.token);
+        window.localStorage.setItem(
+          DESKTOP_TOKEN_REFRESH_STORAGE_KEY,
+          String(now),
+        );
+        return true;
+      }
+    } catch (error) {
+      if (error?.status !== 401) {
+        setBackendReachable(false);
+      }
+    } finally {
+      tokenRefreshInProgressRef.current = false;
+    }
+
+    return false;
+  }, []);
+
   useEffect(() => {
     const updateStatus = (nextStatus) => {
       setOfflineStatus(nextStatus);
@@ -333,6 +396,28 @@ export const AdminDesktopApp = () => {
 
     return () => window.clearInterval(intervalId);
   }, [refreshBackendConnection]);
+
+  useEffect(() => {
+    refreshDesktopToken().catch(() => {});
+
+    const intervalId = window.setInterval(() => {
+      refreshDesktopToken().catch(() => {});
+    }, DESKTOP_TOKEN_REFRESH_INTERVAL_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, [refreshDesktopToken]);
+
+  useEffect(() => {
+    if (
+      offlineStatus.forcedOffline ||
+      offlineStatus.browserOnline === false ||
+      offlineStatus.backendReachable === false
+    ) {
+      return;
+    }
+
+    refreshDesktopToken().catch(() => {});
+  }, [offlineStatus, refreshDesktopToken]);
 
   useEffect(() => {
     if (
