@@ -25,8 +25,8 @@
   },
   "build": {
     "appId": "com.lobotech.foodorderapp.admin",
-    "productName": "FoodOrderApp Admin",
-    "artifactName": "FoodOrderApp-Admin-Setup-${version}.${ext}",
+    "productName": "LobotechApp",
+    "artifactName": "LobotechApp-Setup-${version}.${ext}",
     "asar": true,
     "npmRebuild": false,
     "directories": {
@@ -62,8 +62,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
-      "shortcutName": "FoodOrderApp Admin",
-      "uninstallDisplayName": "FoodOrderApp Admin",
+      "shortcutName": "LobotechApp",
+      "uninstallDisplayName": "LobotechApp",
       "runAfterFinish": true,
       "deleteAppDataOnUninstall": false
     },
@@ -72,6 +72,7 @@
     }
   },
   "dependencies": {
+    "@mui/x-date-pickers": "^7.29.4",
     "electron-updater": "^6.6.2"
   },
   "devDependencies": {
@@ -86,9 +87,12 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@mui/icons-material": "^6.1.7",
     "@mui/material": "^6.1.7",
+    "@vitejs/plugin-react": "^4.3.3",
     "axios": "^1.4.0",
     "dayjs": "^1.11.13",
     "decimal.js": "^10.6.0",
+    "electron": "^41.2.0",
+    "electron-builder": "^26.0.12",
     "html-to-image": "^1.11.13",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
@@ -98,9 +102,6 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.4.0",
-    "@vitejs/plugin-react": "^4.3.3",
-    "electron": "^41.2.0",
-    "electron-builder": "^26.0.12",
     "vite": "^5.4.10"
   }
 }

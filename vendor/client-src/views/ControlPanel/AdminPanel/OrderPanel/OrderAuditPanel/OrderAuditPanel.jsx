@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import dayjs from "dayjs";
+import "dayjs/locale/es";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+
 // ---- MATERIAL UI ----
 import {
   Box,
@@ -14,8 +19,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
 } from "@mui/material";
 // Icons
 import {
@@ -25,6 +33,7 @@ import {
   Refresh as RefreshIcon,
   ReceiptLong as ReceiptIcon,
   SwapHoriz as ChangeIcon,
+  FilterAltOutlined as FilterIcon,
 } from "@mui/icons-material";
 // ---------------------
 
@@ -44,16 +53,27 @@ import { useAlert } from "@/hooks/Alert.jsx";
 import {
   ACTION_SHORT_LABELS,
   ACTION_COLORS,
+  AUDIT_FILTER_OPTIONS,
   getArgentinaToday,
   formatDate,
 } from "@/utils/orderAuditUtils";
+import { statusOptions } from "@/utils/components/StatusUtils.jsx";
 // ---------------
+
+// ---- STYLES ----
+import {
+  tableHeadStyle,
+  tableBodyStyle,
+  auditCalendarPaperSx,
+} from "../styles/orderStyles.js";
+// ----------------
 
 export const OrderAuditPanel = ({ user }) => {
   const { AlertComponent, showAlert } = useAlert();
   const [loading, setLoading] = useState(false);
 
   const [selectedDate, setSelectedDate] = useState(getArgentinaToday);
+  const [selectedFilter, setSelectedFilter] = useState("ALL");
   const [auditData, setAuditData] = useState({
     summary: {},
     orders: [],
@@ -61,6 +81,10 @@ export const OrderAuditPanel = ({ user }) => {
 
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [auditModalOpen, setAuditModalOpen] = useState(false);
+
+  const getStatusOption = (status) => {
+    return statusOptions.find((option) => option.value === status) || null;
+  };
 
   const canReadAudit =
     user?.role === "admin" ||
@@ -75,7 +99,10 @@ export const OrderAuditPanel = ({ user }) => {
     setLoading(true);
 
     try {
-      const response = await getDailyOrderAuditService({ date: selectedDate });
+      const response = await getDailyOrderAuditService({
+        date: selectedDate,
+        changeType: selectedFilter,
+      });
 
       setAuditData({
         summary: response?.summary || {},
@@ -86,7 +113,7 @@ export const OrderAuditPanel = ({ user }) => {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, canReadAudit, showAlert]);
+  }, [selectedDate, selectedFilter, canReadAudit, showAlert]);
 
   useEffect(() => {
     fetchAudit();
@@ -180,7 +207,9 @@ export const OrderAuditPanel = ({ user }) => {
               <Stack direction="row" spacing={1} alignItems="center">
                 <HistoryIcon color="primary" />
 
-                <Typography sx={{ fontFamily: "fontFamily.primary" }}>
+                <Typography
+                  sx={{ fontFamily: "fontFamily.primary", fontSize: 20 }}
+                >
                   AUDITORÍA DE PEDIDOS
                 </Typography>
               </Stack>
@@ -189,8 +218,8 @@ export const OrderAuditPanel = ({ user }) => {
                 sx={{
                   mt: 0.5,
                   fontFamily: "fontFamily.secondary",
-                  color: "text.secondary",
-                  fontSize: 13,
+                  color: "primary.main",
+                  fontSize: 14,
                 }}
               >
                 Revisá las modificaciones realizadas en los pedidos durante un
@@ -205,16 +234,108 @@ export const OrderAuditPanel = ({ user }) => {
               }}
               spacing={1}
             >
-              <TextField
-                type="date"
+              <LocalizationProvider
+                dateAdapter={AdapterDayjs}
+                adapterLocale="es"
+              >
+                <DatePicker
+                  label="Fecha"
+                  format="DD-MM-YYYY"
+                  value={selectedDate ? dayjs(selectedDate) : null}
+                  maxDate={dayjs(getArgentinaToday())}
+                  onChange={(newValue) => {
+                    if (!newValue || !newValue.isValid()) {
+                      setSelectedDate("");
+                      return;
+                    }
+                    setSelectedDate(newValue.format("YYYY-MM-DD"));
+                  }}
+                  slotProps={{
+                    textField: {
+                      size: "small",
+                      sx: {
+                        minWidth: {
+                          xs: "100%",
+                          sm: 175,
+                        },
+                        "& .MuiInputBase-input": {
+                          fontFamily: "fontFamily.secondary",
+                          color: "text.primary",
+                        },
+                        "& .MuiInputLabel-root": {
+                          fontFamily: "fontFamily.secondary",
+                          color: "text.primary",
+                        },
+                        "& .MuiInputLabel-root.Mui-focused": {
+                          color: "primary.main",
+                        },
+                        "& .MuiSvgIcon-root": {
+                          color: "primary.main",
+                        },
+                      },
+                    },
+                    desktopPaper: {
+                      sx: auditCalendarPaperSx,
+                    },
+                    mobilePaper: {
+                      sx: auditCalendarPaperSx,
+                    },
+                    day: {
+                      sx: { fontFamily: "fontFamily.secondary" },
+                    },
+                    monthButton: {
+                      sx: { fontFamily: "fontFamily.secondary" },
+                    },
+                    yearButton: {
+                      sx: { fontFamily: "fontFamily.secondary" },
+                    },
+                  }}
+                />
+              </LocalizationProvider>
+
+              <FormControl
                 size="small"
-                label="Fecha"
-                value={selectedDate}
-                onChange={(event) => setSelectedDate(event.target.value)}
-                InputLabelProps={{
-                  shrink: true,
+                sx={{
+                  minWidth: {
+                    xs: "100%",
+                    sm: 210,
+                  },
                 }}
-              />
+              >
+                <InputLabel
+                  id="order-audit-filter-label"
+                  sx={{
+                    fontFamily: "fontFamily.secondary",
+                    color: "text.primary",
+                  }}
+                >
+                  Tipo de cambio
+                </InputLabel>
+
+                <Select
+                  labelId="order-audit-filter-label"
+                  value={selectedFilter}
+                  label="Tipo de cambio"
+                  onChange={(event) => setSelectedFilter(event.target.value)}
+                  sx={{
+                    fontFamily: "fontFamily.secondary",
+                    color: "text.primary",
+                  }}
+                >
+                  {AUDIT_FILTER_OPTIONS.map((option) => (
+                    <MenuItem
+                      key={option.value}
+                      value={option.value}
+                      sx={{
+                        fontFamily: "fontFamily.secondary",
+                        color: "text.primary",
+                      }}
+                    >
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
               <Button
                 variant="contained"
@@ -237,6 +358,45 @@ export const OrderAuditPanel = ({ user }) => {
           </Stack>
         </Paper>
 
+        {selectedFilter !== "ALL" && (
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            sx={{ bgcolor: "background.main", p: 2, borderRadius: "10px" }}
+          >
+            <FilterIcon
+              sx={{
+                fontSize: 22,
+                color: "primary.main",
+              }}
+            />
+
+            <Typography
+              sx={{ fontFamily: "fontFamily.secondary", fontSize: 14 }}
+            >
+              Filtros aplicados:
+            </Typography>
+
+            <Chip
+              size="small"
+              color="primary"
+              variant="outlined"
+              label={
+                AUDIT_FILTER_OPTIONS.find(
+                  (option) => option.value === selectedFilter,
+                )?.label || selectedFilter
+              }
+              onDelete={() => setSelectedFilter("ALL")}
+              sx={{
+                fontFamily: "fontFamily.secondary",
+                fontSize: 14,
+                textTransform: "uppercase",
+              }}
+            />
+          </Stack>
+        )}
+
         {/* RESUMEN */}
 
         <Box
@@ -258,8 +418,8 @@ export const OrderAuditPanel = ({ user }) => {
                 p: 2,
                 borderRadius: 3,
                 border: "1px solid",
-                borderColor: "divider",
-                bgcolor: "background.paper",
+                borderColor: "primary.main",
+                bgcolor: "background.main",
               }}
             >
               <Stack
@@ -272,7 +432,7 @@ export const OrderAuditPanel = ({ user }) => {
                   <Typography
                     sx={{
                       fontFamily: "fontFamily.secondary",
-                      color: "text.secondary",
+                      color: "text.primary",
                       fontSize: 11,
                     }}
                   >
@@ -338,121 +498,139 @@ export const OrderAuditPanel = ({ user }) => {
               <Typography
                 sx={{
                   fontFamily: "fontFamily.secondary",
-                  color: "text.secondary",
+                  color: "primary.main",
                   fontSize: 13,
                 }}
               >
-                No se registraron cambios en pedidos durante esta fecha.
+                {selectedFilter === "ALL"
+                  ? "No se registraron cambios en pedidos durante esta fecha."
+                  : "No se encontraron modificaciones de este tipo durante la fecha seleccionada."}
               </Typography>
             </Box>
           ) : (
             <TableContainer>
               <Table>
-                <TableHead>
+                <TableHead sx={{ bgcolor: "background.main" }}>
                   <TableRow>
-                    <TableCell>PEDIDO</TableCell>
-                    <TableCell>CLIENTE</TableCell>
-                    <TableCell>ESTADO</TableCell>
-                    <TableCell>CAMBIOS</TableCell>
-                    <TableCell>USUARIOS</TableCell>
-                    <TableCell>ÚLTIMO CAMBIO</TableCell>
-                    <TableCell align="right">DETALLE</TableCell>
+                    <TableCell sx={tableHeadStyle}>PEDIDO</TableCell>
+                    <TableCell sx={tableHeadStyle}>CLIENTE</TableCell>
+                    <TableCell sx={tableHeadStyle}>ESTADO</TableCell>
+                    <TableCell sx={tableHeadStyle}>CAMBIOS</TableCell>
+                    <TableCell sx={tableHeadStyle}>USUARIOS</TableCell>
+                    <TableCell sx={tableHeadStyle}>ÚLTIMO CAMBIO</TableCell>
+                    <TableCell sx={tableHeadStyle}>DETALLE</TableCell>
                   </TableRow>
                 </TableHead>
 
-                <TableBody>
-                  {auditData.orders.map((order) => (
-                    <TableRow key={order.orderId} hover>
-                      <TableCell>
-                        <Typography sx={{ fontFamily: "fontFamily.primary" }}>
-                          #{order.orderId}
-                        </Typography>
-                      </TableCell>
+                <TableBody sx={{ bgcolor: "background.paper" }}>
+                  {auditData.orders.map((order) => {
+                    const status = getStatusOption(order.currentStatus);
+                    return (
+                      <TableRow key={order.orderId} hover>
+                        <TableCell sx={tableBodyStyle}>
+                          <Typography sx={{ fontFamily: "fontFamily.primary" }}>
+                            #{order.orderId}
+                          </Typography>
+                        </TableCell>
 
-                      <TableCell>
-                        <Typography sx={{ fontFamily: "fontFamily.secondary" }}>
-                          {order.clientName}
-                        </Typography>
-                      </TableCell>
+                        <TableCell sx={tableBodyStyle}>
+                          <Typography
+                            sx={{
+                              fontFamily: "fontFamily.secondary",
+                              textTransform: "uppercase",
+                              fontSize: 14,
+                            }}
+                          >
+                            {order.clientName}
+                          </Typography>
+                        </TableCell>
 
-                      <TableCell>
-                        <Chip
-                          size="small"
-                          label={order.currentStatus || "Sin estado"}
-                          variant="outlined"
-                        />
-                      </TableCell>
+                        <TableCell sx={tableBodyStyle}>
+                          <Chip
+                            icon={status?.icon || undefined}
+                            size="small"
+                            label={status?.value || "SIN ESTADO"}
+                            color={status?.color || "default"}
+                            variant="outlined"
+                          />
+                        </TableCell>
 
-                      <TableCell>
-                        <Stack
-                          direction="row"
-                          spacing={0.5}
-                          flexWrap="wrap"
-                          useFlexGap
-                        >
-                          {Object.entries(order.actionCounts || {}).map(
-                            ([action, count]) => (
-                              <Chip
-                                key={action}
-                                size="small"
-                                color={ACTION_COLORS[action] || "default"}
-                                label={`${
-                                  ACTION_SHORT_LABELS[action] || action
-                                } · ${count}`}
-                              />
-                            ),
-                          )}
-                        </Stack>
-                      </TableCell>
+                        <TableCell sx={tableBodyStyle}>
+                          <Stack
+                            direction="row"
+                            spacing={0.5}
+                            flexWrap="wrap"
+                            useFlexGap
+                          >
+                            {Object.entries(order.actionCounts || {}).map(
+                              ([action, count]) => (
+                                <Chip
+                                  key={action}
+                                  size="small"
+                                  color={ACTION_COLORS[action] || "default"}
+                                  label={`${
+                                    ACTION_SHORT_LABELS[action] || action
+                                  } · ${count}`}
+                                  sx={{
+                                    fontFamily: "fontFamily.primary",
+                                    textTransform: "uppercase",
+                                  }}
+                                />
+                              ),
+                            )}
+                          </Stack>
+                        </TableCell>
 
-                      <TableCell>
-                        <Stack spacing={0.3}>
-                          {(order.actors || []).map((actor, index) => (
-                            <Typography
-                              key={`${actor.type}-${actor.name}-${index}`}
-                              sx={{
-                                fontFamily: "fontFamily.secondary",
-                                fontSize: 12,
-                              }}
-                            >
-                              {actor.name}{" "}
-                              <Box
-                                component="span"
-                                sx={{ color: "text.secondary" }}
+                        <TableCell sx={tableBodyStyle}>
+                          <Stack spacing={0.3}>
+                            {(order.actors || []).map((actor, index) => (
+                              <Typography
+                                key={`${actor.type}-${actor.name}-${index}`}
+                                sx={{
+                                  fontFamily: "fontFamily.secondary",
+                                  fontSize: 14,
+                                  textTransform: "uppercase",
+                                }}
                               >
-                                ({actor.type})
-                              </Box>
-                            </Typography>
-                          ))}
-                        </Stack>
-                      </TableCell>
+                                {actor.name}{" "}
+                                <Box
+                                  component="span"
+                                  sx={{ color: "primary.main" }}
+                                >
+                                  ({actor.type})
+                                </Box>
+                              </Typography>
+                            ))}
+                          </Stack>
+                        </TableCell>
 
-                      <TableCell>
-                        <Typography
-                          sx={{
-                            fontFamily: "fontFamily.secondary",
-                            fontSize: 13,
-                          }}
-                        >
-                          {formatDate(order.lastChangedAt)}
-                        </Typography>
-                      </TableCell>
+                        <TableCell sx={tableBodyStyle}>
+                          <Typography
+                            sx={{
+                              fontFamily: "fontFamily.secondary",
+                              fontSize: 14,
+                            }}
+                          >
+                            {formatDate(order.lastChangedAt)}
+                          </Typography>
+                        </TableCell>
 
-                      <TableCell align="right">
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          startIcon={<HistoryIcon />}
-                          onClick={() => handleOpenOrderAudit(order.orderId)}
-                          sx={{
-                            fontFamily: "fontFamily.primary",
-                          }}
-                        >
-                          Historial
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        <TableCell sx={tableBodyStyle}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={<HistoryIcon />}
+                            onClick={() => handleOpenOrderAudit(order.orderId)}
+                            sx={{
+                              fontFamily: "fontFamily.primary",
+                            }}
+                          >
+                            Historial
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>

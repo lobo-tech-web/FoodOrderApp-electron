@@ -110,6 +110,49 @@ export const POINTS_AUDIT_FIELDS = new Set([
     "extraPoints",
 ]);
 
+export const AUDIT_FILTER_OPTIONS = [
+    {
+        value: "ALL",
+        label: "Todos los cambios",
+    },
+    {
+        value: "PRODUCTS",
+        label: "Productos",
+    },
+    {
+        value: "AMOUNTS",
+        label: "Montos",
+    },
+    {
+        value: "PAYMENTS",
+        label: "Pagos",
+    },
+    {
+        value: "STATUS",
+        label: "Estados",
+    },
+    {
+        value: "DISCOUNTS",
+        label: "Descuentos",
+    },
+    {
+        value: "CLIENT",
+        label: "Datos del cliente",
+    },
+    {
+        value: "DELIVERY",
+        label: "Entrega / Cadete",
+    },
+    {
+        value: "POINTS",
+        label: "Puntos",
+    },
+    {
+        value: "CANCELLATIONS",
+        label: "Cancelaciones",
+    },
+];
+
 export const parseAuditNumber = (value) => {
     if (value === null || value === undefined || value === "") {
         return null;
@@ -274,8 +317,8 @@ export const formatDate = (date) => {
     );
 
     return (
-        `${values.day}-${values.month}-${values.year}` +
-        ` · ${values.hour}:${values.minute}`
+        `${values.hour}:${values.minute} · ` +
+        `${values.day}-${values.month}-${values.year}`
     );
 };
 

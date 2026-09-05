@@ -54,50 +54,15 @@ import {
 } from "@/utils/riderCashClosureUtils.js";
 // ---------------
 
+// ---- Shared ----
+import { RiderSummaryRow } from "./shared/RiderSummaryRow.jsx";
+import { RiderSectionCard } from "./shared/RiderSectionCard.jsx";
+import { RiderMetricCard } from "./shared/RiderMetricCard.jsx";
+// ----------------
+
 // ---- Components ----
 import { ModalConfirmCashClosure } from "./ModalConfirmCashClosure/ModalConfirmCashClosure.jsx";
 // --------------------
-
-const SummaryRow = ({ icon, label, value, color = "text.primary" }) => {
-  return (
-    <Box
-      sx={{
-        py: 1.15,
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: 2,
-        borderBottom: "1px solid",
-        borderColor: "divider",
-      }}
-    >
-      <Stack direction="row" spacing={1} alignItems="center">
-        {icon}
-
-        <Typography
-          sx={{
-            fontFamily: "fontFamily.secondary",
-            color: "text.primary",
-            fontSize: "0.88rem",
-          }}
-        >
-          {label}
-        </Typography>
-      </Stack>
-
-      <Typography
-        sx={{
-          fontFamily: "fontFamily.primary",
-          color,
-          fontSize: "1rem",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {value}
-      </Typography>
-    </Box>
-  );
-};
 
 export const ModalRiderCashClosure = ({
   open,
@@ -299,6 +264,7 @@ export const ModalRiderCashClosure = ({
           borderColor: "primary.main",
           overflow: "hidden",
           minHeight: { xs: "100dvh", sm: "auto" },
+          boxShadow: "0 24px 80px rgba(0,0,0,0.45)",
         },
       }}
     >
@@ -399,26 +365,40 @@ export const ModalRiderCashClosure = ({
             }}
           >
             <Stack spacing={2}>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2,
-                  borderRadius: 3,
-                  bgcolor: "background.main",
-                  border: "1px solid",
-                  borderColor: "divider",
-                }}
+              <RiderSectionCard
+                title="DETALLES DE ENTREGAS"
+                subtitle="Resumen de viajes incluidos en este cierre"
+                icon={<ReceiptLongIcon fontSize="small" />}
               >
-                <Typography
+                <Box
                   sx={{
-                    fontFamily: "fontFamily.primary",
-                    color: "primary.main",
-                    mb: 2,
+                    display: "grid",
+                    gridTemplateColumns: {
+                      xs: "1fr",
+                      sm: "repeat(2, 1fr)",
+                    },
+                    gap: 1.2,
                   }}
                 >
-                  DATOS DEL CIERRE
-                </Typography>
+                  <RiderMetricCard
+                    icon={<ReceiptLongIcon color="primary" />}
+                    label="Pedidos repartidos"
+                    value={summary.ordersCount}
+                  />
 
+                  <RiderMetricCard
+                    icon={<PaymentsIcon color="success" />}
+                    label="Pedidos en efectivo"
+                    value={summary.cashOrdersCount}
+                  />
+                </Box>
+              </RiderSectionCard>
+
+              <RiderSectionCard
+                title="DATOS DEL CIERRE"
+                subtitle="Efectivo entregado al cadete y dinero recibido al finalizar"
+                icon={<WalletIcon fontSize="small" />}
+              >
                 <Box
                   sx={{
                     display: "grid",
@@ -426,7 +406,7 @@ export const ModalRiderCashClosure = ({
                       xs: "1fr",
                       sm: "1fr 1fr",
                     },
-                    gap: 2,
+                    gap: 1.5,
                   }}
                 >
                   <TextField
@@ -471,48 +451,14 @@ export const ModalRiderCashClosure = ({
                     }}
                   />
                 </Box>
-              </Paper>
+              </RiderSectionCard>
 
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2,
-                  borderRadius: 3,
-                  bgcolor: "background.main",
-                  border: "1px solid",
-                  borderColor: "divider",
-                }}
-              >
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  justifyContent="space-between"
-                  alignItems={{ xs: "stretch", sm: "center" }}
-                  spacing={1}
-                  sx={{ mb: 1.5 }}
-                >
-                  <Box>
-                    <Typography
-                      sx={{
-                        fontFamily: "fontFamily.primary",
-                        color: "primary.main",
-                      }}
-                    >
-                      AJUSTES DEL RIDER
-                    </Typography>
-
-                    <Typography
-                      sx={{
-                        fontFamily: "fontFamily.secondary",
-                        color: "text.primary",
-                        fontSize: "0.8rem",
-                        mt: 0.3,
-                      }}
-                    >
-                      Sumá extras a favor del rider o restá consumos/cargos.
-                    </Typography>
-                  </Box>
-
-                  {!isClosed && (
+              <RiderSectionCard
+                title="AJUSTES DEL RIDER"
+                subtitle="Extras, propinas, descuentos o cargos aplicados al pago final"
+                icon={<GasIcon fontSize="small" />}
+                action={
+                  !isClosed && (
                     <Stack direction="row" spacing={1}>
                       <Button
                         size="small"
@@ -527,7 +473,7 @@ export const ModalRiderCashClosure = ({
 
                       <Button
                         size="small"
-                        variant="outlined"
+                        variant="contained"
                         color="success"
                         startIcon={<AddIcon />}
                         onClick={() => handleAddAdjustment("BONUS")}
@@ -536,13 +482,13 @@ export const ModalRiderCashClosure = ({
                         Sumar
                       </Button>
                     </Stack>
-                  )}
-                </Stack>
-
+                  )
+                }
+              >
                 <Stack
                   spacing={1.2}
                   sx={{
-                    maxHeight: { xs: "none", md: 190 },
+                    maxHeight: { xs: "none", md: 150 },
                     overflowY: { xs: "visible", md: "auto" },
                     pr: { md: 0.5 },
                   }}
@@ -675,27 +621,13 @@ export const ModalRiderCashClosure = ({
                     </Box>
                   )}
                 </Stack>
-              </Paper>
+              </RiderSectionCard>
 
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2,
-                  borderRadius: 3,
-                  bgcolor: "background.main",
-                  border: "1px solid",
-                  borderColor: "divider",
-                }}
+              <RiderSectionCard
+                title="NOTA"
+                subtitle="Observación interna del cierre"
+                icon={<CommentIcon fontSize="small" />}
               >
-                <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
-                  <CommentIcon color="primary" />
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ fontFamily: "fontFamily.primary" }}
-                  >
-                    NOTA
-                  </Typography>
-                </Box>
                 <TextField
                   fullWidth
                   multiline
@@ -707,7 +639,7 @@ export const ModalRiderCashClosure = ({
                   disabled={isClosed}
                   sx={{ fontFamily: "fontFamily.secondary" }}
                 />
-              </Paper>
+              </RiderSectionCard>
             </Stack>
 
             <Paper
@@ -727,56 +659,73 @@ export const ModalRiderCashClosure = ({
                 sx={{
                   fontFamily: "fontFamily.primary",
                   color: "primary.main",
-                  mb: 2,
+                  mb: 1.5,
                 }}
               >
                 RESUMEN DEL CIERRE
               </Typography>
 
-              <SummaryRow
-                icon={<ReceiptLongIcon color="primary" />}
-                label="Pedidos repartidos"
-                value={`${summary.ordersCount}`}
-              />
-
-              <SummaryRow
-                icon={<PaymentsIcon color="success" />}
-                label="Pedidos en efectivo"
-                value={`${summary.cashOrdersCount}`}
-              />
-
-              <SummaryRow
-                icon={<PaymentsIcon color="success" />}
+              <RiderSummaryRow
+                icon={<PaidIcon color="success" />}
                 label="Efectivo cobrado"
                 value={formatCurrency(summary.cashCollected)}
               />
 
-              <SummaryRow
+              <RiderSummaryRow
                 icon={<WalletIcon color="success" />}
                 label="Cambio inicial"
                 value={formatCurrency(summary.initialCash)}
               />
 
-              <SummaryRow
-                icon={<TwoWheelerIcon color="warning" />}
+              <RiderSummaryRow
+                icon={<CurrencyExchangeIcon color="primary" />}
+                label="Efectivo entregado"
+                value={formatCurrency(summary.cashDelivered)}
+              />
+
+              <RiderSummaryRow
+                icon={<TwoWheelerIcon color="primary" />}
                 label="Deliverys del rider"
                 value={formatCurrency(summary.deliveryFeeTotal)}
                 color="primary.main"
               />
 
-              <SummaryRow
-                icon={<GasIcon color="error" />}
-                label="Ajustes"
-                value={formatCurrency(summary.adjustmentsTotal)}
-                color={
-                  summary.adjustmentsTotal >= 0 ? "success.main" : "error.main"
-                }
-              />
+              {summary.adjustmentsTotal !== 0 && (
+                <RiderSummaryRow
+                  icon={
+                    <GasIcon
+                      color={
+                        summary.adjustmentsTotal >= 0 ? "success" : "error"
+                      }
+                    />
+                  }
+                  label={
+                    summary.adjustmentsTotal >= 0
+                      ? "Extras / propinas"
+                      : "Descuentos / cargos"
+                  }
+                  value={formatCurrency(summary.adjustmentsTotal)}
+                  color={
+                    summary.adjustmentsTotal >= 0
+                      ? "success.main"
+                      : "error.main"
+                  }
+                />
+              )}
 
-              <SummaryRow
-                icon={<PaidIcon color="primary" />}
-                label="Efectivo entregado"
-                value={formatCurrency(summary.cashDelivered)}
+              <RiderSummaryRow
+                icon={
+                  <WalletIcon
+                    color={summary.cashDifference >= 0 ? "success" : "error"}
+                  />
+                }
+                label={
+                  summary.cashDifference >= 0 ? "Propina" : "Falta entregar:"
+                }
+                value={formatCurrency(summary.cashDifference)}
+                color={
+                  summary.cashDifference >= 0 ? "success.main" : "error.main"
+                }
               />
 
               <Divider sx={{ my: 2 }} />
@@ -802,7 +751,7 @@ export const ModalRiderCashClosure = ({
                     fontSize: "0.78rem",
                   }}
                 >
-                  TOTAL A ENTREGAR
+                  TOTAL A ENTREGAR AL LOCAL
                 </Typography>
 
                 <Typography
@@ -815,36 +764,6 @@ export const ModalRiderCashClosure = ({
                 >
                   {formatCurrency(summary.expectedCashToAdmin)}
                 </Typography>
-                {summary.cashDifference !== 0 && (
-                  <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontFamily: "fontFamily.secondary",
-                        color:
-                          summary.cashDifference > 0
-                            ? "info.main"
-                            : "error.main",
-                      }}
-                    >
-                      {summary.cashDifference > 0
-                        ? `Sobra efectivo: `
-                        : `Falta entregar: `}
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontFamily: "fontFamily.secondary",
-                        color:
-                          summary.cashDifference > 0
-                            ? "info.main"
-                            : "error.main",
-                      }}
-                    >
-                      {formatCurrency(summary.cashDifference)}
-                    </Typography>
-                  </Box>
-                )}
               </Box>
 
               <Box
@@ -883,7 +802,7 @@ export const ModalRiderCashClosure = ({
 
       <DialogActions
         sx={{
-          p: 2,
+          p: { xs: 1.5, sm: 2 },
           bgcolor: "background.main",
           borderTop: "1px solid",
           borderColor: "divider",
@@ -919,7 +838,7 @@ export const ModalRiderCashClosure = ({
               startIcon={<SaveIcon />}
               sx={{ fontFamily: "fontFamily.primary" }}
             >
-              Guardar
+              Guardar Borrador
             </Button>
           )}
         </Stack>
@@ -930,7 +849,9 @@ export const ModalRiderCashClosure = ({
               width: "100%",
               display: "flex",
               justifyContent: "flex-end",
-              pt: 1,
+              pt: 1.2,
+              borderTop: "1px dashed",
+              borderColor: "rgba(255,255,255,0.14)",
             }}
           >
             <Button
@@ -939,7 +860,12 @@ export const ModalRiderCashClosure = ({
               variant="contained"
               color="success"
               startIcon={<CheckCircleIcon />}
-              sx={{ fontFamily: "fontFamily.primary" }}
+              sx={{
+                fontFamily: "fontFamily.primary",
+                minWidth: { xs: "100%", sm: 230 },
+                py: 1.1,
+                boxShadow: "0 8px 22px rgba(46, 125, 50, 0.35)",
+              }}
             >
               Realizar cierre
             </Button>

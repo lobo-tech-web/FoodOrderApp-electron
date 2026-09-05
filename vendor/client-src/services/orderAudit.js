@@ -27,12 +27,16 @@ export const getOrderAuditLogsService = async (orderId) => {
     }
 };
 
-export const getDailyOrderAuditService = async ({ date, restaurantId = null } = {}) => {
+export const getDailyOrderAuditService = async ({
+    date,
+    restaurantId = null,
+    changeType = 'ALL'
+} = {}) => {
     try {
 
         if (!date) throw new Error('fecha requerida');
 
-        const params = { date };
+        const params = { date, changeType };
 
         if (restaurantId) params.restaurantId = restaurantId;
 
