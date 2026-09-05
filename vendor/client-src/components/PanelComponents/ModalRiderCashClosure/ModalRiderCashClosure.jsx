@@ -713,20 +713,28 @@ export const ModalRiderCashClosure = ({
                 />
               )}
 
-              <RiderSummaryRow
-                icon={
-                  <WalletIcon
-                    color={summary.cashDifference >= 0 ? "success" : "error"}
-                  />
-                }
-                label={
-                  summary.cashDifference >= 0 ? "Propina" : "Falta entregar:"
-                }
-                value={formatCurrency(summary.cashDifference)}
-                color={
-                  summary.cashDifference >= 0 ? "success.main" : "error.main"
-                }
-              />
+              {summary.cashDifference !== 0 && (
+                <RiderSummaryRow
+                  icon={
+                    <WalletIcon
+                      color={summary.cashDifference > 0 ? "success" : "error"}
+                    />
+                  }
+                  label={
+                    summary.cashDifference > 0
+                      ? "Sobrante / Propina"
+                      : "Faltante descontado"
+                  }
+                  value={
+                    summary.cashDifference > 0
+                      ? formatCurrency(summary.cashDifference)
+                      : `-${formatCurrency(Math.abs(summary.cashDifference))}`
+                  }
+                  color={
+                    summary.cashDifference > 0 ? "success.main" : "error.main"
+                  }
+                />
+              )}
 
               <Divider sx={{ my: 2 }} />
 
@@ -764,6 +772,20 @@ export const ModalRiderCashClosure = ({
                 >
                   {formatCurrency(summary.expectedCashToAdmin)}
                 </Typography>
+
+                {summary.remainingDebt > 0 && (
+                  <Typography
+                    sx={{
+                      mt: 1,
+                      fontFamily: "fontFamily.secondary",
+                      color: "error.main",
+                      fontSize: "0.8rem",
+                    }}
+                  >
+                    El faltante supera el pago del rider, queda pendiente:{" "}
+                    {formatCurrency(summary.remainingDebt)}
+                  </Typography>
+                )}
               </Box>
 
               <Box
@@ -781,7 +803,7 @@ export const ModalRiderCashClosure = ({
                     fontSize: "0.78rem",
                   }}
                 >
-                  TOTAL A PAGAR AL DELIVERY
+                  TOTAL FINAL A PAGAR AL DELIVERY
                 </Typography>
 
                 <Typography
