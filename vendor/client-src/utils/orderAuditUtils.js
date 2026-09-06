@@ -278,16 +278,31 @@ export const getChanges = (log) => {
         return [];
     }
 
-    return AUDIT_VISIBLE_FIELDS.filter((field) => {
-        return !areAuditValuesEqual(field, before?.[field], after?.[field]);
-    }).map((field) => ({
-        field,
-        label: FIELD_LABELS[field] || field,
-        beforeValue: before?.[field],
-        afterValue: after?.[field],
-        before: formatValue(field, before?.[field]),
-        after: formatValue(field, after?.[field]),
-    }));
+    return AUDIT_VISIBLE_FIELDS
+        .filter((field) => {
+            return !areAuditValuesEqual(field, before?.[field], after?.[field]);
+        }).map((field) => {
+            if (field === "riderId") {
+                return {
+                    field,
+                    label: FIELD_LABELS[field] || field,
+                    beforeValue: before?.[field],
+                    afterValue: after?.[field],
+                    before: before?.riderNameSnapshot ||
+                        (before?.riderId ? `Cadete ${before.riderId}` : "Sin cadete"),
+                    after: after?.riderNameSnapshot ||
+                        (after?.riderId ? `Cadete ${after.riderId}` : "Sin cadete"),
+                };
+            };
+            return {
+                field,
+                label: FIELD_LABELS[field] || field,
+                beforeValue: before?.[field],
+                afterValue: after?.[field],
+                before: formatValue(field, before?.[field]),
+                after: formatValue(field, after?.[field]),
+            }
+        });
 };
 
 export const formatDate = (date) => {
