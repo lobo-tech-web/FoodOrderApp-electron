@@ -7,6 +7,7 @@ export const DEFAULT_STAFF_PERMISSIONS = {
             cancel: true,
             edit: true,
             readAudit: false,
+            markPaid: true,
         },
         clients: {
             read: true,
@@ -35,6 +36,7 @@ export const DEFAULT_STAFF_PERMISSIONS = {
             cancel: true,
             edit: true,
             readAudit: true,
+            markPaid: true,
         },
         clients: {
             read: true,
@@ -63,6 +65,7 @@ export const DEFAULT_STAFF_PERMISSIONS = {
             cancel: false,
             edit: false,
             readAudit: false,
+            markPaid: false,
         },
         clients: {
             read: false,

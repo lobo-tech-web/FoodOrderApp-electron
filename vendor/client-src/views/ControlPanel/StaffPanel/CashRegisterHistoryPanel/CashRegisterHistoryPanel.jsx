@@ -227,6 +227,17 @@ export const CashRegisterHistoryPanel = ({ user, refreshKey, showAlert }) => {
                         {session.registerName || "Caja Principal"}
                       </Typography>
 
+                      <Typography
+                        sx={{
+                          fontFamily: "fontFamily.secondary",
+                          fontSize: 14,
+                          textTransform: "uppercase",
+                          color: "text.primary",
+                        }}
+                      >
+                        {session.registerCode}
+                      </Typography>
+
                       <Chip
                         variant="outlined"
                         size="small"
@@ -234,7 +245,7 @@ export const CashRegisterHistoryPanel = ({ user, refreshKey, showAlert }) => {
                           session.status === "OPEN" ? "ABIERTA" : "CERRADA"
                         }
                         sx={{
-                          fontFamily: "fontFamily.secondary",
+                          fontFamily: "fontFamily.primary",
                           color:
                             session.status === "OPEN"
                               ? "success.main"
@@ -247,16 +258,36 @@ export const CashRegisterHistoryPanel = ({ user, refreshKey, showAlert }) => {
                       />
                     </Stack>
 
-                    {/* <Typography
-                      sx={{
-                        fontFamily: "fontFamily.primary",
-                        fontSize: 12,
-                        textTransform: "lowercase",
-                        color: "text.primary",
-                      }}
+                    <Stack
+                      direction={{ xs: "column", sm: "row" }}
+                      spacing={{ xs: 0.2, sm: 1.5 }}
+                      sx={{ mt: 1 }}
                     >
-                      Código: {session.registerCode}
-                    </Typography> */}
+                      <Typography
+                        sx={{
+                          fontFamily: "fontFamily.secondary",
+                          fontSize: 13,
+                          color: "success.main",
+                        }}
+                      >
+                        Inicial: {formatMoney(session.openingAmount)}
+                      </Typography>
+
+                      {session.status === "CLOSED" && (
+                        <Typography
+                          sx={{
+                            fontFamily: "fontFamily.secondary",
+                            fontSize: 13,
+                            color:
+                              Number(session.differenceAmount) > 0
+                                ? "error"
+                                : "text.primary",
+                          }}
+                        >
+                          Diferencia: {formatMoney(session.differenceAmount)}
+                        </Typography>
+                      )}
+                    </Stack>
 
                     <Stack
                       direction={{ xs: "column", sm: "row" }}
@@ -285,40 +316,22 @@ export const CashRegisterHistoryPanel = ({ user, refreshKey, showAlert }) => {
                         </Typography>
                       )}
                     </Stack>
-
-                    <Typography
-                      sx={{
-                        fontFamily: "fontFamily.secondary",
-                        fontSize: 13,
-                        color: "text.primary",
-                        mt: 1,
-                      }}
-                    >
-                      Inicial:{" "}
-                      <strong>{formatMoney(session.openingAmount)}</strong>
-                    </Typography>
-
-                    {session.status === "CLOSED" && (
-                      <Typography
-                        sx={{
-                          fontFamily: "fontFamily.secondary",
-                          fontSize: 13,
-                          color: "text.primary",
-                          mt: 1,
-                        }}
-                      >
-                        Diferencia:{" "}
-                        <strong>{formatMoney(session.differenceAmount)}</strong>
-                      </Typography>
-                    )}
                   </Box>
 
                   <Button
-                    variant="outlined"
+                    variant="text"
                     size="small"
                     startIcon={<ReceiptIcon />}
                     onClick={() => handleViewReport(session)}
-                    sx={{ fontFamily: "fontFamily.secondary" }}
+                    sx={{
+                      fontFamily: "fontFamily.secondary",
+                      fontSize: 14,
+                      "&:hover": {
+                        bgcolor: "transparent",
+                        color: "text.primary",
+                        fontSize: 12,
+                      },
+                    }}
                   >
                     Ver detalle
                   </Button>
@@ -360,38 +373,26 @@ export const CashRegisterHistoryPanel = ({ user, refreshKey, showAlert }) => {
           {selectedReport ? (
             <Stack spacing={1.5} mt={1}>
               <Typography sx={{ fontFamily: "fontFamily.secondary" }}>
-                Ventas:{" "}
-                <strong>
-                  {formatMoney(selectedReport?.totals?.totalSalesAmount)}
-                </strong>
+                Ventas: {formatMoney(selectedReport?.totals?.totalSalesAmount)}
               </Typography>
 
               <Typography sx={{ fontFamily: "fontFamily.secondary" }}>
                 Ventas en efectivo:{" "}
-                <strong>
-                  {formatMoney(selectedReport?.totals?.totalCashSalesAmount)}
-                </strong>
+                {formatMoney(selectedReport?.totals?.totalCashSalesAmount)}
               </Typography>
 
               <Typography sx={{ fontFamily: "fontFamily.secondary" }}>
                 Ingresos manuales:{" "}
-                <strong>
-                  {formatMoney(selectedReport?.totals?.totalCashIn)}
-                </strong>
+                {formatMoney(selectedReport?.totals?.totalCashIn)}
               </Typography>
 
               <Typography sx={{ fontFamily: "fontFamily.secondary" }}>
-                Retiros:{" "}
-                <strong>
-                  {formatMoney(selectedReport?.totals?.totalCashOut)}
-                </strong>
+                Retiros: {formatMoney(selectedReport?.totals?.totalCashOut)}
               </Typography>
 
               <Typography sx={{ fontFamily: "fontFamily.secondary" }}>
                 Efectivo esperado:{" "}
-                <strong>
-                  {formatMoney(selectedReport?.totals?.expectedCashAmount)}
-                </strong>
+                {formatMoney(selectedReport?.totals?.expectedCashAmount)}
               </Typography>
             </Stack>
           ) : null}

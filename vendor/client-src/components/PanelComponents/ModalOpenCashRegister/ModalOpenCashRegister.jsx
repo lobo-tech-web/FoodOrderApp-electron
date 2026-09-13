@@ -2,16 +2,18 @@ import { useState, useEffect } from "react";
 
 // ---- Material UI ----
 import {
+  Alert,
   Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  InputAdornment,
   Stack,
-  TextField,
+  Button,
   Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  InputAdornment,
+  TextField,
+  CircularProgress,
 } from "@mui/material";
 // Icons
 import {
@@ -32,14 +34,14 @@ import {
 } from "./styles/styles.js";
 // ----------------
 
-export const ModalOpenCashRegister = ({ open, saving, onClose, onSubmit }) => {
+export const ModalOpenCashRegister = ({
+  open,
+  saving,
+  cashRegister,
+  onClose,
+  onSubmit,
+}) => {
   const [form, setForm] = useState(initialCashForm);
-
-  useEffect(() => {
-    if (open) {
-      setForm(initialCashForm);
-    }
-  }, [open]);
 
   const handleChange = (field, value) => {
     setForm((prev) => ({
@@ -49,52 +51,66 @@ export const ModalOpenCashRegister = ({ open, saving, onClose, onSubmit }) => {
   };
 
   const handleSubmit = () => {
+    if (!cashRegister?.id) return;
+
     const openingAmount = Number(form.openingAmount || 0);
 
-    if (openingAmount < 0) return;
+    if (!Number.isFinite(openingAmount) || openingAmount < 0) {
+      return;
+    }
 
     onSubmit({
-      registerCode: "MAIN",
-      registerName: String(form.registerName || "Caja Principal").trim(),
+      cashRegisterId: cashRegister.id,
       openingAmount,
       note: String(form.note || "").trim(),
     });
   };
 
+  useEffect(() => {
+    if (!open) return;
+
+    setForm({
+      ...initialCashForm,
+      cashRegisterId: cashRegister?.id || "",
+    });
+  }, [open, cashRegister?.id]);
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={saving ? undefined : onClose}
+      maxWidth="sm"
+      fullWidth
+    >
       <DialogTitle sx={{ bgcolor: "background.main" }}>
         <Stack direction="row" spacing={1} alignItems="center">
           <PointOfSaleIcon color="primary" />
 
-          <Typography
-            variant="h6"
-            sx={{
-              fontFamily: "fontFamily.primary",
-              fontWeight: "bold",
-            }}
-          >
-            ABRIR CAJA
-          </Typography>
+          <Box>
+            <Typography variant="h6" sx={{ fontFamily: "fontFamily.primary" }}>
+              ABRIR CAJA
+            </Typography>
+
+            {cashRegister && (
+              <Typography
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  fontSize: 13,
+                  color: "text.secondary",
+                }}
+              >
+                {cashRegister.name}
+              </Typography>
+            )}
+          </Box>
         </Stack>
       </DialogTitle>
 
       <DialogContent sx={{ bgcolor: "background.default", pt: 2 }}>
         <Stack spacing={2} sx={{ mt: 2 }}>
-          <Box>
-            <Box sx={labelContainerStyle}>
-              <Typography sx={labelStyle}>NOMBRE DE CAJA</Typography>
-            </Box>
-            <TextField
-              value={form.registerName}
-              onChange={(event) =>
-                handleChange("registerName", event.target.value)
-              }
-              fullWidth
-              helperText="Nombre visible para el usuario"
-              sx={textFieldStyle}
-            />
-          </Box>
+          {!cashRegister && (
+            <Alert severity="warning">No hay una caja seleccionada.</Alert>
+          )}
 
           <Box>
             <Box sx={labelContainerStyle}>
@@ -107,6 +123,10 @@ export const ModalOpenCashRegister = ({ open, saving, onClose, onSubmit }) => {
               }
               fullWidth
               type="number"
+              inputProps={{
+                min: 0,
+                step: 0.01,
+              }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">$</InputAdornment>
@@ -136,6 +156,7 @@ export const ModalOpenCashRegister = ({ open, saving, onClose, onSubmit }) => {
         <Button
           variant="outlined"
           color="inherit"
+          disabled={saving}
           onClick={onClose}
           sx={{ fontFamily: "fontFamily.primary" }}
         >
@@ -144,8 +165,14 @@ export const ModalOpenCashRegister = ({ open, saving, onClose, onSubmit }) => {
 
         <Button
           variant="contained"
-          startIcon={<SaveIcon />}
-          disabled={saving}
+          startIcon={
+            saving ? (
+              <CircularProgress size={16} color="inherit" />
+            ) : (
+              <SaveIcon />
+            )
+          }
+          disabled={saving || !cashRegister?.id}
           onClick={handleSubmit}
           sx={{ fontFamily: "fontFamily.primary" }}
         >

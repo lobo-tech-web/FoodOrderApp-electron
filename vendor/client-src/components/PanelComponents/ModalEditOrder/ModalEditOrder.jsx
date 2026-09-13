@@ -72,6 +72,7 @@ export const ModalEditOrder = ({
   showOrder,
   showOrderIndex,
   cashSession = null,
+  cashRegisterId = null,
   onOrderUpdated,
 }) => {
   const [loading, setLoading] = useState(false);
@@ -530,12 +531,14 @@ export const ModalEditOrder = ({
           finalStatus === "CANCELADO" && originalStatus !== "CANCELADO"
             ? cancelReason.trim()
             : undefined,
+        cashRegisterId: cashRegisterId || null,
       };
     },
     [
       order,
       originalStatus,
       cancelReason,
+      cashRegisterId,
       calculatedProductTotals.totalRewardPoints,
       calculatedProductTotals.totalRedeemPoints,
       calculatedDiscount.discountamount,
@@ -636,7 +639,10 @@ export const ModalEditOrder = ({
 
       onClose();
     } catch (error) {
-      const errorMessage = error.message || "Error desconocido";
+      const errorMessage =
+        typeof error === "string"
+          ? error
+          : error?.message || "Error desconocido";
       showAlert(errorMessage, "error");
     } finally {
       setLoading(false);

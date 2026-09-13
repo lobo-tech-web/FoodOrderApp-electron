@@ -1,16 +1,16 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 // ---- MATERIAL UI ----
-import { AppBar, Toolbar, Box } from '@mui/material';
+import { AppBar, Toolbar, Box } from "@mui/material";
 // <--------------------
 
 // ---- ACTIONS ----
-import { ProductsActions } from './PanelNavBarActions/ProductsActions.jsx';
-import { CategoryActions } from './PanelNavBarActions/CategoryActions.jsx';
-import { OrdersActions } from './PanelNavBarActions/OrdersActions.jsx';
-import { UserPointsActions } from './PanelNavBarActions/UserPointsActions.jsx';
-import { StatsActions } from './PanelNavBarActions/StatsActions.jsx';
-import { RiderActions } from './PanelNavBarActions/RiderActions.jsx';
+import { ProductsActions } from "./PanelNavBarActions/ProductsActions.jsx";
+import { CategoryActions } from "./PanelNavBarActions/CategoryActions.jsx";
+import { OrdersActions } from "./PanelNavBarActions/OrdersActions.jsx";
+import { UserPointsActions } from "./PanelNavBarActions/UserPointsActions.jsx";
+import { StatsActions } from "./PanelNavBarActions/StatsActions.jsx";
+import { RiderActions } from "./PanelNavBarActions/RiderActions.jsx";
 // -----------------
 
 export const PanelNavBar = ({
@@ -22,6 +22,8 @@ export const PanelNavBar = ({
   isOrderPanel,
   selectedOrdersCheckbox,
   setAutoRefreshEnabled,
+  cashSession = null,
+  cashRegisterId = null,
   isUserPointsPanel,
   countAllUserPoints,
   isStatsPanel,
@@ -50,31 +52,31 @@ export const PanelNavBar = ({
       position="static"
       elevation={1}
       sx={{
-        width: '100%',
-        borderRadius: '8px',
+        width: "100%",
+        borderRadius: "8px",
         mb: 2,
-        bgcolor: 'background.main',
+        bgcolor: "background.main",
       }}
     >
       <Toolbar
         sx={{
-          display: 'flex',
-          overflow: 'auto',
-          justifyContent: 'space-between',
-          flexWrap: 'nowrap',
+          display: "flex",
+          overflow: "auto",
+          justifyContent: "space-between",
+          flexWrap: "nowrap",
           px: { xs: 1, sm: 2 },
           py: 1,
         }}
       >
         <Box
           sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
+            display: "flex",
+            flexWrap: "wrap",
             gap: 2,
-            alignItems: 'center',
-            justifyContent: 'flex-start',
+            alignItems: "center",
+            justifyContent: "flex-start",
             flexGrow: 1,
-            overflow: 'auto',
+            overflow: "auto",
           }}
         >
           {/* PRODUCTOS */}
@@ -106,6 +108,8 @@ export const PanelNavBar = ({
               toggleModal={toggleModal}
               selectedOrdersCheckbox={selectedOrdersCheckbox}
               setAutoRefreshEnabled={setAutoRefreshEnabled}
+              cashSession={cashSession}
+              cashRegisterId={cashRegisterId}
               showAlert={showAlert}
             />
           )}

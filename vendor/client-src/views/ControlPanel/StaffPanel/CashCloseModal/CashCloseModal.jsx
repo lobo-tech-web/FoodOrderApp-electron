@@ -73,7 +73,11 @@ export const CashCloseModal = ({
 
   const canClose = useMemo(() => hasCashPermission(user, "close"), [user]);
   const totals = report?.totals || report || {};
+
   const expectedCashAmount = Number(totals.expectedCashAmount || 0);
+  const totalPaidOrders = Number(totals.totalPaidOrders || 0);
+  const totalUnpaidOrders = Number(totals.totalUnpaidOrders || 0);
+  const totalUnpaidAmount = Number(totals.totalUnpaidAmount || 0);
   const counted = countedCashAmount === "" ? null : Number(countedCashAmount);
   const difference = counted === null ? null : counted - expectedCashAmount;
 
@@ -163,6 +167,19 @@ export const CashCloseModal = ({
           >
             CIERRE DE CAJA
           </Typography>
+
+          {cashSession?.registerName && (
+            <Chip
+              size="small"
+              color="primary"
+              variant="outlined"
+              label={cashSession.registerName}
+              sx={{
+                fontFamily: "fontFamily.secondary",
+                textTransform: "uppercase",
+              }}
+            />
+          )}
         </Stack>
       </DialogTitle>
 
@@ -179,6 +196,49 @@ export const CashCloseModal = ({
           </Box>
         ) : (
           <Stack spacing={2} sx={{ mt: 1 }}>
+            <Stack
+              direction={{
+                xs: "column",
+                sm: "row",
+              }}
+              spacing={1}
+              flexWrap="wrap"
+              useFlexGap
+            >
+              <Chip
+                size="small"
+                variant="filled"
+                label={`Finalizados: ${Number(totals.totalOrders || 0)}`}
+                sx={{ fontFamily: "fontFamily.secondary" }}
+              />
+
+              <Chip
+                size="small"
+                color="success"
+                variant="filled"
+                label={`Cobrados: ${totalPaidOrders}`}
+                sx={{ fontFamily: "fontFamily.secondary" }}
+              />
+
+              <Chip
+                size="small"
+                color={totalUnpaidOrders > 0 ? "warning" : "default"}
+                variant="filled"
+                label={`Pendientes: ${totalUnpaidOrders}`}
+                sx={{ fontFamily: "fontFamily.secondary" }}
+              />
+
+              <Chip
+                size="small"
+                color="error"
+                variant="filled"
+                label={`Cancelados: ${Number(
+                  totals.totalCancelledOrders || 0,
+                )}`}
+                sx={{ fontFamily: "fontFamily.secondary" }}
+              />
+            </Stack>
+
             <Box
               sx={{
                 display: "grid",
@@ -204,16 +264,20 @@ export const CashCloseModal = ({
                   value: totals.totalCashOut,
                 },
                 {
-                  label: "Efectivo esperado",
-                  value: expectedCashAmount,
+                  label: "Ventas cobradas",
+                  value: totals.totalSalesAmount,
                 },
                 {
                   label: "Ventas efectivo",
                   value: totals.totalCashSalesAmount,
                 },
                 {
-                  label: "Ventas totales",
-                  value: totals.totalSalesAmount,
+                  label: "Pendiente de cobro",
+                  value: totals.totalUnpaidAmount,
+                },
+                {
+                  label: "Efectivo esperado",
+                  value: expectedCashAmount,
                 },
               ].map((item) => (
                 <Paper
@@ -231,7 +295,7 @@ export const CashCloseModal = ({
                     sx={{
                       fontFamily: "fontFamily.secondary",
                       fontSize: 13,
-                      color: "text.primary",
+                      color: "primary.main",
                     }}
                   >
                     {item.label}
@@ -239,7 +303,7 @@ export const CashCloseModal = ({
 
                   <Typography
                     sx={{
-                      fontFamily: "fontFamily.secondary",
+                      fontFamily: "fontFamily.primary",
                       fontSize: 18,
                       color: "text.primary",
                       mt: 0.5,
@@ -250,6 +314,59 @@ export const CashCloseModal = ({
                 </Paper>
               ))}
             </Box>
+
+            {totalUnpaidOrders > 0 && (
+              <Alert
+                severity="warning"
+                variant="outlined"
+                sx={{
+                  bgcolor: "background.main",
+                  borderRadius: 2,
+                  fontFamily: "fontFamily.secondary",
+                  "& .MuiAlert-message": {
+                    width: "100%",
+                  },
+                }}
+              >
+                <Stack spacing={0.5}>
+                  <Typography
+                    sx={{
+                      fontFamily: "fontFamily.primary",
+                      fontSize: 16,
+                      color: "primary.main",
+                    }}
+                  >
+                    HAY PEDIDOS PENDIENTES DE COBRO
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      fontFamily: "fontFamily.secondary",
+                      fontSize: 14,
+                      color: "primary.main",
+                    }}
+                  >
+                    {totalUnpaidOrders}{" "}
+                    {totalUnpaidOrders === 1
+                      ? "pedido finalizado todavía no fue cobrado"
+                      : "pedidos finalizados todavía no fueron cobrados"}
+                    {" · "}
+                    {formatMoney(totalUnpaidAmount)}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      fontFamily: "fontFamily.secondary",
+                      fontSize: 12,
+                      color: "text.primary",
+                    }}
+                  >
+                    Estos pedidos no se incluyen en las ventas cobradas ni en el
+                    efectivo esperado de la caja.
+                  </Typography>
+                </Stack>
+              </Alert>
+            )}
 
             {Array.isArray(report?.paymentMethods) &&
               report.paymentMethods.length > 0 && (
@@ -268,7 +385,7 @@ export const CashCloseModal = ({
                       mb: 1,
                     }}
                   >
-                    Ventas por método de pago
+                    Cobros por método de pago
                   </Typography>
 
                   <Stack spacing={1}>
@@ -281,6 +398,7 @@ export const CashCloseModal = ({
                         <Chip
                           label={payment.paymentMethod}
                           variant="outlined"
+                          sx={{ fontFamily: "fontFamily.secondary" }}
                         />
 
                         <Typography sx={{ fontFamily: "fontFamily.secondary" }}>

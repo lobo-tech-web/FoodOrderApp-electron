@@ -75,6 +75,10 @@ export const AdminLogin = ({ initialMode = LOGIN_MODES.ADMIN }) => {
   const isStaffMode = activeMode === LOGIN_MODES.STAFF;
 
   useEffect(() => {
+    window.electronAPI?.setWindowMode?.("login").catch(() => {});
+  }, []);
+
+  useEffect(() => {
     setActiveMode(initialMode);
   }, [initialMode]);
 
@@ -105,6 +109,7 @@ export const AdminLogin = ({ initialMode = LOGIN_MODES.ADMIN }) => {
     const panelPath = getPanelPathByRole(user.role);
 
     if (panelPath) {
+      window.electronAPI?.setWindowMode?.("app").catch(() => {});
       navigate(panelPath, { replace: true });
       return;
     }
@@ -191,6 +196,7 @@ export const AdminLogin = ({ initialMode = LOGIN_MODES.ADMIN }) => {
         password: staffForm.password,
       });
 
+      window.electronAPI?.setWindowMode?.("app").catch(() => {});
       navigate("/staff-panel", { replace: true });
     } catch (error) {
       setMessage(
@@ -222,11 +228,12 @@ export const AdminLogin = ({ initialMode = LOGIN_MODES.ADMIN }) => {
           display: "grid",
           placeItems: "center",
           bgcolor: "background.main",
-          px: 2,
-          py: 4,
+          px: { xs: 1.5, sm: 2 },
+          py: { xs: 2, sm: 3 },
+          overflow: "auto",
         }}
       >
-        <Container maxWidth="sm" disableGutters>
+        <Container maxWidth="xs" disableGutters>
           <Paper
             elevation={0}
             sx={{
@@ -234,16 +241,17 @@ export const AdminLogin = ({ initialMode = LOGIN_MODES.ADMIN }) => {
               border: "1px solid",
               borderColor: "primary.main",
               bgcolor: "background.paper",
-              p: { xs: 2.5, sm: 4 },
+              p: { xs: 2, sm: 3 },
+              width: "100%",
             }}
           >
-            <Box sx={{ display: "grid", gap: 3 }}>
+            <Box sx={{ display: "grid", gap: { xs: 2, sm: 2.5 } }}>
               <Box sx={{ textAlign: "center" }}>
                 <Box
                   component="img"
                   src={logo}
                   alt="LoboTech"
-                  sx={{ width: 156, maxWidth: "70%", mb: 2 }}
+                  sx={{ width: 132, maxWidth: "62%", mb: 1.5 }}
                 />
                 <Typography
                   component="h1"
@@ -252,6 +260,7 @@ export const AdminLogin = ({ initialMode = LOGIN_MODES.ADMIN }) => {
                     fontFamily: "fontFamily.primary",
                     fontWeight: 700,
                     color: "primary.main",
+                    fontSize: { xs: "1.25rem", sm: "1.45rem" },
                   }}
                 >
                   {isStaffMode
@@ -263,6 +272,7 @@ export const AdminLogin = ({ initialMode = LOGIN_MODES.ADMIN }) => {
                     fontFamily: "fontFamily.secondary",
                     color: "text.primary",
                     mt: 0.5,
+                    fontSize: { xs: "0.88rem", sm: "0.95rem" },
                   }}
                 >
                   {isStaffMode
@@ -276,7 +286,7 @@ export const AdminLogin = ({ initialMode = LOGIN_MODES.ADMIN }) => {
                   display: "grid",
                   gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
                   gap: 1,
-                  p: 0.75,
+                  p: 0.5,
                   borderRadius: 2,
                   bgcolor: "background.main",
                   border: "1px solid",
@@ -289,10 +299,11 @@ export const AdminLogin = ({ initialMode = LOGIN_MODES.ADMIN }) => {
                   startIcon={<StoreFrontIcon />}
                   onClick={() => handleModeChange(LOGIN_MODES.ADMIN)}
                   sx={{
-                    minHeight: 44,
+                    minHeight: 40,
                     borderRadius: 1.5,
                     fontFamily: "fontFamily.primary",
                     fontWeight: 800,
+                    fontSize: { xs: "0.78rem", sm: "0.86rem" },
                     color: !isStaffMode ? "text.primary" : "primary.main",
                   }}
                 >
@@ -305,10 +316,11 @@ export const AdminLogin = ({ initialMode = LOGIN_MODES.ADMIN }) => {
                   startIcon={<PersonIcon />}
                   onClick={() => handleModeChange(LOGIN_MODES.STAFF)}
                   sx={{
-                    minHeight: 44,
+                    minHeight: 40,
                     borderRadius: 1.5,
                     fontFamily: "fontFamily.primary",
                     fontWeight: 800,
+                    fontSize: { xs: "0.78rem", sm: "0.86rem" },
                     color: isStaffMode ? "text.primary" : "primary.main",
                   }}
                 >
@@ -321,7 +333,7 @@ export const AdminLogin = ({ initialMode = LOGIN_MODES.ADMIN }) => {
               <Box
                 component="form"
                 onSubmit={handleSubmit}
-                sx={{ display: "grid", gap: 2 }}
+                sx={{ display: "grid", gap: 1.5 }}
               >
                 {!isStaffMode ? (
                   <Box>

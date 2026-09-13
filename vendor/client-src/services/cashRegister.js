@@ -1,5 +1,6 @@
 import { apiWithToken } from './axiosConfig.js';
 
+const apiURLMainCashRegister = import.meta.env.VITE_API_CASH_REGISTER_MAIN_ROUTER;
 const apiURLGetOpenCashSession = import.meta.env.VITE_API_CASH_REGISTER_GET_OPEN_SESSIONS;
 const apiURLGetCashSessions = import.meta.env.VITE_API_CASH_REGISTER_GET_CASH_SESSIONS;
 const apiURLGetCashReport = import.meta.env.VITE_API_CASH_REGISTER_GET_CASH_REPORT;
@@ -17,8 +18,7 @@ const handleServiceError = (error, fallbackMessage) => {
     }
 
     throw {
-        message:
-            error.message || 'Error desconocido al intentar conectarse al servidor',
+        message: error.message || 'Error desconocido al intentar conectarse al servidor',
     };
 };
 
@@ -36,13 +36,62 @@ const buildQuery = (params = {}) => {
     return queryString ? `?${queryString}` : '';
 };
 
+export const getCashRegistersService = async ({ restaurantId = null, includeInactive = false } = {}) => {
+    try {
+        const params = { includeInactive };
+
+        if (restaurantId) {
+            params.restaurantId = restaurantId;
+        }
+
+        const response = await apiWithToken.get(apiURLMainCashRegister,
+            { params }
+        );
+
+        return response.data;
+    } catch (error) {
+        handleServiceError(error, "Error al obtener cajas");
+    }
+};
+
+export const createCashRegisterService = async (data) => {
+    try {
+
+        const response = await apiWithToken.post(apiURLMainCashRegister,
+            { data }
+        );
+
+        return response.data;
+    } catch (error) {
+        handleServiceError(error, "Error al crear caja");
+    }
+};
+
+export const updateCashRegisterService = async (cashRegisterId, data) => {
+    try {
+        if (!cashRegisterId) {
+            throw new Error("cashRegisterId requerido");
+        }
+
+        const response = await apiWithToken.put(`${apiURLMainCashRegister}/${cashRegisterId}`,
+            { data }
+        );
+
+        return response.data;
+    } catch (error) {
+        handleServiceError(error, "Error al modificar caja");
+    }
+};
+
 export const getOpenCashSessionService = async ({
     restaurantId,
-    registerCode = 'MAIN',
+    cashRegisterId = null,
+    registerCode = null,
 } = {}) => {
     try {
         const query = buildQuery({
             restaurantId,
+            cashRegisterId,
             registerCode,
         });
 
@@ -56,11 +105,13 @@ export const getOpenCashSessionService = async ({
 
 export const getCashSessionsService = async ({
     restaurantId,
+    cashRegisterId = null,
     limit = 30,
 } = {}) => {
     try {
         const query = buildQuery({
             restaurantId,
+            cashRegisterId,
             limit,
         });
 
@@ -115,9 +166,9 @@ export const createCashMovementService = async (data) => {
 
 export const openCashRegisterSessionService = async (data) => {
     try {
-        const response = await apiWithToken.post(apiURLPostOpenRegister, {
-            data,
-        });
+        const response = await apiWithToken.post(apiURLPostOpenRegister,
+            { data }
+        );
 
         return response.data;
     } catch (error) {

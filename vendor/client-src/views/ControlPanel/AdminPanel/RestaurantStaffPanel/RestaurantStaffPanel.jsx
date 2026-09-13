@@ -54,6 +54,7 @@ import {
   initialForm,
   ROLE_OPTIONS,
   getRoleLabel,
+  getStaffRolePermissions,
   normalizeStaffUsername,
 } from "@/utils/restaurantStaffUtils.js";
 // ---------------
@@ -250,10 +251,20 @@ export const RestaurantStaffPanel = ({ user }) => {
   };
 
   const handleCreateFormChange = (field, value) => {
-    setCreateForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setCreateForm((prev) => {
+      if (field === "staffRole") {
+        return {
+          ...prev,
+          staffRole: value,
+          permissions: getStaffRolePermissions(value),
+        };
+      }
+
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
   };
 
   const buildPayload = (form) => {
@@ -262,7 +273,11 @@ export const RestaurantStaffPanel = ({ user }) => {
       email: form.email.trim().toLowerCase(),
       phone: form.phone || "SIN ESPECIFICAR",
       staffRole: form.staffRole,
-      permissions: form.permissions,
+      permissions: JSON.parse(
+        JSON.stringify(
+          form.permissions || getStaffRolePermissions(form.staffRole),
+        ),
+      ),
     };
 
     if (form.password.trim()) {

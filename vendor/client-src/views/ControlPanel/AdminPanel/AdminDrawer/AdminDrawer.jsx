@@ -7,7 +7,6 @@ import {
   Collapse,
   Divider,
   List,
-  ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
@@ -37,6 +36,8 @@ import {
   Today as TodayIcon,
   Badge as BadgeIcon,
   PointOfSale as PointOfSaleIcon,
+  Tune as TuneIcon,
+  CurrencyExchange as CurrencyExchangeIcon,
 } from "@mui/icons-material";
 //------------------
 
@@ -60,10 +61,14 @@ export const AdminDrawer = ({
     if (onCloseMobile) onCloseMobile();
   };
 
+  const [openCashRegister, setOpenCashRegister] = useState(false);
   const [openOrders, setOpenOrders] = useState(false);
   const [openProducts, setOpenProducts] = useState(false);
   const [openStats, setOpenStats] = useState(false);
   const [openRiders, setOpenRiders] = useState(false);
+
+  const cashRegisterTabs = [7, 71];
+  const isCashRegisterSelected = cashRegisterTabs.includes(activeTab);
 
   const riderTabs = [5, 51, 52, 53, 54];
   const isRidersSelected = riderTabs.includes(activeTab);
@@ -132,33 +137,113 @@ export const AdminDrawer = ({
       </Divider>
 
       {/* SECCIÓN 1: NAVEGACIÓN GENERAL */}
-      <List sx={{ p: 1 }}>
-        <ListItem disablePadding>
-          <ListItemButton
-            selected={activeTab === 0}
-            onClick={() => handleAction(0)}
-            sx={{
-              fontFamily: "fontFamily.secondary",
-              borderRadius: 2,
-              mb: 0.5,
-              "&.Mui-selected": {
-                bgcolor: "primary.main",
-                color: "text.terciary",
-                "& .MuiListItemIcon-root": { color: "text.terciary" },
-              },
+      <List sx={{ px: 1 }}>
+        {/* Configuración del local */}
+        <ListItemButton
+          selected={activeTab === 0}
+          onClick={() => handleAction(0)}
+          sx={{
+            fontFamily: "fontFamily.secondary",
+            borderRadius: 2,
+            mb: 0.5,
+            "&.Mui-selected": {
+              bgcolor: "primary.main",
+              color: "text.terciary",
+              "& .MuiListItemIcon-root": { color: "text.terciary" },
+            },
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <StorefrontIcon />
+          </ListItemIcon>
+          <ListItemText
+            primary="Mi Negocio"
+            primaryTypographyProps={{
+              fontSize: "0.9rem",
             }}
-          >
-            <ListItemIcon sx={{ minWidth: 40 }}>
-              <StorefrontIcon />
-            </ListItemIcon>
-            <ListItemText
-              primary="Mi Negocio"
-              primaryTypographyProps={{
-                fontSize: "0.9rem",
+          />
+        </ListItemButton>
+
+        {/* CAJA */}
+        <ListItemButton
+          selected={isCashRegisterSelected}
+          onClick={() => setOpenCashRegister(!openCashRegister)}
+          sx={{
+            fontFamily: "fontFamily.secondary",
+            borderRadius: 2,
+            mb: 0.5,
+            "&.Mui-selected": {
+              bgcolor: "primary.main",
+              color: "text.terciary",
+              "& .MuiListItemIcon-root": { color: "text.terciary" },
+            },
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <PointOfSaleIcon />
+          </ListItemIcon>
+
+          <ListItemText
+            primary="Caja"
+            primaryTypographyProps={{ fontSize: "0.9rem" }}
+          />
+
+          {openCashRegister ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+        </ListItemButton>
+
+        <Collapse in={openCashRegister} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {/* CONFIGURACIÓN DE CAJAS*/}
+            <ListItemButton
+              selected={activeTab === 7}
+              onClick={() => handleAction(7)}
+              sx={{
+                fontFamily: "fontFamily.secondary",
+                pl: 4,
+                borderRadius: 2,
+                mb: 0.5,
               }}
-            />
-          </ListItemButton>
-        </ListItem>
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <TuneIcon
+                  fontSize="small"
+                  color={activeTab === 7 ? "primary" : "inherit"}
+                />
+              </ListItemIcon>
+
+              <ListItemText
+                primary="Configurar cajas"
+                primaryTypographyProps={{ fontSize: "0.85rem" }}
+              />
+            </ListItemButton>
+
+            {/* OPERACIÓN DE CAJAS */}
+            <ListItemButton
+              selected={activeTab === 71}
+              onClick={() => handleAction(71)}
+              sx={{
+                fontFamily: "fontFamily.secondary",
+                pl: 4,
+                borderRadius: 2,
+                mb: 0.5,
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <CurrencyExchangeIcon
+                  fontSize="small"
+                  color={activeTab === 71 ? "primary" : "inherit"}
+                />
+              </ListItemIcon>
+
+              <ListItemText
+                primary="Operación de cajas"
+                primaryTypographyProps={{
+                  fontSize: "0.85rem",
+                }}
+              />
+            </ListItemButton>
+          </List>
+        </Collapse>
       </List>
 
       <Divider>
@@ -690,37 +775,6 @@ export const AdminDrawer = ({
           <ListItemText
             primary="Empleados"
             primaryTypographyProps={{ fontSize: "0.9rem" }}
-          />
-        </ListItemButton>
-
-        {/* CAJA */}
-        <ListItemButton
-          selected={activeTab === 7}
-          onClick={() => handleAction(7)}
-          sx={{
-            fontFamily: "fontFamily.secondary",
-            borderRadius: 2,
-            mb: 0.5,
-
-            "&.Mui-selected": {
-              bgcolor: "primary.main",
-              color: "text.terciary",
-
-              "& .MuiListItemIcon-root": {
-                color: "text.terciary",
-              },
-            },
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            <PointOfSaleIcon />
-          </ListItemIcon>
-
-          <ListItemText
-            primary="Caja"
-            primaryTypographyProps={{
-              fontSize: "0.9rem",
-            }}
           />
         </ListItemButton>
       </List>

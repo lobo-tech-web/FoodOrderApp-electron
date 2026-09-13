@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 // ---- MATERIAL UI ----
@@ -29,7 +29,9 @@ import { RestaurantStaffPanel } from "./RestaurantStaffPanel/RestaurantStaffPane
 import { RiderPanel } from "./RiderPanel/RiderPanel.jsx";
 import { StatsPanel } from "./StatsPanel/StatsPanel.jsx";
 import { UserPointsRestaurantPanel } from "./UserPointsRestaurantPanel/UserPointsRestaurantPanel.jsx";
+import { CashRegisterGate } from "../StaffPanel/CashRegisterGate/CashRegisterGate.jsx";
 import { CashRegisterPanel } from "./CashRegisterPanel/CashRegisterPanel.jsx";
+import { CashRegisterSessions } from "./CashRegisterPanel/CashRegisterSessions.jsx";
 // <-------------------
 
 // ---- CONTEXT ----
@@ -39,12 +41,17 @@ import { useLobotechThemeContext } from "@/context/ThemeContext.jsx";
 import { useUser } from "@/context/Users.jsx";
 // <----------------
 
+// ---- Hooks ----
+import { useAlert } from "@/hooks/Alert.jsx";
+// ---------------
+
 // ---- STYLES ----
 const drawerWidth = 260;
 // ----------------
 
 export const AdminPanel = () => {
   const navigate = useNavigate();
+  const { AlertComponent, showAlert } = useAlert();
 
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(1);
@@ -53,6 +60,12 @@ export const AdminPanel = () => {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+
+  // ---- CAJA OPERATIVA ----
+  const [selectedCashRegisterId, setSelectedCashRegisterId] = useState(null);
+  const [cashSession, setCashSession] = useState(null);
+  const isOrdersTab = [1, 11, 12].includes(activeTab);
+  // ------------------------
 
   // CONTEXT
   const { lobotechTheme } = useLobotechThemeContext();
@@ -138,7 +151,8 @@ export const AdminPanel = () => {
               {activeTab === 53 && "ENVÍOS DEL MES DE CADETES"}
               {activeTab === 54 && "ESTADÍSTICAS TOTALES DE CADETES"}
               {activeTab === 6 && "GESTIÓN DE EMPLEADOS"}
-              {activeTab === 7 && "GESTIÓN DE CAJA"}
+              {activeTab === 7 && "GESTIÓN DE CAJAS"}
+              {activeTab === 71 && "OPERACIÓN DE CAJAS"}
             </Typography>
           </Toolbar>
         </AppBar>
@@ -201,8 +215,25 @@ export const AdminPanel = () => {
         >
           <Toolbar /> {/* Espaciador */}
           {activeTab === 0 && <LocalSettingsPanel user={user} />}
-          {(activeTab === 1 || activeTab === 11 || activeTab === 12) && (
-            <OrderPanel user={user} externalView={activeTab} />
+          {isOrdersTab && (
+            <>
+              <CashRegisterGate
+                user={user}
+                cashSession={cashSession}
+                selectedCashRegisterId={selectedCashRegisterId}
+                onCashRegisterChange={setSelectedCashRegisterId}
+                onCashSessionChange={setCashSession}
+                showAlert={showAlert}
+                variant="compact"
+              />
+
+              <OrderPanel
+                user={user}
+                externalView={activeTab}
+                cashSession={cashSession}
+                cashRegisterId={selectedCashRegisterId}
+              />
+            </>
           )}
           {activeTab === 13 && <OrderAuditPanel user={user} />}
           {activeTab === 2 && <CategoryPanel user={user} />}
@@ -217,6 +248,8 @@ export const AdminPanel = () => {
           )}
           {activeTab === 6 && <RestaurantStaffPanel user={user} />}
           {activeTab === 7 && <CashRegisterPanel user={user} />}
+          {activeTab === 71 && <CashRegisterSessions user={user} />}
+          {AlertComponent}
         </Box>
       </Box>
     </ThemeProvider>

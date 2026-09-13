@@ -85,6 +85,7 @@ export const ModalCreateOrder = ({
   onClose,
   showAlert,
   refreshOrders,
+  cashRegisterId = null,
 }) => {
   const theme = useTheme();
   const [loading, setLoading] = useState(false);
@@ -150,7 +151,6 @@ export const ModalCreateOrder = ({
     if (isStaff) {
       return currentUser?.restaurantId || "";
     }
-
     return currentUser?.id || "";
   }, [isStaff, currentUser?.id, currentUser?.restaurantId]);
 
@@ -158,7 +158,6 @@ export const ModalCreateOrder = ({
     if (isStaff) {
       return currentUser?.restaurant || {};
     }
-
     return currentUser || {};
   }, [isStaff, currentUser]);
 
@@ -741,6 +740,14 @@ export const ModalCreateOrder = ({
       return;
     }
 
+    if (isStaff && !cashRegisterId) {
+      showAlert(
+        "Debes seleccionar una caja operativa antes de crear el pedido",
+        "warning",
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       const resolvedStatus = getStatusForOrderType(
@@ -775,6 +782,7 @@ export const ModalCreateOrder = ({
         orderType: order.orderType,
         comentary: order.comentary,
         status: resolvedStatus,
+        cashRegisterId: cashRegisterId || null,
         ticketVariant:
           order.orderType === "ESPERA EN LOCAL" ? "local-order" : undefined,
       };
@@ -795,7 +803,10 @@ export const ModalCreateOrder = ({
       showAlert("Pedido creado correctamente!", "success");
       onClose();
     } catch (error) {
-      const errorMessage = error.message || "Error desconocido";
+      const errorMessage =
+        typeof error === "string"
+          ? error
+          : error?.message || "Error desconocido";
       showAlert(errorMessage, "error");
     } finally {
       setLoading(false);
@@ -808,6 +819,7 @@ export const ModalCreateOrder = ({
     restaurantId,
     restaurantName,
     restaurantLogo,
+    cashRegisterId,
     calculatedDiscount.discountamount,
     calculatedProductTotals.totalRedeemPoints,
     calculatedProductTotals.totalRewardPoints,

@@ -23,6 +23,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   setOfflineStatus: (status) =>
     ipcRenderer.invoke('offline-mode:set-status', status),
+  setWindowMode: (mode) => ipcRenderer.invoke('window:set-mode', mode),
   installUpdate: () => ipcRenderer.invoke('updates:install'),
   listPrinters: () => ipcRenderer.invoke('printers:list'),
   getPrinterConfig: () => ipcRenderer.invoke('printers:get-config'),

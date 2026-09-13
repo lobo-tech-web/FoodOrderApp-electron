@@ -145,6 +145,18 @@ export const CashMovementModal = ({
             {form.type === "CASH_IN" ? "INGRESO DE CAJA" : "RETIRO DE CAJA"}
           </Typography>
         </Stack>
+        {cashSession?.registerName && (
+          <Typography
+            sx={{
+              fontFamily: "fontFamily.primary",
+              fontSize: 16,
+              color: "text.primary",
+              textTransform: "uppercase",
+            }}
+          >
+            {cashSession.registerName}
+          </Typography>
+        )}
       </DialogTitle>
 
       <DialogContent sx={{ bgcolor: "background.default", pt: 2 }}>

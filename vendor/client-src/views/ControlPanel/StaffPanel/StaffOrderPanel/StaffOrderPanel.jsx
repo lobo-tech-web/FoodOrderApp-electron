@@ -43,6 +43,7 @@ import { OrderInfo } from "../../AdminPanel/OrderPanel/OrderInfo/OrderInfo.jsx";
 import { AutoRefreshIndicator } from "../../AdminPanel/OrderPanel/AutoRefreshIndicator/AutoRefreshIndicator.jsx";
 import { RiderCountIndicator } from "../../AdminPanel/OrderPanel/RiderCountIndicator/RiderCountIndicator.jsx";
 import { ModalEditOrder } from "@/components/PanelComponents/ModalEditOrder/ModalEditOrder.jsx";
+import { ModalConfirmOrderPaid } from "@/components/PanelComponents/ModalConfirmOrderPaid/ModalConfirmOrderPaid.jsx";
 // --------------------
 
 // ---- Utils ----
@@ -100,6 +101,7 @@ export const StaffOrderPanel = ({
   user,
   externalView,
   cashSession,
+  cashRegisterId,
   showAlert,
 }) => {
   const isElectronApp =
@@ -118,7 +120,13 @@ export const StaffOrderPanel = ({
     return 2;
   }, [externalView]);
 
-  const { orderState, filterOrderByDate, getRidersByRestaurant } = useOrders();
+  const {
+    orderState,
+    getAllOrders,
+    filterOrderByDate,
+    getRidersByRestaurant,
+    updateOrder,
+  } = useOrders();
 
   const allOrders = useMemo(() => orderState.orders || [], [orderState.orders]);
   const availableRiders = useMemo(
@@ -155,6 +163,7 @@ export const StaffOrderPanel = ({
   }, [user?.id, user?.restaurantId, user?.role]);
 
   const canUpdateStatus = hasOrderPermission(user, "updateStatus");
+  const canMarkPaid = hasOrderPermission(user, "markPaid");
   const isCashOpen = cashSession?.id && cashSession?.status === "OPEN";
 
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -177,6 +186,55 @@ export const StaffOrderPanel = ({
     setOpenOrderModal(false);
   }, []);
 
+  const [paymentConfirm, setPaymentConfirm] = useState({
+    open: false,
+    order: null,
+    displayID: null,
+  });
+
+  const [payingOrderId, setPayingOrderId] = useState(null);
+
+  const handleOpenPaymentConfirm = useCallback(
+    (order, displayID) => {
+      if (!order?.id) return;
+
+      if (!canMarkPaid) {
+        showAlert("No tienes permisos para registrar cobros", "warning");
+        return;
+      }
+
+      if (order.isPaid) {
+        showAlert("Este pedido ya se encuentra pagado", "info");
+        return;
+      }
+
+      if (order.status === "CANCELADO") {
+        showAlert(
+          "No se puede registrar el pago desde esta acción en un pedido cancelado",
+          "warning",
+        );
+        return;
+      }
+
+      setPaymentConfirm({
+        open: true,
+        order,
+        displayID,
+      });
+    },
+    [canMarkPaid, showAlert],
+  );
+
+  const handleClosePaymentConfirm = useCallback(() => {
+    if (payingOrderId) return;
+
+    setPaymentConfirm({
+      open: false,
+      order: null,
+      displayID: null,
+    });
+  }, [payingOrderId]);
+
   const selectableOrders = useMemo(() => {
     if (!isCashOpen) return [];
 
@@ -196,17 +254,6 @@ export const StaffOrderPanel = ({
       setSelectedOrdersCheckbox((prev) =>
         prev.filter((o) => o.id !== order.id),
       );
-    }
-  };
-
-  // SELECTED PRODUCTS CHECKBOX
-  const handleSelectAll = (event) => {
-    if (!isCashOpen) return;
-
-    if (event.target.checked) {
-      setSelectedOrdersCheckbox([...selectableOrders]);
-    } else {
-      setSelectedOrdersCheckbox([]);
     }
   };
 
@@ -247,10 +294,11 @@ export const StaffOrderPanel = ({
         const time = getTimeNowDayjs();
         setLastRefresh(time);
       } catch (error) {
-        showAlert?.(
-          error?.message || "Error al obtener pedidos del local",
-          "error",
-        );
+        const errorMessage =
+          typeof error === "string"
+            ? error
+            : error?.message || "Error desconocido";
+        showAlert?.(errorMessage, "error");
       } finally {
         if (isAutoRefresh) {
           setIsRefreshing(false);
@@ -268,6 +316,72 @@ export const StaffOrderPanel = ({
       showAlert,
     ],
   );
+
+  const handleConfirmMarkPaid = useCallback(async () => {
+    const targetOrder = paymentConfirm.order;
+    if (!targetOrder?.id || targetOrder.isPaid || payingOrderId) {
+      return;
+    }
+
+    if (!cashRegisterId || !cashSession?.id || cashSession?.status !== "OPEN") {
+      showAlert(
+        "Debes seleccionar una caja abierta para registrar el cobro",
+        "warning",
+      );
+      return;
+    }
+
+    setPayingOrderId(targetOrder.id);
+
+    try {
+      await updateOrder(targetOrder.id, {
+        isPaid: true,
+        cashRegisterId,
+        auditReason: "Pedido marcado como pagado desde acceso rápido",
+      });
+
+      showAlert(
+        `Pedido N° ${paymentConfirm.displayID || targetOrder.id} marcado como pagado`,
+        "success",
+      );
+
+      setPaymentConfirm({
+        open: false,
+        order: null,
+        displayID: null,
+      });
+
+      await fetchOrders(true);
+    } catch (error) {
+      const errorMessage =
+        typeof error === "string"
+          ? error
+          : error?.message || "No se pudo marcar el pedido como pagado";
+      showAlert(errorMessage, "error");
+    } finally {
+      setPayingOrderId(null);
+    }
+  }, [
+    paymentConfirm,
+    payingOrderId,
+    cashRegisterId,
+    cashSession?.id,
+    cashSession?.status,
+    updateOrder,
+    showAlert,
+    fetchOrders,
+  ]);
+
+  // SELECTED PRODUCTS CHECKBOX
+  const handleSelectAll = (event) => {
+    if (!isCashOpen) return;
+
+    if (event.target.checked) {
+      setSelectedOrdersCheckbox([...selectableOrders]);
+    } else {
+      setSelectedOrdersCheckbox([]);
+    }
+  };
 
   useEffect(() => {
     const fetchKey = `${activeTab}:${restaurantId || ""}`;
@@ -326,6 +440,7 @@ export const StaffOrderPanel = ({
       <StaffOrderActionsBar
         user={user}
         cashSession={cashSession}
+        cashRegisterId={cashRegisterId}
         selectedOrders={selectedOrdersCheckbox}
         loading={loading}
         onRefresh={handleManualRefresh}
@@ -530,6 +645,8 @@ export const StaffOrderPanel = ({
                           !isCashOpen || !canUpdateStatus || terminal
                         }
                         disableEdit={false}
+                        onMarkPaid={handleOpenPaymentConfirm}
+                        paymentUpdating={payingOrderId === order.id}
                       />
                     );
                   })}
@@ -578,6 +695,15 @@ export const StaffOrderPanel = ({
         )}
       </Paper>
 
+      <ModalConfirmOrderPaid
+        open={paymentConfirm.open}
+        order={paymentConfirm.order}
+        displayID={paymentConfirm.displayID}
+        loading={Boolean(payingOrderId)}
+        onClose={handleClosePaymentConfirm}
+        onConfirm={handleConfirmMarkPaid}
+      />
+
       <ModalEditOrder
         show={openOrderModal}
         onClose={handleCloseOrderModal}
@@ -585,7 +711,8 @@ export const StaffOrderPanel = ({
         showOrder={selectedOrder}
         showOrderIndex={selectedOrderIndex}
         cashSession={cashSession}
-        onOrderUpdated={fetchOrders}
+        cashRegisterId={cashRegisterId}
+        onOrderUpdated={() => fetchOrders(true)}
       />
     </Box>
   );

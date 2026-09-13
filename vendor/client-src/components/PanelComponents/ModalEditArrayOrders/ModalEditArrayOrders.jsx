@@ -146,6 +146,7 @@ export const ModalEditArrayOrders = ({
   showOrders = [],
   refreshOrders,
   cashSession = null,
+  cashRegisterId = null,
 }) => {
   const theme = useTheme();
   const isXsScreen = useMediaQuery(theme.breakpoints.down("xs"));
@@ -200,9 +201,7 @@ export const ModalEditArrayOrders = ({
         new Set(
           getAllowedOrderStatuses({
             originalStatus: order.status,
-
             canCancel,
-
             allowAllStatuses: isPrivilegedUser,
           }),
         ),
@@ -239,6 +238,10 @@ export const ModalEditArrayOrders = ({
       return showAlert("Debes indicar el motivo de cancelación", "warning");
     }
 
+    if (isStaff && !cashRegisterId) {
+      return showAlert("Debes seleccionar una caja operativa", "warning");
+    }
+
     setLoading(true);
     try {
       const ordersData = {
@@ -252,7 +255,7 @@ export const ModalEditArrayOrders = ({
         ...(status === "CANCELADO" && {
           cancelReason: cancelReason.trim(),
         }),
-        registerCode: "MAIN",
+        cashRegisterId,
       };
 
       await updateArrayOrderServices(ordersData);
@@ -277,6 +280,7 @@ export const ModalEditArrayOrders = ({
     extraPoints,
     rider,
     cancelReason,
+    cashRegisterId,
     refreshOrders,
     showOrders,
     showAlert,

@@ -52,10 +52,14 @@ const PERMISSION_GROUPS = [
         description: "Permite cancelar pedidos indicando un motivo.",
       },
       {
+        key: "markPaid",
+        label: "Registrar cobros",
+        description: "Permite marcar como pagado un pedido pendiente de cobro.",
+      },
+      {
         key: "readAudit",
         label: "Ver auditorías",
-        description:
-          "Permite consultar quién realizó modificaciones sobre los pedidos.",
+        description: "Permite consultar modificaciones sobre los pedidos.",
       },
     ],
   },

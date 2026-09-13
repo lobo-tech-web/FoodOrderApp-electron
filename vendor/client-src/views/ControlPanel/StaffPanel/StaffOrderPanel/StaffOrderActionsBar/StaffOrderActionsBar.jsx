@@ -40,6 +40,7 @@ const buttonStyle = {
 export const StaffOrderActionsBar = ({
   user,
   cashSession,
+  cashRegisterId,
   selectedOrders,
   loading,
   onRefresh,
@@ -161,6 +162,7 @@ export const StaffOrderActionsBar = ({
           }}
           showAlert={showAlert}
           refreshOrders={onRefresh}
+          cashRegisterId={cashRegisterId}
         />
       )}
 
@@ -176,6 +178,7 @@ export const StaffOrderActionsBar = ({
           showOrders={selectedOrders}
           refreshOrders={onRefresh}
           cashSession={cashSession}
+          cashRegisterId={cashRegisterId}
         />
       )}
     </>

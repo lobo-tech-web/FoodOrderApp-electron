@@ -120,6 +120,8 @@ export const StaffPanel = () => {
 
   const staffUser = userState.user;
 
+  const [selectedCashRegisterId, setSelectedCashRegisterId] = useState(null);
+  const [cashRefreshKey, setCashRefreshKey] = useState(0);
   const [cashSession, setCashSession] = useState(null);
   const [cashMovementDialog, setCashMovementDialog] = useState(false);
   const [cashCloseDialogOpen, setCashCloseDialogOpen] = useState(false);
@@ -321,9 +323,15 @@ export const StaffPanel = () => {
           <CashRegisterGate
             user={staffUser}
             cashSession={cashSession}
-            showAlert={showAlert}
+            selectedCashRegisterId={selectedCashRegisterId}
+            onCashRegisterChange={(cashRegisterId) => {
+              setSelectedCashRegisterId(cashRegisterId || null);
+            }}
             onCashSessionChange={handleCashSessionChange}
             showPrompt={isOrdersTab(activeTab)}
+            showAlert={showAlert}
+            refreshKey={cashRefreshKey}
+            variant="compact"
           />
 
           {(activeTab === 1 || activeTab === 11) && (
@@ -331,6 +339,7 @@ export const StaffPanel = () => {
               user={staffUser}
               showAlert={showAlert}
               cashSession={cashSession}
+              cashRegisterId={selectedCashRegisterId}
               externalView={activeTab}
             />
           )}
@@ -393,6 +402,7 @@ export const StaffPanel = () => {
           onClosed={() => {
             setCashCloseDialogOpen(false);
             handleCashSessionChange(null);
+            setCashRefreshKey((prev) => prev + 1);
           }}
         />
         {AlertComponent}

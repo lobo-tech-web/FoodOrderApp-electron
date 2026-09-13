@@ -87,7 +87,7 @@ export const calculateLocalSummary = ({ deliveries = [], form = {} }) => {
     const cashAvailableForClosure = cashCollected + initialCash;
     const baseRiderPayment = deliveryFeeTotal + adjustmentsTotal;
 
-    const expectedCashToAdmin = Math.max(cashAvailableForClosure - baseRiderPayment, 0);
+    const expectedCashToAdmin = cashAvailableForClosure;
     const cashDifference = cashDelivered - expectedCashToAdmin;
     const riderShouldKeep = Math.max(baseRiderPayment + cashDifference, 0);
     const remainingDebt = cashDifference < 0

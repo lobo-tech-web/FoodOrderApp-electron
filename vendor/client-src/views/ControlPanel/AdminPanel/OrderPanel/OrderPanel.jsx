@@ -49,12 +49,16 @@ const tableHeadStyle = {
   bgcolor: "background.paper",
   color: "primary.main",
   textAlign: "center",
-  fontWeight: "bold",
   py: 0.5,
 };
 // ----------------
 
-export const OrderPanel = ({ user, externalView }) => {
+export const OrderPanel = ({
+  user,
+  externalView,
+  cashSession = null,
+  cashRegisterId = null,
+}) => {
   const isElectronApp =
     typeof window !== "undefined" && Boolean(window.electronAPI);
   const { AlertComponent, showAlert } = useAlert();
@@ -239,9 +243,7 @@ export const OrderPanel = ({ user, externalView }) => {
         ? allOrders
         : allOrders.filter((order) => order.status === statusFilter);
 
-    const counts = {
-      TODOS: baseOrders.length,
-    };
+    const counts = { TODOS: baseOrders.length };
 
     baseOrders.forEach((order) => {
       counts[order.orderType] = (counts[order.orderType] || 0) + 1;
@@ -311,13 +313,12 @@ export const OrderPanel = ({ user, externalView }) => {
     try {
       await updateOrder(targetOrder.id, {
         isPaid: true,
+        cashRegisterId,
         auditReason: "Pedido marcado como pagado desde acceso rápido",
       });
 
       showAlert(
-        `Pedido N° ${
-          paymentConfirm.displayID || targetOrder.id
-        } marcado como pagado`,
+        `Pedido N° ${paymentConfirm.displayID || targetOrder.id} marcado como pagado`,
         "success",
       );
 
@@ -331,14 +332,22 @@ export const OrderPanel = ({ user, externalView }) => {
       // no reemplaza la tabla por LoadingComponent.
       await fetchOrders(true);
     } catch (error) {
-      showAlert(
-        error?.message || "No se pudo marcar el pedido como pagado",
-        "error",
-      );
+      const errorMessage =
+        typeof error === "string"
+          ? error
+          : error?.message || "Error desconocido";
+      showAlert(errorMessage, "error");
     } finally {
       setPayingOrderId(null);
     }
-  }, [paymentConfirm, payingOrderId, updateOrder, showAlert, fetchOrders]);
+  }, [
+    paymentConfirm,
+    payingOrderId,
+    cashRegisterId,
+    updateOrder,
+    showAlert,
+    fetchOrders,
+  ]);
 
   // ✅ FUNCIÓN QUE SOLO SE EJECUTA SI ESTAMOS EN LA PESTAÑA DE HOY
   const fetchTodayOrdersOnly = useCallback(async () => {
@@ -402,6 +411,8 @@ export const OrderPanel = ({ user, externalView }) => {
         handleRefresh={handleManualRefresh}
         selectedOrdersCheckbox={selectedOrdersCheckbox}
         setAutoRefreshEnabled={setAutoRefreshEnabled}
+        cashSession={cashSession}
+        cashRegisterId={cashRegisterId}
       />
 
       {/* RIDERS */}
@@ -507,10 +518,7 @@ export const OrderPanel = ({ user, externalView }) => {
           sx={{
             maxHeight: isElectronApp
               ? "none"
-              : {
-                  xs: "calc(100vh - 360px)",
-                  md: "calc(100vh - 390px)",
-                },
+              : { xs: "calc(100vh - 360px)", md: "calc(100vh - 390px)" },
             minHeight: isElectronApp ? "auto" : 260,
             overflow: isElectronApp ? "visible" : "auto",
           }}
@@ -651,6 +659,8 @@ export const OrderPanel = ({ user, externalView }) => {
         showAlert={showAlert}
         showOrder={selectedOrder}
         showOrderIndex={selectedOrderIndex}
+        cashSession={cashSession}
+        cashRegisterId={cashRegisterId}
         onOrderUpdated={() => fetchOrders(true)}
       />
       {AlertComponent}

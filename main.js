@@ -4,6 +4,7 @@ const {
   clipboard,
   ipcMain,
   safeStorage,
+  screen,
   session,
   shell,
 } = require('electron');
@@ -30,6 +31,52 @@ let offlineMenuState = {
 const printerManager = createPrinterManager(app, BrowserWindow, {
   onKitchenPrint: () => shell.beep(),
 });
+
+const LOGIN_WINDOW_SIZE = {
+  width: 1024,
+  height: 768,
+};
+
+const APP_WINDOW_MIN_SIZE = {
+  width: 1024,
+  height: 700,
+};
+
+const getCenteredWindowSize = ({ width, height }) => {
+  const { workAreaSize } = screen.getPrimaryDisplay();
+  return {
+    width: Math.min(width, Math.max(480, workAreaSize.width - 48)),
+    height: Math.min(height, Math.max(620, workAreaSize.height - 48)),
+  };
+};
+
+const applyWindowMode = (mode) => {
+  if (!mainWindow || mainWindow.isDestroyed()) return false;
+
+  if (mode === 'login') {
+    const size = getCenteredWindowSize(LOGIN_WINDOW_SIZE);
+
+    if (mainWindow.isMaximized()) mainWindow.unmaximize();
+    mainWindow.setMinimumSize(480, 620);
+    mainWindow.setResizable(true);
+    mainWindow.setSize(size.width, size.height, false);
+    mainWindow.center();
+    return true;
+  }
+
+  if (mode === 'app') {
+    mainWindow.setMinimumSize(APP_WINDOW_MIN_SIZE.width, APP_WINDOW_MIN_SIZE.height);
+
+    if (!mainWindow.isMaximized()) {
+      mainWindow.maximize();
+    }
+
+    mainWindow.focus();
+    return true;
+  }
+
+  return false;
+};
 
 app.setAppUserModelId('com.lobotech.foodorderapp.admin');
 
@@ -226,14 +273,28 @@ ipcMain.handle('offline-mode:set-status', (event, payload = {}) => {
   return { updated: true };
 });
 
+ipcMain.handle('window:set-mode', (event, mode) => {
+  if (!isAuthorizedRenderer(event.sender)) {
+    return { updated: false, reason: 'unauthorized' };
+  }
+
+  return {
+    updated: applyWindowMode(mode),
+  };
+});
+
 const createWindow = async () => {
+  const loginWindowSize = getCenteredWindowSize(LOGIN_WINDOW_SIZE);
+
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 820,
-    minWidth: 1024,
-    minHeight: 700,
+    width: loginWindowSize.width,
+    height: loginWindowSize.height,
+    minWidth: 480,
+    minHeight: 620,
+    center: true,
+    show: false,
     title: 'FoodOrderApp Admin',
-    backgroundColor: '#343a40',
+    backgroundColor: '#0f1115',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -265,6 +326,13 @@ const createWindow = async () => {
       : pathToFileURL(path.join(__dirname, 'dist', 'index.html')).href;
 
     if (!url.startsWith(allowedBase)) event.preventDefault();
+  });
+
+  applyWindowMode('login');
+  mainWindow.once('ready-to-show', () => {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    mainWindow.show();
+    mainWindow.focus();
   });
 
   if (devServerUrl) {
