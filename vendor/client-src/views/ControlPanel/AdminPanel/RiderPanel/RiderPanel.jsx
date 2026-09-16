@@ -626,6 +626,7 @@ export const RiderPanel = ({ user, externalView = 5 }) => {
         open={Boolean(selectedRiderClosure)}
         onClose={handleCloseClosureModal}
         restaurantId={user.id}
+        user={user}
         rider={selectedRiderClosure}
         showAlert={showAlert}
         onClosed={async () => {

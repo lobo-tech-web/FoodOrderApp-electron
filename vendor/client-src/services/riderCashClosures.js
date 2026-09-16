@@ -10,7 +10,6 @@ const apiPostCloseURL = import.meta.env.VITE_API_RIDER_CASH_CLOSURE_POST_CLOSE_R
 const apiPutUpdateURL = import.meta.env.VITE_API_RIDER_CASH_CLOSURE_PUT_UPDATE_ROUTER;
 // --------------
 
-
 const handleServiceError = (error) => {
     if (error.response) {
         throw {
@@ -106,10 +105,11 @@ export const updateOpenRiderCashClosureService = async ({
 };
 
 
-export const closeRiderCashClosureService = async ({ closureId }) => {
+export const closeRiderCashClosureService = async ({ closureId, cashRegisterId = null }) => {
     try {
         const response = await apiWithToken.post(
-            `${apiPostCloseURL}?closureId=${closureId}`
+            `${apiPostCloseURL}?closureId=${closureId}`,
+            { cashRegisterId }
         );
 
         return response.data;

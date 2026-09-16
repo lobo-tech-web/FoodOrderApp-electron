@@ -22,6 +22,7 @@ import {
 import {
   LockClock as LockClockIcon,
   PointOfSale as PointOfSaleIcon,
+  TwoWheeler as TwoWheelerIcon,
 } from "@mui/icons-material";
 // ---------------------
 
@@ -78,6 +79,18 @@ export const CashCloseModal = ({
   const totalPaidOrders = Number(totals.totalPaidOrders || 0);
   const totalUnpaidOrders = Number(totals.totalUnpaidOrders || 0);
   const totalUnpaidAmount = Number(totals.totalUnpaidAmount || 0);
+
+  const riderCashClosures = Array.isArray(report?.riderCashClosures)
+    ? report.riderCashClosures
+    : [];
+
+  const totalRiderPayout = Number(totals.totalRiderPayout || 0);
+  const totalRiderCashDifference = Number(totals.totalRiderCashDifference || 0);
+  const totalRiderCashImpact = Number(totals.totalRiderCashImpact || 0);
+  const totalRiderDeliveryFees = Number(totals.totalRiderDeliveryFees || 0);
+  const totalRiderAdjustments = Number(totals.totalRiderAdjustments || 0);
+  const hasRiderClosures = riderCashClosures.length > 0;
+
   const counted = countedCashAmount === "" ? null : Number(countedCashAmount);
   const difference = counted === null ? null : counted - expectedCashAmount;
 
@@ -275,6 +288,18 @@ export const CashCloseModal = ({
                   label: "Pendiente de cobro",
                   value: totals.totalUnpaidAmount,
                 },
+                ...(hasRiderClosures
+                  ? [
+                      {
+                        label: "Pago a deliveries",
+                        value: totalRiderPayout,
+                      },
+                      {
+                        label: "Impacto neto delivery",
+                        value: totalRiderCashImpact,
+                      },
+                    ]
+                  : []),
                 {
                   label: "Efectivo esperado",
                   value: expectedCashAmount,
@@ -409,6 +434,277 @@ export const CashCloseModal = ({
                   </Stack>
                 </Paper>
               )}
+
+            {hasRiderClosures && (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 2,
+                  bgcolor: "background.paper",
+                }}
+              >
+                <Stack spacing={2}>
+                  {/* HEADER */}
+                  <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    justifyContent="space-between"
+                    alignItems={{ xs: "flex-start", sm: "center" }}
+                    spacing={1}
+                  >
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <TwoWheelerIcon color="primary" />
+
+                      <Box>
+                        <Typography
+                          sx={{
+                            fontFamily: "fontFamily.primary",
+                            color: "text.primary",
+                            fontSize: 15,
+                          }}
+                        >
+                          LIQUIDACIONES DE DELIVERY
+                        </Typography>
+
+                        <Typography
+                          sx={{
+                            fontFamily: "fontFamily.secondary",
+                            color: "text.secondary",
+                            fontSize: 12,
+                          }}
+                        >
+                          Pagos realizados a riders durante esta sesión de caja
+                        </Typography>
+                      </Box>
+                    </Stack>
+
+                    <Chip
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      label={`${riderCashClosures.length} ${
+                        riderCashClosures.length === 1 ? "cierre" : "cierres"
+                      }`}
+                      sx={{ fontFamily: "fontFamily.secondary" }}
+                    />
+                  </Stack>
+
+                  {/* RESUMEN */}
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: {
+                        xs: "1fr",
+                        sm: "repeat(2, 1fr)",
+                        md: "repeat(4, 1fr)",
+                      },
+                      gap: 1,
+                    }}
+                  >
+                    {[
+                      {
+                        label: "Costo de envíos",
+                        value: totalRiderDeliveryFees,
+                      },
+                      {
+                        label: "Ajustes",
+                        value: totalRiderAdjustments,
+                      },
+                      {
+                        label: "Pagado a riders",
+                        value: totalRiderPayout,
+                      },
+                      {
+                        label: "Impacto en caja",
+                        value: totalRiderCashImpact,
+                      },
+                    ].map((item) => (
+                      <Box
+                        key={item.label}
+                        sx={{
+                          p: 1.25,
+                          borderRadius: 1.5,
+                          bgcolor: "background.main",
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontFamily: "fontFamily.secondary",
+                            color: "text.secondary",
+                            fontSize: 11,
+                          }}
+                        >
+                          {item.label}
+                        </Typography>
+
+                        <Typography
+                          sx={{
+                            mt: 0.25,
+                            fontFamily: "fontFamily.primary",
+                            color: "text.primary",
+                            fontSize: 14,
+                          }}
+                        >
+                          {formatMoney(item.value)}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+
+                  <Divider />
+
+                  {/* DETALLE POR CIERRE */}
+                  <Stack spacing={1.25}>
+                    {riderCashClosures.map((closure) => {
+                      const cashDifference = Number(
+                        closure.cashDifference || 0,
+                      );
+                      const riderPayout = Number(closure.riderShouldKeep || 0);
+                      const cashImpact = cashDifference - riderPayout;
+
+                      return (
+                        <Paper
+                          key={closure.id}
+                          elevation={0}
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            border: "1px solid",
+                            borderColor: "divider",
+                            bgcolor: "background.main",
+                          }}
+                        >
+                          <Stack spacing={1.25}>
+                            <Stack
+                              direction={{ xs: "column", sm: "row" }}
+                              justifyContent="space-between"
+                              alignItems={{ xs: "flex-start", sm: "center" }}
+                              spacing={1}
+                            >
+                              <Box>
+                                <Typography
+                                  sx={{
+                                    fontFamily: "fontFamily.primary",
+                                    color: "text.primary",
+                                    fontSize: 14,
+                                  }}
+                                >
+                                  {closure.rider?.name || "Delivery"}
+                                </Typography>
+
+                                <Typography
+                                  sx={{
+                                    fontFamily: "fontFamily.secondary",
+                                    color: "text.secondary",
+                                    fontSize: 11,
+                                  }}
+                                >
+                                  {Number(closure.cashOrdersCount || 0)} pedidos
+                                  en efectivo
+                                </Typography>
+                              </Box>
+
+                              <Chip
+                                size="small"
+                                label={`Pago ${formatMoney(riderPayout)}`}
+                                color="warning"
+                                variant="outlined"
+                                sx={{ fontFamily: "fontFamily.secondary" }}
+                              />
+                            </Stack>
+
+                            <Box
+                              sx={{
+                                display: "grid",
+                                gridTemplateColumns: {
+                                  xs: "1fr 1fr",
+                                  md: "repeat(4, 1fr)",
+                                },
+                                gap: 1,
+                              }}
+                            >
+                              {[
+                                {
+                                  label: "Cambio inicial",
+                                  value: closure.initialCash,
+                                },
+                                {
+                                  label: "Efectivo pedidos",
+                                  value: closure.cashCollected,
+                                },
+                                {
+                                  label: "Efectivo entregado",
+                                  value: closure.cashDelivered,
+                                },
+                                {
+                                  label: "Costo envíos",
+                                  value: closure.deliveryFeeTotal,
+                                },
+                                {
+                                  label: "Ajustes",
+                                  value: closure.adjustmentsTotal,
+                                },
+                                {
+                                  label: "Diferencia",
+                                  value: cashDifference,
+                                },
+                                {
+                                  label: "Pago rider",
+                                  value: riderPayout,
+                                },
+                                {
+                                  label: "Impacto caja",
+                                  value: cashImpact,
+                                },
+                              ].map((item) => (
+                                <Box key={item.label}>
+                                  <Typography
+                                    sx={{
+                                      fontFamily: "fontFamily.secondary",
+                                      color: "text.secondary",
+                                      fontSize: 10,
+                                    }}
+                                  >
+                                    {item.label}
+                                  </Typography>
+
+                                  <Typography
+                                    sx={{
+                                      fontFamily: "fontFamily.secondary",
+                                      color: "text.primary",
+                                      fontWeight: 600,
+                                      fontSize: 12,
+                                    }}
+                                  >
+                                    {formatMoney(item.value)}
+                                  </Typography>
+                                </Box>
+                              ))}
+                            </Box>
+                          </Stack>
+                        </Paper>
+                      );
+                    })}
+                  </Stack>
+
+                  <Typography
+                    sx={{
+                      fontFamily: "fontFamily.secondary",
+                      color: "text.secondary",
+                      fontSize: 11,
+                    }}
+                  >
+                    Las ventas en efectivo de estos pedidos ya están incluidas
+                    en “Ventas efectivo”. Esta sección muestra únicamente el
+                    efecto adicional de la liquidación del rider sobre el
+                    efectivo esperado, evitando contabilizar el ingreso dos
+                    veces.
+                  </Typography>
+                </Stack>
+              </Paper>
+            )}
 
             <Divider sx={{ borderColor: "text.primary" }} />
 

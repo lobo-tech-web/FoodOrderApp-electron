@@ -35,10 +35,15 @@ import {
   LocalGasStation as GasIcon,
   WarningAmber as WarningAmberIcon,
   Comment as CommentIcon,
+  PointOfSale as PointOfSaleIcon,
 } from "@mui/icons-material";
 // ---------------------
 
 // ---- SERVICES ----
+import {
+  getCashRegistersService,
+  getOpenCashSessionService,
+} from "@/services/cashRegister.js";
 import {
   getOrCreateOpenRiderCashClosureService,
   updateOpenRiderCashClosureService,
@@ -48,6 +53,7 @@ import {
 
 // ---- Utils ----
 import { formatCurrency } from "@/utils/orderCalculations.js";
+import { getStoredCashRegisterId } from "@/utils/cashRegisterUtils.js";
 import {
   createLocalId,
   calculateLocalSummary,
@@ -69,6 +75,7 @@ export const ModalRiderCashClosure = ({
   onClose,
   restaurantId,
   rider,
+  user,
   showAlert,
   onClosed,
 }) => {
@@ -78,6 +85,20 @@ export const ModalRiderCashClosure = ({
   const [showConfirmClose, setShowConfirmClose] = useState(false);
   const [closure, setClosure] = useState(null);
   const [deliveries, setDeliveries] = useState([]);
+
+  const [loadingCashRegisters, setLoadingCashRegisters] = useState(false);
+  const [cashRegisters, setCashRegisters] = useState([]);
+  const [openSessionsByRegister, setOpenSessionsByRegister] = useState({});
+  const [selectedCashRegisterId, setSelectedCashRegisterId] = useState("");
+
+  const isStaff = user?.role === "staff";
+
+  const selectedCashSession = useMemo(() => {
+    if (!selectedCashRegisterId) {
+      return null;
+    }
+    return openSessionsByRegister[selectedCashRegisterId] || null;
+  }, [openSessionsByRegister, selectedCashRegisterId]);
 
   const [form, setForm] = useState({
     initialCash: 0,
@@ -138,6 +159,71 @@ export const ModalRiderCashClosure = ({
         (adjustment) => adjustment.id !== id,
       ),
     }));
+  };
+
+  const loadCashWorkspace = async () => {
+    if (!open || !restaurantId || !user?.id) {
+      return;
+    }
+
+    setLoadingCashRegisters(true);
+
+    try {
+      const registersResponse = await getCashRegistersService({
+        restaurantId,
+        includeInactive: false,
+      });
+
+      const registers = Array.isArray(registersResponse)
+        ? registersResponse
+        : [];
+
+      setCashRegisters(registers);
+
+      const sessionEntries = await Promise.all(
+        registers.map(async (register) => {
+          const session = await getOpenCashSessionService({
+            restaurantId,
+            cashRegisterId: register.id,
+          });
+          return [register.id, session || null];
+        }),
+      );
+
+      const sessionsMap = Object.fromEntries(sessionEntries);
+
+      setOpenSessionsByRegister(sessionsMap);
+
+      const storedId = getStoredCashRegisterId({
+        user,
+        restaurantId,
+      });
+
+      const storedIsOpen = Boolean(
+        storedId && sessionsMap[storedId]?.status === "OPEN",
+      );
+
+      if (isStaff) {
+        if (storedIsOpen) {
+          setSelectedCashRegisterId(storedId);
+          return;
+        }
+        const firstOpen = registers.find(
+          (register) => sessionsMap[register.id]?.status === "OPEN",
+        );
+        setSelectedCashRegisterId(firstOpen?.id || "");
+        return;
+      }
+
+      setSelectedCashRegisterId("");
+    } catch (error) {
+      showAlert?.(
+        error?.message || "Error al obtener las cajas del local",
+        "error",
+      );
+    } finally {
+      setLoadingCashRegisters(false);
+    }
   };
 
   const loadClosure = async () => {
@@ -213,11 +299,38 @@ export const ModalRiderCashClosure = ({
       return;
     }
 
+    if (
+      isStaff &&
+      (!selectedCashRegisterId ||
+        !selectedCashSession?.id ||
+        selectedCashSession?.status !== "OPEN")
+    ) {
+      showAlert?.(
+        "Debes seleccionar una caja abierta para confirmar el cierre del delivery",
+        "warning",
+      );
+      return;
+    }
+
     setShowConfirmClose(true);
   };
 
   const handleConfirmCashClosure = async () => {
     if (!closure?.id || isClosed) return;
+
+    if (
+      isStaff &&
+      (!selectedCashRegisterId ||
+        !selectedCashSession?.id ||
+        selectedCashSession?.status !== "OPEN")
+    ) {
+      showAlert?.(
+        "Debes seleccionar una caja abierta para confirmar el cierre del delivery",
+        "warning",
+      );
+
+      return;
+    }
 
     setShowConfirmClose(false);
     setSaving(true);
@@ -233,6 +346,10 @@ export const ModalRiderCashClosure = ({
 
       const response = await closeRiderCashClosureService({
         closureId: closure.id,
+        cashRegisterId:
+          selectedCashSession?.status === "OPEN"
+            ? selectedCashRegisterId
+            : null,
       });
 
       showAlert?.("Cierre confirmado correctamente", "success");
@@ -245,6 +362,10 @@ export const ModalRiderCashClosure = ({
       setSaving(false);
     }
   };
+
+  useEffect(() => {
+    loadCashWorkspace();
+  }, [open, restaurantId, user?.id, user?.role]);
 
   useEffect(() => {
     loadClosure();
@@ -450,6 +571,153 @@ export const ModalRiderCashClosure = ({
                       color: "text.primary",
                     }}
                   />
+                </Box>
+
+                <Divider sx={{ borderColor: "text.primary", my: 2 }} />
+
+                <Box>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    alignItems="center"
+                    sx={{ mb: 1 }}
+                  >
+                    <PointOfSaleIcon color="primary" fontSize="small" />
+
+                    <Typography
+                      sx={{
+                        fontFamily: "fontFamily.primary",
+                        color: "text.primary",
+                        fontSize: 16,
+                      }}
+                    >
+                      CAJA RECEPTORA
+                    </Typography>
+
+                    {!isStaff && (
+                      <Typography
+                        sx={{
+                          fontFamily: "fontFamily.secondary",
+                          color: "text.primary",
+                          fontSize: 12,
+                        }}
+                      >
+                        (OPCIONAL)
+                      </Typography>
+                    )}
+                  </Stack>
+
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    label={"CAJA RECEPTORA"}
+                    value={selectedCashRegisterId}
+                    onChange={(event) =>
+                      setSelectedCashRegisterId(event.target.value)
+                    }
+                    disabled={isClosed || saving || loadingCashRegisters}
+                    sx={{
+                      fontFamily: "fontFamily.primary",
+                      color: "text.primary",
+                    }}
+                  >
+                    {!isStaff && (
+                      <MenuItem
+                        value=""
+                        sx={{
+                          fontFamily: "fontFamily.primary",
+                          color: "text.primary",
+                        }}
+                      >
+                        NO ASOCIAR CAJA
+                      </MenuItem>
+                    )}
+
+                    {cashRegisters.map((register) => {
+                      const session = openSessionsByRegister[register.id];
+                      const isOpen = session?.status === "OPEN";
+                      return (
+                        <MenuItem
+                          key={register.id}
+                          value={register.id}
+                          disabled={!isOpen}
+                          sx={{
+                            fontFamily: "fontFamily.primary",
+                            color: "text.primary",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              width: "100%",
+                              gap: 2,
+                            }}
+                          >
+                            <Box>
+                              <Typography
+                                sx={{
+                                  fontFamily: "fontFamily.primary",
+                                  fontSize: 14,
+                                  textTransform: "uppercase",
+                                }}
+                              >
+                                {register.name}
+                              </Typography>
+
+                              <Typography
+                                sx={{
+                                  fontFamily: "fontFamily.secondary",
+                                  color: "primary.main",
+                                  fontSize: 11,
+                                }}
+                              >
+                                {register.code}
+                              </Typography>
+                            </Box>
+
+                            <Chip
+                              size="small"
+                              label={isOpen ? "ABIERTA" : "CERRADA"}
+                              color={isOpen ? "success" : "error"}
+                              sx={{ fontFamily: "fontFamily.primary" }}
+                            />
+                          </Box>
+                        </MenuItem>
+                      );
+                    })}
+                  </TextField>
+
+                  {!isStaff && !selectedCashRegisterId && (
+                    <Typography
+                      sx={{
+                        mt: 1,
+                        fontFamily: "fontFamily.secondary",
+                        color: "primary.main",
+                        fontSize: 12,
+                      }}
+                    >
+                      El cierre se puede confirmar sin asociarlo a una caja, los
+                      cobros en efectivo quedarán registrados sin sesión de
+                      caja.
+                    </Typography>
+                  )}
+
+                  {isStaff && !selectedCashSession && (
+                    <Typography
+                      sx={{
+                        mt: 1,
+                        fontFamily: "fontFamily.secondary",
+                        color: "warning.main",
+                        fontSize: 12,
+                      }}
+                    >
+                      Para un empleado es obligatorio seleccionar una caja
+                      abierta.
+                    </Typography>
+                  )}
                 </Box>
               </RiderSectionCard>
 
@@ -685,7 +953,7 @@ export const ModalRiderCashClosure = ({
 
               <RiderSummaryRow
                 icon={<TwoWheelerIcon color="primary" />}
-                label="Deliverys del rider"
+                label="Envio del delivery"
                 value={formatCurrency(summary.deliveryFeeTotal)}
                 color="primary.main"
               />
