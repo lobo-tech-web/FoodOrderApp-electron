@@ -341,14 +341,23 @@ export const RiderPanel = ({ user, externalView = 5 }) => {
   const isClosuresTab = activeTab === TAB_CLOSURES;
   const isClosuresHistoryTab = activeTab === TAB_CLOSURES_HISTORY;
 
-  const [selectedRiderClosure, setSelectedRiderClosure] = useState(null);
+  const [riderCashClosureModal, setRiderCashClosureModal] = useState({
+    rider: null,
+    mode: "draft",
+  });
 
-  const handleOpenClosureModal = (rider) => {
-    setSelectedRiderClosure(rider);
+  const handleOpenClosureModal = (rider, mode = "draft") => {
+    setRiderCashClosureModal({
+      rider,
+      mode,
+    });
   };
 
   const handleCloseClosureModal = () => {
-    setSelectedRiderClosure(null);
+    setRiderCashClosureModal({
+      rider: null,
+      mode: "draft",
+    });
   };
 
   const {
@@ -623,11 +632,12 @@ export const RiderPanel = ({ user, externalView = 5 }) => {
       )}
 
       <ModalRiderCashClosure
-        open={Boolean(selectedRiderClosure)}
+        open={Boolean(riderCashClosureModal.rider)}
         onClose={handleCloseClosureModal}
         restaurantId={user.id}
         user={user}
-        rider={selectedRiderClosure}
+        rider={riderCashClosureModal.rider}
+        mode={riderCashClosureModal.mode}
         showAlert={showAlert}
         onClosed={async () => {
           handleCloseClosureModal();

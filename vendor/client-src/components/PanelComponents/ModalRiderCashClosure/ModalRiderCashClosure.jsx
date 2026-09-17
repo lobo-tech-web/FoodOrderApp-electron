@@ -28,6 +28,7 @@ import {
   CurrencyExchange as CurrencyExchangeIcon,
   ReceiptLong as ReceiptLongIcon,
   Add as AddIcon,
+  Edit as EditIcon,
   RemoveCircleOutline as RemoveIcon,
   Save as SaveIcon,
   CheckCircle as CheckCircleIcon,
@@ -76,6 +77,7 @@ export const ModalRiderCashClosure = ({
   restaurantId,
   rider,
   user,
+  mode = "draft",
   showAlert,
   onClosed,
 }) => {
@@ -85,6 +87,12 @@ export const ModalRiderCashClosure = ({
   const [showConfirmClose, setShowConfirmClose] = useState(false);
   const [closure, setClosure] = useState(null);
   const [deliveries, setDeliveries] = useState([]);
+
+  const isDraftMode = mode === "draft";
+  const isCloseMode = mode === "close";
+  const isClosed = closure?.status === "CLOSED";
+  const canEditDraft = !isClosed && isDraftMode;
+  const canFinalize = !isClosed && isCloseMode;
 
   const [loadingCashRegisters, setLoadingCashRegisters] = useState(false);
   const [cashRegisters, setCashRegisters] = useState([]);
@@ -106,8 +114,6 @@ export const ModalRiderCashClosure = ({
     adjustments: [],
     notes: "",
   });
-
-  const isClosed = closure?.status === "CLOSED";
 
   const summary = useMemo(() => {
     return calculateLocalSummary({
@@ -264,7 +270,7 @@ export const ModalRiderCashClosure = ({
   };
 
   const handleSaveDraft = async () => {
-    if (!closure?.id || isClosed) return;
+    if (!closure?.id || isClosed || !isDraftMode) return;
 
     setSaving(true);
 
@@ -280,16 +286,16 @@ export const ModalRiderCashClosure = ({
       setClosure(response.closure);
       setDeliveries(response.deliveries || []);
 
-      showAlert?.("Cierre guardado correctamente", "success");
+      showAlert?.("Borrador guardado correctamente", "success");
     } catch (error) {
-      showAlert?.(error.message || "Error al guardar el cierre", "error");
+      showAlert?.(error.message || "Error al guardar el borrador", "error");
     } finally {
       setSaving(false);
     }
   };
 
   const handleAskConfirmClose = () => {
-    if (!closure?.id || isClosed) return;
+    if (!closure?.id || isClosed || !isCloseMode) return;
 
     if (deliveries.length === 0) {
       showAlert?.(
@@ -418,16 +424,27 @@ export const ModalRiderCashClosure = ({
           </Box>
 
           <Box>
-            <Typography
-              sx={{
-                fontFamily: "fontFamily.primary",
-                color: "text.primary",
-                fontSize: { xs: "1rem", sm: "1.25rem" },
-                lineHeight: 1,
-              }}
-            >
-              CIERRE DE TURNO
-            </Typography>
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Typography
+                sx={{
+                  fontFamily: "fontFamily.primary",
+                  color: "text.primary",
+                  fontSize: { xs: "1rem", sm: "1.25rem" },
+                  lineHeight: 1,
+                }}
+              >
+                {isDraftMode ? "EDITAR BORRADOR DEL TURNO" : "CIERRE DE TURNO"}
+              </Typography>
+
+              <Chip
+                icon={isDraftMode ? <EditIcon /> : <CheckCircleIcon />}
+                size="small"
+                label={isDraftMode ? "BORRADOR" : "CIERRE DE TURNO"}
+                color={isDraftMode ? "primary" : "success"}
+                variant="outlined"
+                sx={{ fontFamily: "fontFamily.primary" }}
+              />
+            </Box>
 
             <Typography
               sx={{
@@ -440,28 +457,30 @@ export const ModalRiderCashClosure = ({
               {rider?.name || "Rider"}
             </Typography>
 
-            <Typography
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                color: "text.secondary",
-                fontSize: "0.8rem",
-                mt: 0.3,
-              }}
-            >
-              {rider?.closureDateLabel
-                ? `Fecha de cierre: ${rider.closureDateLabel}`
-                : "Cierre de viajes pendientes"}
-            </Typography>
-          </Box>
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Typography
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  color: "text.secondary",
+                  fontSize: "0.8rem",
+                  mt: 0.3,
+                }}
+              >
+                {rider?.closureDateLabel
+                  ? `Fecha de cierre: ${rider.closureDateLabel}`
+                  : "Cierre de viajes pendientes"}
+              </Typography>
 
-          {closure?.status && (
-            <Chip
-              size="small"
-              label={closure.status === "OPEN" ? "Abierto" : "Cerrado"}
-              color={closure.status === "OPEN" ? "warning" : "success"}
-              sx={{ fontFamily: "fontFamily.secondary" }}
-            />
-          )}
+              {closure?.status && (
+                <Chip
+                  size="small"
+                  label={closure.status === "OPEN" ? "ABIERTO" : "CERRADO"}
+                  color={closure.status === "OPEN" ? "success" : "error"}
+                  sx={{ fontFamily: "fontFamily.primary" }}
+                />
+              )}
+            </Box>
+          </Box>
         </Stack>
 
         <IconButton onClick={onClose} disabled={saving}>
@@ -537,7 +556,7 @@ export const ModalRiderCashClosure = ({
                     type="number"
                     value={form.initialCash}
                     onChange={handleChange}
-                    disabled={isClosed}
+                    disabled={!canEditDraft}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -558,7 +577,7 @@ export const ModalRiderCashClosure = ({
                     type="number"
                     value={form.cashDelivered}
                     onChange={handleChange}
-                    disabled={isClosed}
+                    disabled={!canEditDraft}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -575,150 +594,152 @@ export const ModalRiderCashClosure = ({
 
                 <Divider sx={{ borderColor: "text.primary", my: 2 }} />
 
-                <Box>
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    alignItems="center"
-                    sx={{ mb: 1 }}
-                  >
-                    <PointOfSaleIcon color="primary" fontSize="small" />
-
-                    <Typography
-                      sx={{
-                        fontFamily: "fontFamily.primary",
-                        color: "text.primary",
-                        fontSize: 16,
-                      }}
+                {isCloseMode && (
+                  <Box>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      alignItems="center"
+                      sx={{ mb: 1 }}
                     >
-                      CAJA RECEPTORA
-                    </Typography>
+                      <PointOfSaleIcon color="primary" fontSize="small" />
 
-                    {!isStaff && (
                       <Typography
-                        sx={{
-                          fontFamily: "fontFamily.secondary",
-                          color: "text.primary",
-                          fontSize: 12,
-                        }}
-                      >
-                        (OPCIONAL)
-                      </Typography>
-                    )}
-                  </Stack>
-
-                  <TextField
-                    select
-                    fullWidth
-                    size="small"
-                    label={"CAJA RECEPTORA"}
-                    value={selectedCashRegisterId}
-                    onChange={(event) =>
-                      setSelectedCashRegisterId(event.target.value)
-                    }
-                    disabled={isClosed || saving || loadingCashRegisters}
-                    sx={{
-                      fontFamily: "fontFamily.primary",
-                      color: "text.primary",
-                    }}
-                  >
-                    {!isStaff && (
-                      <MenuItem
-                        value=""
                         sx={{
                           fontFamily: "fontFamily.primary",
                           color: "text.primary",
+                          fontSize: 16,
                         }}
                       >
-                        NO ASOCIAR CAJA
-                      </MenuItem>
-                    )}
+                        CAJA RECEPTORA
+                      </Typography>
 
-                    {cashRegisters.map((register) => {
-                      const session = openSessionsByRegister[register.id];
-                      const isOpen = session?.status === "OPEN";
-                      return (
+                      {!isStaff && (
+                        <Typography
+                          sx={{
+                            fontFamily: "fontFamily.secondary",
+                            color: "text.primary",
+                            fontSize: 12,
+                          }}
+                        >
+                          (OPCIONAL)
+                        </Typography>
+                      )}
+                    </Stack>
+
+                    <TextField
+                      select
+                      fullWidth
+                      size="small"
+                      label={"CAJA RECEPTORA"}
+                      value={selectedCashRegisterId}
+                      onChange={(event) =>
+                        setSelectedCashRegisterId(event.target.value)
+                      }
+                      disabled={isClosed || saving || loadingCashRegisters}
+                      sx={{
+                        fontFamily: "fontFamily.primary",
+                        color: "text.primary",
+                      }}
+                    >
+                      {!isStaff && (
                         <MenuItem
-                          key={register.id}
-                          value={register.id}
-                          disabled={!isOpen}
+                          value=""
                           sx={{
                             fontFamily: "fontFamily.primary",
                             color: "text.primary",
                           }}
                         >
-                          <Box
+                          NO ASOCIAR CAJA
+                        </MenuItem>
+                      )}
+
+                      {cashRegisters.map((register) => {
+                        const session = openSessionsByRegister[register.id];
+                        const isOpen = session?.status === "OPEN";
+                        return (
+                          <MenuItem
+                            key={register.id}
+                            value={register.id}
+                            disabled={!isOpen}
                             sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              width: "100%",
-                              gap: 2,
+                              fontFamily: "fontFamily.primary",
+                              color: "text.primary",
                             }}
                           >
-                            <Box>
-                              <Typography
-                                sx={{
-                                  fontFamily: "fontFamily.primary",
-                                  fontSize: 14,
-                                  textTransform: "uppercase",
-                                }}
-                              >
-                                {register.name}
-                              </Typography>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                width: "100%",
+                                gap: 2,
+                              }}
+                            >
+                              <Box>
+                                <Typography
+                                  sx={{
+                                    fontFamily: "fontFamily.primary",
+                                    fontSize: 14,
+                                    textTransform: "uppercase",
+                                  }}
+                                >
+                                  {register.name}
+                                </Typography>
 
-                              <Typography
-                                sx={{
-                                  fontFamily: "fontFamily.secondary",
-                                  color: "primary.main",
-                                  fontSize: 11,
-                                }}
-                              >
-                                {register.code}
-                              </Typography>
+                                <Typography
+                                  sx={{
+                                    fontFamily: "fontFamily.secondary",
+                                    color: "primary.main",
+                                    fontSize: 11,
+                                  }}
+                                >
+                                  {register.code}
+                                </Typography>
+                              </Box>
+
+                              <Chip
+                                size="small"
+                                label={isOpen ? "ABIERTA" : "CERRADA"}
+                                color={isOpen ? "success" : "error"}
+                                sx={{ fontFamily: "fontFamily.primary" }}
+                              />
                             </Box>
+                          </MenuItem>
+                        );
+                      })}
+                    </TextField>
 
-                            <Chip
-                              size="small"
-                              label={isOpen ? "ABIERTA" : "CERRADA"}
-                              color={isOpen ? "success" : "error"}
-                              sx={{ fontFamily: "fontFamily.primary" }}
-                            />
-                          </Box>
-                        </MenuItem>
-                      );
-                    })}
-                  </TextField>
+                    {!isStaff && !selectedCashRegisterId && (
+                      <Typography
+                        sx={{
+                          mt: 1,
+                          fontFamily: "fontFamily.secondary",
+                          color: "primary.main",
+                          fontSize: 12,
+                        }}
+                      >
+                        El cierre se puede confirmar sin asociarlo a una caja,
+                        los cobros en efectivo quedarán registrados sin sesión
+                        de caja.
+                      </Typography>
+                    )}
 
-                  {!isStaff && !selectedCashRegisterId && (
-                    <Typography
-                      sx={{
-                        mt: 1,
-                        fontFamily: "fontFamily.secondary",
-                        color: "primary.main",
-                        fontSize: 12,
-                      }}
-                    >
-                      El cierre se puede confirmar sin asociarlo a una caja, los
-                      cobros en efectivo quedarán registrados sin sesión de
-                      caja.
-                    </Typography>
-                  )}
-
-                  {isStaff && !selectedCashSession && (
-                    <Typography
-                      sx={{
-                        mt: 1,
-                        fontFamily: "fontFamily.secondary",
-                        color: "warning.main",
-                        fontSize: 12,
-                      }}
-                    >
-                      Para un empleado es obligatorio seleccionar una caja
-                      abierta.
-                    </Typography>
-                  )}
-                </Box>
+                    {isStaff && !selectedCashSession && (
+                      <Typography
+                        sx={{
+                          mt: 1,
+                          fontFamily: "fontFamily.secondary",
+                          color: "warning.main",
+                          fontSize: 12,
+                        }}
+                      >
+                        Para un empleado es obligatorio seleccionar una caja
+                        abierta.
+                      </Typography>
+                    )}
+                  </Box>
+                )}
               </RiderSectionCard>
 
               <RiderSectionCard
@@ -726,7 +747,7 @@ export const ModalRiderCashClosure = ({
                 subtitle="Extras, propinas, descuentos o cargos aplicados al pago final"
                 icon={<GasIcon fontSize="small" />}
                 action={
-                  !isClosed && (
+                  canEditDraft && (
                     <Stack direction="row" spacing={1}>
                       <Button
                         size="small"
@@ -791,7 +812,7 @@ export const ModalRiderCashClosure = ({
                           select
                           size="small"
                           value={adjustment.type}
-                          disabled={isClosed}
+                          disabled={!canEditDraft}
                           onChange={(e) =>
                             handleAdjustmentChange(
                               adjustment.id,
@@ -819,7 +840,7 @@ export const ModalRiderCashClosure = ({
                           size="small"
                           placeholder="Motivo"
                           value={adjustment.description}
-                          disabled={isClosed}
+                          disabled={!canEditDraft}
                           onChange={(e) =>
                             handleAdjustmentChange(
                               adjustment.id,
@@ -834,7 +855,7 @@ export const ModalRiderCashClosure = ({
                           size="small"
                           type="number"
                           value={adjustment.amount}
-                          disabled={isClosed}
+                          disabled={!canEditDraft}
                           onChange={(e) =>
                             handleAdjustmentChange(
                               adjustment.id,
@@ -845,7 +866,7 @@ export const ModalRiderCashClosure = ({
                           sx={{ fontFamily: "fontFamily.primary" }}
                         />
 
-                        {!isClosed && (
+                        {canEditDraft && (
                           <IconButton
                             color="error"
                             onClick={() =>
@@ -904,7 +925,7 @@ export const ModalRiderCashClosure = ({
                   placeholder="Agrega una observación para el cierre del turno"
                   value={form.notes}
                   onChange={handleChange}
-                  disabled={isClosed}
+                  disabled={!canEditDraft}
                   sx={{ fontFamily: "fontFamily.secondary" }}
                 />
               </RiderSectionCard>
@@ -1096,10 +1117,6 @@ export const ModalRiderCashClosure = ({
           bgcolor: "background.main",
           borderTop: "1px solid",
           borderColor: "divider",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "stretch",
-          gap: 1.2,
         }}
       >
         <Stack
@@ -1119,7 +1136,7 @@ export const ModalRiderCashClosure = ({
             Cancelar
           </Button>
 
-          {!isClosed && (
+          {canEditDraft && (
             <Button
               onClick={handleSaveDraft}
               disabled={saving || loading}
@@ -1131,19 +1148,8 @@ export const ModalRiderCashClosure = ({
               Guardar Borrador
             </Button>
           )}
-        </Stack>
 
-        {!isClosed && (
-          <Box
-            sx={{
-              width: "100%",
-              display: "flex",
-              justifyContent: "flex-end",
-              pt: 1.2,
-              borderTop: "1px dashed",
-              borderColor: "rgba(255,255,255,0.14)",
-            }}
-          >
+          {canFinalize && (
             <Button
               onClick={handleAskConfirmClose}
               disabled={saving || loading || deliveries.length === 0}
@@ -1152,23 +1158,25 @@ export const ModalRiderCashClosure = ({
               startIcon={<CheckCircleIcon />}
               sx={{
                 fontFamily: "fontFamily.primary",
-                minWidth: { xs: "100%", sm: 230 },
-                py: 1.1,
+                minWidth: 210,
+                py: 1,
                 boxShadow: "0 8px 22px rgba(46, 125, 50, 0.35)",
               }}
             >
               Realizar cierre
             </Button>
-          </Box>
-        )}
+          )}
+        </Stack>
       </DialogActions>
 
-      <ModalConfirmCashClosure
-        open={showConfirmClose}
-        onCancel={() => setShowConfirmClose(false)}
-        onConfirm={handleConfirmCashClosure}
-        loading={saving}
-      />
+      {isCloseMode && (
+        <ModalConfirmCashClosure
+          open={showConfirmClose}
+          onCancel={() => setShowConfirmClose(false)}
+          onConfirm={handleConfirmCashClosure}
+          loading={saving}
+        />
+      )}
     </Dialog>
   );
 };
