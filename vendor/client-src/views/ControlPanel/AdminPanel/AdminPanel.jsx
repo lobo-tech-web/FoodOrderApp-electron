@@ -31,7 +31,7 @@ import { StatsPanel } from "./StatsPanel/StatsPanel.jsx";
 import { UserPointsRestaurantPanel } from "./UserPointsRestaurantPanel/UserPointsRestaurantPanel.jsx";
 import { CashRegisterGate } from "../StaffPanel/CashRegisterGate/CashRegisterGate.jsx";
 import { CashRegisterPanel } from "./CashRegisterPanel/CashRegisterPanel.jsx";
-import { CashRegisterSessions } from "./CashRegisterPanel/CashRegisterSessions.jsx";
+import { CashRegisterHistoryPanel } from "../StaffPanel/CashRegisterHistoryPanel/CashRegisterHistoryPanel.jsx";
 // <-------------------
 
 // ---- CONTEXT ----
@@ -152,7 +152,7 @@ export const AdminPanel = () => {
               {activeTab === 54 && "ESTADÍSTICAS TOTALES DE CADETES"}
               {activeTab === 6 && "GESTIÓN DE EMPLEADOS"}
               {activeTab === 7 && "GESTIÓN DE CAJAS"}
-              {activeTab === 71 && "OPERACIÓN DE CAJAS"}
+              {activeTab === 71 && "HISTORIAL Y REPORTES DE CAJAS"}
             </Typography>
           </Toolbar>
         </AppBar>
@@ -248,7 +248,9 @@ export const AdminPanel = () => {
           )}
           {activeTab === 6 && <RestaurantStaffPanel user={user} />}
           {activeTab === 7 && <CashRegisterPanel user={user} />}
-          {activeTab === 71 && <CashRegisterSessions user={user} />}
+          {activeTab === 71 && (
+            <CashRegisterHistoryPanel user={user} showAlert={showAlert} />
+          )}
           {AlertComponent}
         </Box>
       </Box>

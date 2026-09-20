@@ -3,6 +3,7 @@ import { apiWithToken } from './axiosConfig.js';
 const apiURLMainCashRegister = import.meta.env.VITE_API_CASH_REGISTER_MAIN_ROUTER;
 const apiURLGetOpenCashSession = import.meta.env.VITE_API_CASH_REGISTER_GET_OPEN_SESSIONS;
 const apiURLGetCashSessions = import.meta.env.VITE_API_CASH_REGISTER_GET_CASH_SESSIONS;
+const apiURLGetConsolidatedReport = import.meta.env.VITE_API_CASH_REGISTER_GET_CONSOLIDATED_REPORT;
 const apiURLGetCashReport = import.meta.env.VITE_API_CASH_REGISTER_GET_CASH_REPORT;
 const apiURLGetClosePreview = import.meta.env.VITE_API_CASH_REGISTER_GET_CLOSE_PREVIEW;
 const apiURLPostCashMovement = import.meta.env.VITE_API_CASH_REGISTER_POST_CASH_MOVEMENT;
@@ -106,12 +107,18 @@ export const getOpenCashSessionService = async ({
 export const getCashSessionsService = async ({
     restaurantId,
     cashRegisterId = null,
+    status = null,
+    from = null,
+    to = null,
     limit = 30,
 } = {}) => {
     try {
         const query = buildQuery({
             restaurantId,
             cashRegisterId,
+            status,
+            from,
+            to,
             limit,
         });
 
@@ -120,6 +127,31 @@ export const getCashSessionsService = async ({
         return response.data;
     } catch (error) {
         handleServiceError(error, 'Error al obtener historial de cajas');
+    }
+};
+
+export const getCashConsolidatedReportService = async ({
+    restaurantId,
+    cashRegisterId = null,
+    status = null,
+    from = null,
+    to = null,
+} = {}) => {
+
+    try {
+        const query = buildQuery({
+            restaurantId,
+            cashRegisterId,
+            status,
+            from,
+            to,
+        });
+
+        const response = await apiWithToken.get(`${apiURLGetConsolidatedReport}${query}`);
+
+        return response.data;
+    } catch (error) {
+        handleServiceError(error, 'Error al obtener reporte consolidado de cajas');
     }
 };
 

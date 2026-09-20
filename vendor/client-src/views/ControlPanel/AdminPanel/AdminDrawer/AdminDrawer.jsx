@@ -217,7 +217,7 @@ export const AdminDrawer = ({
               />
             </ListItemButton>
 
-            {/* OPERACIÓN DE CAJAS */}
+            {/* HISTORIAL Y REPORTES */}
             <ListItemButton
               selected={activeTab === 71}
               onClick={() => handleAction(71)}
@@ -236,7 +236,7 @@ export const AdminDrawer = ({
               </ListItemIcon>
 
               <ListItemText
-                primary="Operación de cajas"
+                primary="Historial y reportes"
                 primaryTypographyProps={{
                   fontSize: "0.85rem",
                 }}
