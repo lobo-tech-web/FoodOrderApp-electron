@@ -80,3 +80,35 @@ export const clearStoredCashRegisterId = ({ user, restaurantId }) => {
         // No hacemos nada.
     }
 };
+
+/**
+ * Obtiene la fecha de hoy en Argentina,
+ * Devuelve: YYYY-MM-DD
+ */
+export const getArgentinaTodayDateKey = () => {
+    const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Argentina/Buenos_Aires",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).formatToParts(new Date());
+
+    const getPart = (type) => parts.find((part) => part.type === type)?.value;
+
+    return [getPart("year"), getPart("month"), getPart("day")].join("-");
+};
+
+/**
+ * Generamos un nuevo objeto cada vez que
+ * necesitamos establecer los filtros iniciales.
+ */
+export const createInitialCashFilters = () => {
+    const today = getArgentinaTodayDateKey();
+
+    return {
+        cashRegisterId: "ALL",
+        status: "ALL",
+        from: today,
+        to: today,
+    };
+};

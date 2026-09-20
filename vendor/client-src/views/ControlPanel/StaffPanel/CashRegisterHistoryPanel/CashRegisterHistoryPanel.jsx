@@ -23,6 +23,7 @@ import {
   Refresh as RefreshIcon,
   PointOfSale as PointOfSaleIcon,
   FilterAlt as FilterIcon,
+  Cancel as CancelIcon,
   Assessment as AssessmentIcon,
   Payments as PaymentsIcon,
 } from "@mui/icons-material";
@@ -48,24 +49,14 @@ import {
 // ------------------
 
 // ---- Utils ----
-import { formatMoney, hasPermission } from "@/utils/cashRegisterUtils.js";
+import {
+  formatMoney,
+  hasPermission,
+  createInitialCashFilters,
+} from "@/utils/cashRegisterUtils.js";
 // ---------------
 
-const INITIAL_FILTERS = {
-  cashRegisterId: "ALL",
-  status: "ALL",
-  from: "",
-  to: "",
-};
-
 const HISTORY_LIMIT = 100;
-
-const getDatePickerValue = (value) => {
-  if (!value) return null;
-
-  const date = dayjs(value);
-  return date.isValid() ? date : null;
-};
 
 const CASH_DATE_PICKER_SLOT_PROPS = {
   textField: {
@@ -94,6 +85,13 @@ const CASH_DATE_PICKER_SLOT_PROPS = {
   yearButton: {
     sx: { fontFamily: "fontFamily.secondary" },
   },
+};
+
+const getDatePickerValue = (value) => {
+  if (!value) return null;
+
+  const date = dayjs(value);
+  return date.isValid() ? date : null;
 };
 
 const money = (value) => formatMoney(Number(value || 0));
@@ -148,13 +146,11 @@ export const CashRegisterHistoryPanel = ({
   const [sessions, setSessions] = useState([]);
   const [consolidated, setConsolidated] = useState(null);
 
-  const [draftFilters, setDraftFilters] = useState({
-    ...INITIAL_FILTERS,
-  });
+  const [draftFilters, setDraftFilters] = useState(createInitialCashFilters);
 
-  const [appliedFilters, setAppliedFilters] = useState({
-    ...INITIAL_FILTERS,
-  });
+  const [appliedFilters, setAppliedFilters] = useState(
+    createInitialCashFilters,
+  );
 
   const reportRequestId = useRef(0);
 
@@ -190,8 +186,10 @@ export const CashRegisterHistoryPanel = ({
   };
 
   const clearFilters = () => {
-    setDraftFilters({ ...INITIAL_FILTERS });
-    setAppliedFilters({ ...INITIAL_FILTERS });
+    const initialFilters = createInitialCashFilters();
+
+    setDraftFilters(initialFilters);
+    setAppliedFilters(initialFilters);
   };
 
   const [reloadKey, setReloadKey] = useState(0);
@@ -398,71 +396,102 @@ export const CashRegisterHistoryPanel = ({
             </Box>
           </Stack>
 
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<RefreshIcon />}
+            onClick={handleRefresh}
+            disabled={loading}
+            sx={{ fontFamily: "fontFamily.primary", fontSize: 12 }}
+          >
+            Actualizar
+          </Button>
+        </Stack>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          alignItems={{ xs: "stretch", md: "center" }}
+          justifyContent="space-between"
+          spacing={2}
+          sx={{ mb: 2 }}
+        >
           <Stack
-            direction={{ xs: "column", sm: "row" }}
-            justifyContent="flex-end"
+            direction="row"
+            alignItems="center"
             spacing={1}
+            sx={{
+              minWidth: 0,
+              flex: 1,
+            }}
+          >
+            <FilterIcon
+              sx={{ color: "primary.main", fontSize: 21, flexShrink: 0 }}
+            />
+
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                sx={{
+                  fontFamily: "fontFamily.primary",
+                  color: "text.primary",
+                  fontSize: 14,
+                  lineHeight: 1.3,
+                }}
+              >
+                FILTRAR REPORTES
+              </Typography>
+
+              <Typography
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  color: "text.secondary",
+                  fontSize: 12,
+                  mt: 0.25,
+                }}
+              >
+                Seleccioná una caja, su estado y el período que querés
+                consultar.
+              </Typography>
+            </Box>
+          </Stack>
+
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent={{ xs: "flex-end", md: "flex-end" }}
+            flexWrap="wrap"
+            gap={1}
+            sx={{ flexShrink: 0 }}
           >
             <Button
-              variant="text"
+              variant="outlined"
+              startIcon={<CancelIcon />}
               onClick={clearFilters}
               disabled={loading}
-              sx={{ fontFamily: "fontFamily.primary" }}
+              sx={{
+                fontFamily: "fontFamily.primary",
+                fontSize: 14,
+                whiteSpace: "nowrap",
+              }}
             >
               Limpiar filtros
             </Button>
 
             <Button
-              variant="outlined"
+              variant="contained"
               startIcon={<FilterIcon />}
               onClick={applyFilters}
               disabled={loading}
-              sx={{ fontFamily: "fontFamily.primary" }}
+              sx={{
+                fontFamily: "fontFamily.primary",
+                fontSize: 14,
+                whiteSpace: "nowrap",
+              }}
             >
               Aplicar filtros
             </Button>
-
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<RefreshIcon />}
-              onClick={handleRefresh}
-              disabled={loading}
-              sx={{ fontFamily: "fontFamily.primary" }}
-            >
-              Actualizar
-            </Button>
           </Stack>
-        </Stack>
-
-        <Divider sx={{ my: 2 }} />
-
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-          <FilterIcon sx={{ color: "primary.main", fontSize: 21 }} />
-
-          <Box>
-            <Typography
-              sx={{
-                fontFamily: "fontFamily.primary",
-                color: "text.primary",
-                fontSize: 14,
-                lineHeight: 1.3,
-              }}
-            >
-              FILTRAR REPORTES
-            </Typography>
-
-            <Typography
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                color: "text.secondary",
-                fontSize: 12,
-                mt: 0.25,
-              }}
-            >
-              Seleccioná una caja, su estado y el período que querés consultar.
-            </Typography>
-          </Box>
         </Stack>
 
         {/* FILTROS */}
@@ -645,13 +674,28 @@ export const CashRegisterHistoryPanel = ({
                 mb: 2,
               }}
             >
-              {selectedRegister ? selectedRegister.name : "Todas las cajas"}
-              {" · "}
-              {appliedFilters.status === "ALL"
-                ? "Todos los estados"
-                : appliedFilters.status === "OPEN"
-                  ? "Sesiones abiertas"
-                  : "Sesiones cerradas"}
+              <>
+                {selectedRegister ? selectedRegister.name : "Todas las cajas"}
+                {" · "}
+                {appliedFilters.status === "ALL"
+                  ? "Todos los estados"
+                  : appliedFilters.status === "OPEN"
+                    ? "Sesiones abiertas"
+                    : "Sesiones cerradas"}
+                {appliedFilters.from && (
+                  <>
+                    {" · Desde: "}
+                    {dayjs(appliedFilters.from).format("DD/MM/YYYY")}
+                  </>
+                )}
+
+                {appliedFilters.to && (
+                  <>
+                    {" · Hasta: "}
+                    {dayjs(appliedFilters.to).format("DD/MM/YYYY")}
+                  </>
+                )}
+              </>
             </Typography>
 
             <Box
