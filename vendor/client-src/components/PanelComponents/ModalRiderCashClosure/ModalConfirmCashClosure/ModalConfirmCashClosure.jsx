@@ -1,5 +1,6 @@
 // ---- Material UI ----
 import {
+  Alert,
   Typography,
   Button,
   Dialog,
@@ -20,12 +21,15 @@ import {
 
 export const ModalConfirmCashClosure = ({
   open,
+  pendingOrders = [],
   onCancel,
   onConfirm,
   loading = false,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const hasPendingOrders = pendingOrders.length > 0;
 
   return (
     <Dialog
@@ -55,10 +59,54 @@ export const ModalConfirmCashClosure = ({
         }}
       >
         <RequestQuoteIcon color="primary" />
-        <Typography variant="h6">CONFIRMAR CIERRE DE TURNO</Typography>
+        <Typography
+          sx={{ fontFamily: "fontFamily.primary", fontSize: "1.2rem" }}
+        >
+          CONFIRMAR CIERRE DE TURNO
+        </Typography>
       </DialogTitle>
 
       <DialogContent>
+        {hasPendingOrders && (
+          <Alert severity="warning" variant="standard" sx={{ mt: 2 }}>
+            <Typography sx={{ fontFamily: "fontFamily.primary", mb: 1 }}>
+              EL RIDER TIENE {pendingOrders.length} PEDIDO(S) PENDIENTE(S).
+            </Typography>
+
+            {pendingOrders.map((order) => (
+              <Typography
+                key={order.id}
+                variant="body2"
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  textTransform: "uppercase",
+                }}
+              >
+                PEDIDO #{order.dailyOrderNumber ?? order.id}
+                {" · "}
+                {order.clientName}
+                {" · "}
+                {order.status}
+              </Typography>
+            ))}
+
+            <Typography
+              variant="body2"
+              sx={{ fontFamily: "fontFamily.secondary", mt: 1 }}
+            >
+              Podés volver para resolverlos o cerrar igualmente las entregas
+              finalizadas.
+            </Typography>
+
+            <Typography
+              variant="body2"
+              sx={{ fontFamily: "fontFamily.secondary", mt: 1 }}
+            >
+              Los pedidos pendientes quedarán fuera de este cierre.
+            </Typography>
+          </Alert>
+        )}
+
         <DialogContentText
           sx={{
             fontFamily: "fontFamily.secondary",
@@ -67,8 +115,8 @@ export const ModalConfirmCashClosure = ({
             mt: 2,
           }}
         >
-          Al confirmar el cierre, los viajes quedarán marcados como pagados y no
-          se podrán modificar.
+          Al confirmar, las entregas finalizadas incluidas quedarán liquidadas y
+          sus importes se conservarán en este cierre.
         </DialogContentText>
       </DialogContent>
 
@@ -84,7 +132,7 @@ export const ModalConfirmCashClosure = ({
           startIcon={<CloseIcon />}
           sx={{ fontFamily: "fontFamily.primary" }}
         >
-          Volver
+          {hasPendingOrders ? "Volver para resolver pedidos" : "Volver"}
         </Button>
 
         <Button
@@ -96,7 +144,7 @@ export const ModalConfirmCashClosure = ({
           startIcon={<CheckCircleIcon />}
           sx={{ fontFamily: "fontFamily.primary" }}
         >
-          Confirmar cierre
+          {hasPendingOrders ? "Cerrar igualmente" : "Confirmar cierre"}
         </Button>
       </DialogActions>
     </Dialog>

@@ -338,7 +338,8 @@ export const CashRegisterHistoryPanel = ({
   const unassigned = consolidated?.unassigned || {};
 
   const totalCashActivity =
-    Number(summary.assignedCashSalesAmount || 0) +
+    Number(summary.assignedCashSalesAmount || 0) -
+    Number(summary.totalRiderHeldCashSales || 0) +
     Number(summary.totalCashIn || 0) -
     Number(summary.totalCashOut || 0) +
     Number(summary.totalRiderCashImpact || 0);
@@ -606,6 +607,17 @@ export const CashRegisterHistoryPanel = ({
             />
           </Box>
         </LocalizationProvider>
+        <Typography
+          sx={{
+            mt: 1,
+            color: "text.primary",
+            fontFamily: "fontFamily.secondary",
+            fontSize: 12,
+          }}
+        >
+          Las fechas seleccionan las sesiones que estuvieron abiertas durante el
+          período. Los reportes de esas sesiones incluyen toda su actividad.
+        </Typography>
       </Paper>
 
       {loading && (

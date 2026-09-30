@@ -87,6 +87,7 @@ export const ModalRiderCashClosure = ({
   const [showConfirmClose, setShowConfirmClose] = useState(false);
   const [closure, setClosure] = useState(null);
   const [deliveries, setDeliveries] = useState([]);
+  const [pendingOrdersWarning, setPendingOrdersWarning] = useState([]);
 
   const isDraftMode = mode === "draft";
   const isCloseMode = mode === "close";
@@ -318,11 +319,12 @@ export const ModalRiderCashClosure = ({
       return;
     }
 
+    setPendingOrdersWarning([]);
     setShowConfirmClose(true);
   };
 
-  const handleConfirmCashClosure = async () => {
-    if (!closure?.id || isClosed) return;
+  const handleConfirmCashClosure = async (confirmPendingOrders = false) => {
+    if (!closure?.id || isClosed || saving) return;
 
     if (
       isStaff &&
@@ -334,11 +336,9 @@ export const ModalRiderCashClosure = ({
         "Debes seleccionar una caja abierta para confirmar el cierre del delivery",
         "warning",
       );
-
       return;
     }
 
-    setShowConfirmClose(false);
     setSaving(true);
 
     try {
@@ -356,13 +356,23 @@ export const ModalRiderCashClosure = ({
           selectedCashSession?.status === "OPEN"
             ? selectedCashRegisterId
             : null,
+        confirmPendingOrders: confirmPendingOrders === true,
       });
+
+      setShowConfirmClose(false);
+      setPendingOrdersWarning([]);
 
       showAlert?.("Cierre confirmado correctamente", "success");
 
       onClosed?.(response);
       onClose?.();
     } catch (error) {
+      if (error.code === "RIDER_PENDING_ORDERS") {
+        setPendingOrdersWarning(error.pendingOrders || []);
+        setShowConfirmClose(true);
+        return;
+      }
+
       showAlert?.(error.message || "Error al confirmar el cierre", "error");
     } finally {
       setSaving(false);
@@ -1172,8 +1182,20 @@ export const ModalRiderCashClosure = ({
       {isCloseMode && (
         <ModalConfirmCashClosure
           open={showConfirmClose}
-          onCancel={() => setShowConfirmClose(false)}
-          onConfirm={handleConfirmCashClosure}
+          pendingOrders={pendingOrdersWarning}
+          onCancel={() => {
+            const hasPendingOrders = pendingOrdersWarning.length > 0;
+
+            setShowConfirmClose(false);
+            setPendingOrdersWarning([]);
+
+            if (hasPendingOrders) {
+              onClose?.();
+            }
+          }}
+          onConfirm={() =>
+            handleConfirmCashClosure(pendingOrdersWarning.length > 0)
+          }
           loading={saving}
         />
       )}

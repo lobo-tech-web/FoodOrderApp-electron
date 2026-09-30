@@ -22,11 +22,13 @@ import {
   PointOfSale as PointOfSaleIcon,
   Refresh as RefreshIcon,
   Storefront as StorefrontIcon,
+  LockClock as LockClockIcon,
 } from "@mui/icons-material";
 // --------------------
 
 // ---- Components ----
 import { ModalOpenCashRegister } from "@/components/PanelComponents/ModalOpenCashRegister/ModalOpenCashRegister.jsx";
+import { CashCloseModal } from "../CashCloseModal/CashCloseModal.jsx";
 // --------------------
 
 // ---- Services ----
@@ -69,6 +71,46 @@ export const CashRegisterGate = ({
   const [openModal, setOpenModal] = useState(false);
   const [cashRegisters, setCashRegisters] = useState([]);
   const [openSessionsByRegister, setOpenSessionsByRegister] = useState({});
+
+  // Conserva la sesión elegida al abrir el modal.
+  const [sessionToClose, setSessionToClose] = useState(null);
+
+  // Por ahora habilitamos este acceso en el panel del admin.
+  const canCloseCash =
+    user?.role === "admin" && hasPermission(user, "cashRegister", "close");
+
+  const handleAskCloseCash = () => {
+    if (
+      !canCloseCash ||
+      !cashSession?.id ||
+      cashSession.status !== "OPEN" ||
+      String(cashSession.cashRegisterId) !== String(selectedCashRegisterId)
+    ) {
+      showAlertRef.current?.(
+        "Actualizá las cajas y seleccioná una sesión abierta",
+        "warning",
+      );
+      return;
+    }
+
+    setSessionToClose({ ...cashSession });
+  };
+
+  const handleCashClosed = () => {
+    const closedRegisterId = sessionToClose?.cashRegisterId;
+    if (!closedRegisterId) return;
+
+    setOpenSessionsByRegister((prev) => ({
+      ...prev,
+      [closedRegisterId]: null,
+    }));
+
+    if (String(selectedCashRegisterId) === String(closedRegisterId)) {
+      onCashSessionChangeRef.current?.(null);
+    }
+
+    setSessionToClose(null);
+  };
 
   const restaurantId = useMemo(() => {
     if (user?.role === "staff") return user.restaurantId;
@@ -269,7 +311,38 @@ export const CashRegisterGate = ({
   }
 
   const selectedIsOpen = Boolean(
-    cashSession?.id && cashSession?.status === "OPEN",
+    cashSession?.id &&
+    cashSession.status === "OPEN" &&
+    String(cashSession.cashRegisterId) === String(selectedCashRegisterId),
+  );
+
+  const closeCashButton =
+    selectedIsOpen && canCloseCash ? (
+      <Button
+        size={isCompact ? "small" : "medium"}
+        variant="outlined"
+        color="warning"
+        startIcon={<LockClockIcon />}
+        onClick={handleAskCloseCash}
+        disabled={loading || saving || Boolean(sessionToClose)}
+        sx={{
+          fontFamily: "fontFamily.primary",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Cerrar caja
+      </Button>
+    ) : null;
+
+  const closeCashModal = (
+    <CashCloseModal
+      open={Boolean(sessionToClose)}
+      user={user}
+      cashSession={sessionToClose}
+      showAlert={showAlert}
+      onClose={() => setSessionToClose(null)}
+      onClosed={handleCashClosed}
+    />
   );
 
   const cashRegisterSelect = (
@@ -289,6 +362,7 @@ export const CashRegisterGate = ({
       <Select
         value={selectedCashRegisterId || ""}
         label="Caja operativa"
+        disabled={saving || Boolean(sessionToClose)}
         onChange={(event) => handleSelectRegister(event.target.value)}
         sx={{ fontFamily: "fontFamily.primary" }}
       >
@@ -446,9 +520,12 @@ export const CashRegisterGate = ({
                 </Button>
               )}
 
+              {closeCashButton}
+
               <Tooltip title="Actualizar cajas">
                 <IconButton
                   size="small"
+                  disabled={loading || saving || Boolean(sessionToClose)}
                   onClick={loadCashWorkspace}
                   sx={{
                     border: "1px solid",
@@ -469,6 +546,7 @@ export const CashRegisterGate = ({
           onClose={() => setOpenModal(false)}
           onSubmit={handleOpenCash}
         />
+        {closeCashModal}
       </>
     );
   }
@@ -517,6 +595,7 @@ export const CashRegisterGate = ({
             <Button
               variant="outlined"
               startIcon={<RefreshIcon />}
+              disabled={loading || saving || Boolean(sessionToClose)}
               onClick={loadCashWorkspace}
               sx={{ fontFamily: "fontFamily.primary" }}
             >
@@ -534,6 +613,7 @@ export const CashRegisterGate = ({
             <Select
               value={selectedCashRegisterId || ""}
               label="Caja operativa"
+              disabled={saving || Boolean(sessionToClose)}
               onChange={(event) => handleSelectRegister(event.target.value)}
               sx={{ fontFamily: "fontFamily.primary" }}
             >
@@ -645,6 +725,7 @@ export const CashRegisterGate = ({
                   Abrir caja
                 </Button>
               )}
+              {closeCashButton}
             </Stack>
           )}
 
@@ -664,6 +745,7 @@ export const CashRegisterGate = ({
         onClose={() => setOpenModal(false)}
         onSubmit={handleOpenCash}
       />
+      {closeCashModal}
     </>
   );
 };

@@ -20,11 +20,16 @@ export const OrderDetailsTab = ({
   calculatedDiscount,
   addServiceTax,
   setAddServiceTax,
+  availablePaymentMethods = [],
 }) => {
   return (
     <Box>
       <Paper elevation={0} sx={sectionCardStyle}>
-        <PaymentSection order={order} setOrder={setOrder} />
+        <PaymentSection
+          order={order}
+          setOrder={setOrder}
+          availablePaymentMethods={availablePaymentMethods}
+        />
 
         <Divider sx={{ my: 2.2, borderColor: "text.secondary" }} />
 

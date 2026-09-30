@@ -456,6 +456,28 @@ export const LocalSettingsPanel = ({ user }) => {
       return false;
     }
 
+    const concreteMethods = [
+      "EFECTIVO",
+      "TRANSFERENCIA",
+      "MERCADO PAGO",
+      "TARJETA",
+    ];
+
+    const enabledConcreteMethods = concreteMethods.filter((method) =>
+      localData.paymentMethods.includes(method),
+    );
+
+    if (
+      localData.paymentMethods.includes("COMBINADO") &&
+      enabledConcreteMethods.length < 2
+    ) {
+      showAlert(
+        "Para habilitar COMBINADO, activá al menos dos medios de pago concretos",
+        "warning",
+      );
+      return false;
+    }
+
     if (!localData.enabledOrderTypes?.length) {
       showAlert("Debe haber al menos una forma de entrega activa", "warning");
       return false;

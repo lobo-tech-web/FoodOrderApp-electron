@@ -28,6 +28,7 @@ export const OrderManagementPanel = ({
   setCancelReason,
   editCapabilities,
   availableStatuses,
+  availablePaymentMethods = [],
 }) => {
   return (
     <Stack spacing={{ xs: 1.2, sm: 1.4 }}>
@@ -48,6 +49,7 @@ export const OrderManagementPanel = ({
         setCancelReason={setCancelReason}
         editCapabilities={editCapabilities}
         availableStatuses={availableStatuses}
+        availablePaymentMethods={availablePaymentMethods}
       />
 
       <CartProductSection

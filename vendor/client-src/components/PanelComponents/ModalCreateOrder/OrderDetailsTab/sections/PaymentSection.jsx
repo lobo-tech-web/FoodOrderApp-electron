@@ -9,11 +9,11 @@ import { OptionTile } from "../../shared/OptionTile.jsx";
 import { SectionHeading } from "../../shared/SectionHeading.jsx";
 // ----------------
 
-// ---- Utils ----
-import { paymentMethods } from "@/utils/components/PaymentUtils.jsx";
-// ---------------
-
-export const PaymentSection = ({ order, setOrder }) => {
+export const PaymentSection = ({
+  order,
+  setOrder,
+  availablePaymentMethods = [],
+}) => {
   return (
     <Box>
       <SectionHeading icon={<WalletIcon />} title="METODO DE PAGO" />
@@ -27,7 +27,7 @@ export const PaymentSection = ({ order, setOrder }) => {
           gap: 1.5,
         }}
       >
-        {paymentMethods.map((method) => (
+        {availablePaymentMethods.map((method) => (
           <OptionTile
             key={method.value}
             active={order.paymentMethod === method.value}

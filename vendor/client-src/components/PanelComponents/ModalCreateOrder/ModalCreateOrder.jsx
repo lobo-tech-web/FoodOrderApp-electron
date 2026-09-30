@@ -61,6 +61,7 @@ import {
   calculateDiscount,
   calculateFinalTotal,
 } from "@/utils/orderCalculations.js";
+import { getAvailablePaymentMethods } from "@/utils/components/PaymentUtils.jsx";
 // ---------------
 
 const workflowSteps = ["PEDIDO", "CLIENTE"];
@@ -95,6 +96,7 @@ export const ModalCreateOrder = ({
   const orderDetailsRef = useRef(null);
   const clientInfoRef = useRef(null);
   const contentRef = useRef(null);
+  const initializedOpenRef = useRef(false);
 
   const handleTabChange = (index) => {
     setCurrentTab(index);
@@ -142,6 +144,11 @@ export const ModalCreateOrder = ({
   const { printHtml } = useThermalPrinter();
 
   const currentUser = useMemo(() => userState?.user || {}, [userState?.user]);
+
+  const availablePaymentMethods = useMemo(
+    () => getAvailablePaymentMethods(currentUser),
+    [currentUser],
+  );
 
   const isStaff = currentUser?.role === "staff";
   const canSearchClients =
@@ -199,7 +206,7 @@ export const ModalCreateOrder = ({
     discount: 0,
     discountamount: 0,
     totalAmount: 0,
-    paymentMethod: "MERCADO PAGO",
+    paymentMethod: availablePaymentMethods[0]?.value || "",
     clientEmail: "",
     clientName: "",
     deliveryAddress: "",
@@ -227,7 +234,7 @@ export const ModalCreateOrder = ({
         discount: 0,
         discountamount: 0,
         totalAmount: 0,
-        paymentMethod: "MERCADO PAGO",
+        paymentMethod: availablePaymentMethods[0]?.value || "",
         clientEmail: "",
         clientName: "",
         deliveryAddress: "",
@@ -748,6 +755,18 @@ export const ModalCreateOrder = ({
       return;
     }
 
+    if (
+      !availablePaymentMethods.some(
+        (method) => method.value === order.paymentMethod,
+      )
+    ) {
+      showAlert(
+        "Seleccioná un método de pago habilitado para el local",
+        "warning",
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       const resolvedStatus = getStatusForOrderType(
@@ -816,6 +835,7 @@ export const ModalCreateOrder = ({
     }
   }, [
     order,
+    availablePaymentMethods,
     restaurantId,
     restaurantName,
     restaurantLogo,
@@ -832,7 +852,26 @@ export const ModalCreateOrder = ({
   ]);
 
   useEffect(() => {
-    if (!show) return;
+    if (!show || !availablePaymentMethods.length) return;
+
+    setOrder((current) =>
+      current.paymentMethod
+        ? current
+        : {
+            ...current,
+            paymentMethod: availablePaymentMethods[0].value,
+          },
+    );
+  }, [show, availablePaymentMethods]);
+
+  useEffect(() => {
+    if (!show) {
+      initializedOpenRef.current = false;
+      return;
+    }
+
+    if (initializedOpenRef.current) return;
+    initializedOpenRef.current = true;
 
     const initialOrder = {
       userId: null,
@@ -847,7 +886,7 @@ export const ModalCreateOrder = ({
       discount: 0,
       discountamount: 0,
       totalAmount: 0,
-      paymentMethod: "MERCADO PAGO",
+      paymentMethod: availablePaymentMethods[0]?.value || "",
       clientEmail: "",
       clientName: "",
       deliveryAddress: "",
@@ -864,7 +903,7 @@ export const ModalCreateOrder = ({
     setShowProductSelector(true);
     setEditingProductIndex(null);
     setEditingProduct(null);
-  }, [show, restaurantId, restaurantName]);
+  }, [show, restaurantId, restaurantName, availablePaymentMethods]);
 
   if (loading) return <LoadingComponent message={"Creando pedido..."} />;
 
@@ -1115,6 +1154,7 @@ export const ModalCreateOrder = ({
                   calculatedDiscount={calculatedDiscount}
                   addServiceTax={addServiceTax}
                   setAddServiceTax={setAddServiceTax}
+                  availablePaymentMethods={availablePaymentMethods}
                 />
               </Box>
 

@@ -12,11 +12,16 @@ const apiPutUpdateURL = import.meta.env.VITE_API_RIDER_CASH_CLOSURE_PUT_UPDATE_R
 
 const handleServiceError = (error) => {
     if (error.response) {
+        const data = error.response.data || {};
+
         throw {
             status: error.response.status,
             message:
-                error.response.data?.message ||
-                'Error desconocido en la respuesta del servidor',
+                data.message || 'Error desconocido en la respuesta del servidor',
+            code: data.code || null,
+            pendingOrders: Array.isArray(data.pendingOrders)
+                ? data.pendingOrders
+                : [],
         };
     }
 
@@ -105,11 +110,15 @@ export const updateOpenRiderCashClosureService = async ({
 };
 
 
-export const closeRiderCashClosureService = async ({ closureId, cashRegisterId = null }) => {
+export const closeRiderCashClosureService = async ({
+    closureId,
+    cashRegisterId = null,
+    confirmPendingOrders = false,
+}) => {
     try {
         const response = await apiWithToken.post(
             `${apiPostCloseURL}?closureId=${closureId}`,
-            { cashRegisterId }
+            { cashRegisterId, confirmPendingOrders }
         );
 
         return response.data;

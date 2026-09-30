@@ -41,6 +41,7 @@ import { useAutoRefresh } from "@/hooks/AutoRefreshOrders.jsx";
 
 // ---- UTILS ----
 import { getDateNowDayjs, getTimeNowDayjs } from "@/utils/clientWorking.js";
+import { getConfiguredPaymentMethods } from "@/utils/components/PaymentUtils.jsx";
 // ---------------
 
 // ---- STYLES ----
@@ -302,52 +303,53 @@ export const OrderPanel = ({
     ],
   );
 
-  const handleConfirmMarkPaid = useCallback(async () => {
-    const targetOrder = paymentConfirm.order;
-    if (!targetOrder?.id || targetOrder.isPaid || payingOrderId) {
-      return;
-    }
+  const handleConfirmMarkPaid = useCallback(
+    async (payments) => {
+      const targetOrder = paymentConfirm.order;
 
-    setPayingOrderId(targetOrder.id);
+      if (!targetOrder?.id || targetOrder.isPaid || payingOrderId) return;
 
-    try {
-      await updateOrder(targetOrder.id, {
-        isPaid: true,
-        cashRegisterId,
-        auditReason: "Pedido marcado como pagado desde acceso rápido",
-      });
+      setPayingOrderId(targetOrder.id);
 
-      showAlert(
-        `Pedido N° ${paymentConfirm.displayID || targetOrder.id} marcado como pagado`,
-        "success",
-      );
+      try {
+        await updateOrder(targetOrder.id, {
+          isPaid: true,
+          cashRegisterId,
+          ...(targetOrder.paymentMethod === "COMBINADO" ? { payments } : {}),
+          auditReason: "Pedido marcado como pagado desde acceso rápido",
+        });
 
-      setPaymentConfirm({
-        open: false,
-        order: null,
-        displayID: null,
-      });
+        showAlert(
+          `Pedido N° ${paymentConfirm.displayID || targetOrder.id} marcado como pagado`,
+          "success",
+        );
 
-      // Refresco silencioso:
-      // no reemplaza la tabla por LoadingComponent.
-      await fetchOrders(true);
-    } catch (error) {
-      const errorMessage =
-        typeof error === "string"
-          ? error
-          : error?.message || "Error desconocido";
-      showAlert(errorMessage, "error");
-    } finally {
-      setPayingOrderId(null);
-    }
-  }, [
-    paymentConfirm,
-    payingOrderId,
-    cashRegisterId,
-    updateOrder,
-    showAlert,
-    fetchOrders,
-  ]);
+        setPaymentConfirm({
+          open: false,
+          order: null,
+          displayID: null,
+        });
+
+        await fetchOrders(true);
+      } catch (error) {
+        const errorMessage =
+          typeof error === "string"
+            ? error
+            : error?.message || "Error desconocido";
+        showAlert(errorMessage, "error");
+      } finally {
+        setPayingOrderId(null);
+      }
+    },
+    [
+      paymentConfirm,
+      payingOrderId,
+      cashRegisterId,
+      updateOrder,
+      showAlert,
+      fetchOrders,
+    ],
+  );
 
   // ✅ FUNCIÓN QUE SOLO SE EJECUTA SI ESTAMOS EN LA PESTAÑA DE HOY
   const fetchTodayOrdersOnly = useCallback(async () => {
@@ -651,6 +653,7 @@ export const OrderPanel = ({
         loading={Boolean(payingOrderId)}
         onClose={handleClosePaymentConfirm}
         onConfirm={handleConfirmMarkPaid}
+        enabledPaymentMethods={getConfiguredPaymentMethods(user)}
       />
       {/* MODAL EDIT ORDER */}
       <ModalEditOrder

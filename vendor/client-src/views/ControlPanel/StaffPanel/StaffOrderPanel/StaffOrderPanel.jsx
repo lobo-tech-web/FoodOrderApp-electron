@@ -52,6 +52,7 @@ import {
   isTerminalOrderStatus,
   hasOrderPermission,
 } from "@/utils/orderEditRules.js";
+import { getConfiguredPaymentMethods } from "@/utils/components/PaymentUtils.jsx";
 // import { statusOptions } from "@/utils/components/StatusUtils.jsx";
 // ---------------
 
@@ -317,60 +318,68 @@ export const StaffOrderPanel = ({
     ],
   );
 
-  const handleConfirmMarkPaid = useCallback(async () => {
-    const targetOrder = paymentConfirm.order;
-    if (!targetOrder?.id || targetOrder.isPaid || payingOrderId) {
-      return;
-    }
+  const handleConfirmMarkPaid = useCallback(
+    async (payments) => {
+      const targetOrder = paymentConfirm.order;
+      if (!targetOrder?.id || targetOrder.isPaid || payingOrderId) {
+        return;
+      }
 
-    if (!cashRegisterId || !cashSession?.id || cashSession?.status !== "OPEN") {
-      showAlert(
-        "Debes seleccionar una caja abierta para registrar el cobro",
-        "warning",
-      );
-      return;
-    }
+      if (
+        !cashRegisterId ||
+        !cashSession?.id ||
+        cashSession?.status !== "OPEN"
+      ) {
+        showAlert(
+          "Debes seleccionar una caja abierta para registrar el cobro",
+          "warning",
+        );
+        return;
+      }
 
-    setPayingOrderId(targetOrder.id);
+      setPayingOrderId(targetOrder.id);
 
-    try {
-      await updateOrder(targetOrder.id, {
-        isPaid: true,
-        cashRegisterId,
-        auditReason: "Pedido marcado como pagado desde acceso rápido",
-      });
+      try {
+        await updateOrder(targetOrder.id, {
+          isPaid: true,
+          cashRegisterId,
+          ...(targetOrder.paymentMethod === "COMBINADO" ? { payments } : {}),
+          auditReason: "Pedido marcado como pagado desde acceso rápido",
+        });
 
-      showAlert(
-        `Pedido N° ${paymentConfirm.displayID || targetOrder.id} marcado como pagado`,
-        "success",
-      );
+        showAlert(
+          `Pedido N° ${paymentConfirm.displayID || targetOrder.id} marcado como pagado`,
+          "success",
+        );
 
-      setPaymentConfirm({
-        open: false,
-        order: null,
-        displayID: null,
-      });
+        setPaymentConfirm({
+          open: false,
+          order: null,
+          displayID: null,
+        });
 
-      await fetchOrders(true);
-    } catch (error) {
-      const errorMessage =
-        typeof error === "string"
-          ? error
-          : error?.message || "No se pudo marcar el pedido como pagado";
-      showAlert(errorMessage, "error");
-    } finally {
-      setPayingOrderId(null);
-    }
-  }, [
-    paymentConfirm,
-    payingOrderId,
-    cashRegisterId,
-    cashSession?.id,
-    cashSession?.status,
-    updateOrder,
-    showAlert,
-    fetchOrders,
-  ]);
+        await fetchOrders(true);
+      } catch (error) {
+        const errorMessage =
+          typeof error === "string"
+            ? error
+            : error?.message || "No se pudo marcar el pedido como pagado";
+        showAlert(errorMessage, "error");
+      } finally {
+        setPayingOrderId(null);
+      }
+    },
+    [
+      paymentConfirm,
+      payingOrderId,
+      cashRegisterId,
+      cashSession?.id,
+      cashSession?.status,
+      updateOrder,
+      showAlert,
+      fetchOrders,
+    ],
+  );
 
   // SELECTED PRODUCTS CHECKBOX
   const handleSelectAll = (event) => {
@@ -702,6 +711,7 @@ export const StaffOrderPanel = ({
         loading={Boolean(payingOrderId)}
         onClose={handleClosePaymentConfirm}
         onConfirm={handleConfirmMarkPaid}
+        enabledPaymentMethods={getConfiguredPaymentMethods(user)}
       />
 
       <ModalEditOrder

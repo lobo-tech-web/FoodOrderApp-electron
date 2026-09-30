@@ -79,12 +79,24 @@ export const InfoSection = ({
   setCancelReason,
   editCapabilities,
   availableStatuses,
+  availablePaymentMethods,
 }) => {
   const visibleStatusOptions = statusOptions.filter((status) => {
     return (
       status.value === order.status || availableStatuses.includes(status.value)
     );
   });
+
+  const enabledMethods = availablePaymentMethods;
+  const previousMethod = paymentMethods.find(
+    (method) => method.value === order.paymentMethod,
+  );
+
+  const visibleMethods =
+    previousMethod &&
+    !enabledMethods.some((method) => method.value === previousMethod.value)
+      ? [...enabledMethods, previousMethod]
+      : enabledMethods;
 
   return (
     <ModalSection>
@@ -126,7 +138,7 @@ export const InfoSection = ({
                 },
               }}
             >
-              {paymentMethods.map((method) => {
+              {visibleMethods.map((method) => {
                 const selected = order.paymentMethod === method.value;
                 return (
                   <OptionButton
@@ -134,7 +146,12 @@ export const InfoSection = ({
                     selected={selected}
                     icon={method.icon}
                     label={method.label || method.value}
-                    disabled={!editCapabilities.canEditPayment}
+                    disabled={
+                      !editCapabilities.canEditPayment ||
+                      !enabledMethods.some(
+                        (enabled) => enabled.value === method.value,
+                      )
+                    }
                     onClick={() =>
                       handleInputChange({
                         target: {

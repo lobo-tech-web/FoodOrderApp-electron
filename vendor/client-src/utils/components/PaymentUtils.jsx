@@ -4,24 +4,49 @@ import {
   Payments as PaymentsIcon,
   AccountBalance as AccountBalanceIcon,
   HelpOutline as HelpOutlineIcon,
-} from '@mui/icons-material';
+  CreditCard as CreditCardIcon,
+  WifiProtectedSetup as CombinedIcon,
+} from "@mui/icons-material";
 // ----------------------
 
 export const paymentMethods = [
   {
-    value: 'MERCADO PAGO',
+    value: "MERCADO PAGO",
     icon: <HandshakeIcon />,
   },
   {
-    value: 'EFECTIVO',
+    value: "EFECTIVO",
     icon: <PaymentsIcon />,
   },
   {
-    value: 'TRANSFERENCIA',
+    value: "TRANSFERENCIA",
     icon: <AccountBalanceIcon />,
   },
   {
-    value: 'SIN ESPECIFICAR',
+    value: "SIN ESPECIFICAR",
     icon: <HelpOutlineIcon />,
   },
+  {
+    value: "TARJETA",
+    icon: <CreditCardIcon />,
+  },
+  {
+    value: "COMBINADO",
+    icon: <CombinedIcon />,
+  },
 ];
+
+export const getConfiguredPaymentMethods = (user) => {
+  const configured =
+    user?.role === "staff"
+      ? user?.restaurant?.paymentMethods
+      : user?.paymentMethods;
+
+  return Array.isArray(configured) ? configured : [];
+};
+
+export const getAvailablePaymentMethods = (user) => {
+  const configured = getConfiguredPaymentMethods(user);
+
+  return paymentMethods.filter((method) => configured.includes(method.value));
+};

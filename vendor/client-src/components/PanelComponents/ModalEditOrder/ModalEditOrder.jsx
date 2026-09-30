@@ -63,6 +63,7 @@ import {
   initialUpdateOrderState,
   normalizeOrderForCompare,
 } from "@/utils/orderUtils.js";
+import { getAvailablePaymentMethods } from "@/utils/components/PaymentUtils.jsx";
 // ---------------
 
 export const ModalEditOrder = ({
@@ -84,6 +85,11 @@ export const ModalEditOrder = ({
     useOrders();
   const { productState } = useProducts();
   const { userState } = useUser();
+
+  const availablePaymentMethods = useMemo(
+    () => getAvailablePaymentMethods(userState?.user),
+    [userState?.user],
+  );
 
   // Estados para el pedido
   const [order, setOrder] = useState(initialUpdateOrderState);
@@ -1018,6 +1024,7 @@ export const ModalEditOrder = ({
                   setCancelReason={setCancelReason}
                   editCapabilities={editCapabilities}
                   availableStatuses={availableStatuses}
+                  availablePaymentMethods={availablePaymentMethods}
                 />
               </Box>
 

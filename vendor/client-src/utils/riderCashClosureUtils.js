@@ -52,24 +52,36 @@ export const getDeliveryCostForClosure = (delivery) => {
     return orderDeliveryCost;
 };
 
+export const getRiderCashAmount = (delivery) => {
+    if (
+        delivery.riderCashAmount !== undefined &&
+        delivery.riderCashAmount !== null
+    ) {
+        return parseNumber(delivery.riderCashAmount);
+    }
+
+    // Compatibilidad con respuestas anteriores para pagos solo en efectivo.
+    if (delivery.order?.paymentMethod === 'EFECTIVO') {
+        return parseNumber(delivery.order?.totalAmount ?? delivery.orderTotal ?? 0);
+    }
+
+    return 0;
+};
+
 export const calculateLocalSummary = ({ deliveries = [], form = {} }) => {
     const adjustments = Array.isArray(form.adjustments)
         ? form.adjustments
         : [];
 
     const cashDeliveries = deliveries.filter((delivery) => {
-        const order = delivery.order;
         return (
-            order?.status === 'FINALIZADO' &&
-            order?.paymentMethod === 'EFECTIVO'
+            delivery.order?.status === 'FINALIZADO' &&
+            getRiderCashAmount(delivery) > 0
         );
     });
 
     const cashCollected = cashDeliveries.reduce((total, delivery) => {
-        return (
-            total +
-            parseNumber(delivery.order?.totalAmount ?? delivery.orderTotal ?? 0)
-        );
+        return total + getRiderCashAmount(delivery);
     }, 0);
 
     const deliveryFeeTotal = deliveries.reduce((total, delivery) => {

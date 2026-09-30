@@ -1,3 +1,5 @@
+import { useState, useEffect, useMemo } from "react";
+
 // ---- MATERIAL UI ----
 import {
   Box,
@@ -8,6 +10,8 @@ import {
   DialogContent,
   DialogTitle,
   Typography,
+  MenuItem,
+  TextField,
 } from "@mui/material";
 import {
   Paid as PaidIcon,
@@ -15,6 +19,16 @@ import {
   Person as PersonIcon,
 } from "@mui/icons-material";
 // -----------------------
+
+const SPLIT_METHODS = ["EFECTIVO", "TRANSFERENCIA", "MERCADO PAGO", "TARJETA"];
+
+const toCents = (value) => {
+  const text = String(value ?? "")
+    .trim()
+    .replace(",", ".");
+  if (!/^\d+(?:\.\d{1,2})?$/.test(text)) return null;
+  return Math.round(Number(text) * 100);
+};
 
 // ---- Utils ----
 import { formatCurrency } from "@/utils/orderCalculations.js";
@@ -28,7 +42,72 @@ export const ModalConfirmOrderPaid = ({
   loading = false,
   onClose,
   onConfirm,
+  enabledPaymentMethods = [],
 }) => {
+  const [parts, setParts] = useState([
+    { method: "EFECTIVO", amount: "" },
+    { method: "TRANSFERENCIA", amount: "" },
+  ]);
+
+  const isCombined = order?.paymentMethod === "COMBINADO";
+  const totalCents = useMemo(
+    () => toCents(order?.totalAmount),
+    [order?.totalAmount],
+  );
+
+  const splitMethods = SPLIT_METHODS.filter((method) =>
+    enabledPaymentMethods.includes(method),
+  );
+  const splitMethodsKey = splitMethods.join("|");
+
+  useEffect(() => {
+    if (!open) return;
+
+    setParts(
+      splitMethods.slice(0, 2).map((method) => ({
+        method,
+        amount: "",
+      })),
+    );
+  }, [open, order?.id, splitMethodsKey]);
+
+  const enteredCents = parts.map((part) => toCents(part.amount));
+  const validSplit =
+    isCombined &&
+    totalCents !== null &&
+    parts.length >= 2 &&
+    parts.length <= 4 &&
+    new Set(parts.map((part) => part.method)).size === parts.length &&
+    enteredCents.every((amount) => amount !== null && amount > 0) &&
+    enteredCents.reduce((sum, amount) => sum + amount, 0) === totalCents &&
+    enabledPaymentMethods.includes("COMBINADO") &&
+    splitMethods.length >= 2 &&
+    parts.every((part) => splitMethods.includes(part.method));
+
+  const updatePart = (index, field, value) => {
+    setParts((current) =>
+      current.map((part, position) =>
+        position === index ? { ...part, [field]: value } : part,
+      ),
+    );
+  };
+
+  const confirmPayment = () => {
+    if (isCombined) {
+      if (!validSplit || loading) return;
+
+      onConfirm(
+        parts.map((part) => ({
+          method: part.method,
+          amount: (toCents(part.amount) / 100).toFixed(2),
+        })),
+      );
+      return;
+    }
+
+    onConfirm();
+  };
+
   const findIcon = (value) => {
     return (
       paymentMethods.find((pay) => pay.value === value)?.icon || <PaidIcon />
@@ -216,6 +295,115 @@ export const ModalConfirmOrderPaid = ({
             </Box>
           </Box>
         )}
+
+        {isCombined && (
+          <Box sx={{ mt: 2, display: "grid", gap: 1.5 }}>
+            <Typography
+              variant="subtitle1"
+              sx={{ fontFamily: "fontFamily.primary" }}
+            >
+              INDICÁ CÓMO SE PAGÓ EL PEDIDO
+            </Typography>
+
+            {parts.map((part, index) => (
+              <Box
+                key={index}
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr auto",
+                  gap: 1,
+                  alignItems: "center",
+                }}
+              >
+                <TextField
+                  select
+                  label="MÉTODO"
+                  value={part.method}
+                  disabled={loading}
+                  onChange={(event) =>
+                    updatePart(index, "method", event.target.value)
+                  }
+                  sx={{ fontFamily: "fontFamily.primary" }}
+                >
+                  {splitMethods.map((method) => (
+                    <MenuItem
+                      key={method}
+                      value={method}
+                      disabled={parts.some(
+                        (other, position) =>
+                          position !== index && other.method === method,
+                      )}
+                      sx={{ fontFamily: "fontFamily.primary" }}
+                    >
+                      {method}
+                    </MenuItem>
+                  ))}
+                </TextField>
+
+                <TextField
+                  label="IMPORTE"
+                  value={part.amount}
+                  disabled={loading}
+                  onChange={(event) =>
+                    updatePart(index, "amount", event.target.value)
+                  }
+                  inputProps={{ inputMode: "decimal" }}
+                  sx={{ fontFamily: "fontFamily.primary" }}
+                />
+
+                <Button
+                  variant="text"
+                  color="error"
+                  disabled={loading || parts.length <= 2}
+                  onClick={() =>
+                    setParts((current) =>
+                      current.filter((_, position) => position !== index),
+                    )
+                  }
+                  sx={{ fontFamily: "fontFamily.primary" }}
+                >
+                  REMOVER
+                </Button>
+              </Box>
+            ))}
+
+            <Button
+              variant="contained"
+              disabled={loading || parts.length >= splitMethods.length}
+              onClick={() => {
+                const available = splitMethods.find(
+                  (method) => !parts.some((part) => part.method === method),
+                );
+                if (available) {
+                  setParts((current) => [
+                    ...current,
+                    { method: available, amount: "" },
+                  ]);
+                }
+              }}
+              sx={{ fontFamily: "fontFamily.primary", borderRadius: 5 }}
+            >
+              AGREGAR MÉTODO
+            </Button>
+
+            <Box sx={{ textAlign: "center" }}>
+              <Typography
+                sx={{
+                  fontFamily: "fontFamily.primary",
+                  color: validSplit ? "success.main" : "error.main",
+                }}
+              >
+                INGRESADO:{" "}
+                {formatCurrency(
+                  enteredCents.reduce((sum, amount) => sum + (amount || 0), 0) /
+                    100,
+                )}
+                {" · "}
+                TOTAL: {formatCurrency(order?.totalAmount)}
+              </Typography>
+            </Box>
+          </Box>
+        )}
       </DialogContent>
 
       <DialogActions
@@ -237,8 +425,8 @@ export const ModalConfirmOrderPaid = ({
         </Button>
 
         <Button
-          onClick={onConfirm}
-          disabled={loading}
+          onClick={confirmPayment}
+          disabled={loading || (isCombined && !validSplit)}
           variant="contained"
           color="success"
           sx={{
