@@ -124,20 +124,6 @@ export const StaffCashDrawer = ({
                 Cerrar caja
               </Button>
             )}
-
-            {canReadReport && (
-              <Button
-                fullWidth
-                size="small"
-                variant="text"
-                onClick={onViewHistory}
-                sx={{
-                  fontFamily: "fontFamily.primary",
-                }}
-              >
-                Ver registro de cajas
-              </Button>
-            )}
           </>
         ) : (
           <>
@@ -166,6 +152,18 @@ export const StaffCashDrawer = ({
               </Button>
             )}
           </>
+        )}
+
+        {canReadReport && (
+          <Button
+            fullWidth
+            size="small"
+            variant="text"
+            onClick={onViewHistory}
+            sx={{ fontFamily: "fontFamily.primary" }}
+          >
+            Ver registro de cajas
+          </Button>
         )}
       </Stack>
     </Paper>

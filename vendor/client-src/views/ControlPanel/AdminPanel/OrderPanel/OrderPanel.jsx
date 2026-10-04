@@ -28,6 +28,7 @@ import { OrderSummaryIndicator } from "./OrderSummaryIndicator/OrderSummaryIndic
 import { RiderCountIndicator } from "./RiderCountIndicator/RiderCountIndicator.jsx";
 import { RiderSummaryIndicator } from "./RiderSummaryIndicator/RiderSummaryIndicator.jsx";
 import { ModalConfirmOrderPaid } from "@/components/PanelComponents/ModalConfirmOrderPaid/ModalConfirmOrderPaid.jsx";
+import { ModalConfirmCancelOrderPayment } from "@/components/PanelComponents/ModalConfirmCancelOrderPayment/ModalConfirmCancelOrderPayment.jsx";
 // ---------------------
 
 // ---- CONTEXT ----
@@ -150,8 +151,14 @@ export const OrderPanel = ({
     order: null,
     displayID: null,
   });
-
   const [payingOrderId, setPayingOrderId] = useState(null);
+
+  const [cancelingPaymentOrderId, setCancelingPaymentOrderId] = useState(null);
+  const [cancelPaymentConfirm, setCancelPaymentConfirm] = useState({
+    open: false,
+    order: null,
+    displayID: null,
+  });
 
   const handleOpenPaymentConfirm = useCallback(
     (order, displayID) => {
@@ -188,6 +195,41 @@ export const OrderPanel = ({
       displayID: null,
     });
   }, [payingOrderId]);
+
+  const handleOpenCancelPaymentConfirm = useCallback(
+    (order, displayID) => {
+      if (user?.role !== "admin") {
+        showAlert(
+          "Solo el administrador puede cancelar el pago de un pedido",
+          "warning",
+        );
+        return;
+      }
+
+      if (!order?.id) return;
+      if (!order.isPaid) {
+        showAlert("Este pedido ya se encuentra pendiente de pago", "info");
+        return;
+      }
+
+      setCancelPaymentConfirm({
+        open: true,
+        order,
+        displayID,
+      });
+    },
+    [user?.role, showAlert],
+  );
+
+  const handleCloseCancelPaymentConfirm = useCallback(() => {
+    if (cancelingPaymentOrderId) return;
+
+    setCancelPaymentConfirm({
+      open: false,
+      order: null,
+      displayID: null,
+    });
+  }, [cancelingPaymentOrderId]);
 
   // FILTRADO DE PEDIDOS
   const [statusFilter, setStatusFilter] = useState("TODOS");
@@ -350,6 +392,59 @@ export const OrderPanel = ({
       fetchOrders,
     ],
   );
+
+  const handleConfirmCancelPayment = useCallback(async () => {
+    const targetOrder = cancelPaymentConfirm.order;
+
+    if (
+      user?.role !== "admin" ||
+      !targetOrder?.id ||
+      !targetOrder.isPaid ||
+      cancelingPaymentOrderId
+    ) {
+      return;
+    }
+
+    setCancelingPaymentOrderId(targetOrder.id);
+
+    try {
+      await updateOrder(targetOrder.id, {
+        isPaid: false,
+        auditReason: "Pago cancelado desde el acceso rápido del pedido",
+      });
+
+      showAlert(
+        `El pago del pedido N° ${
+          cancelPaymentConfirm.displayID || targetOrder.id
+        } fue cancelado`,
+        "success",
+      );
+
+      setCancelPaymentConfirm({
+        open: false,
+        order: null,
+        displayID: null,
+      });
+
+      await fetchOrders(true);
+    } catch (error) {
+      const errorMessage =
+        typeof error === "string"
+          ? error
+          : error?.message || "No se pudo cancelar el pago";
+
+      showAlert(errorMessage, "error");
+    } finally {
+      setCancelingPaymentOrderId(null);
+    }
+  }, [
+    user?.role,
+    cancelPaymentConfirm,
+    cancelingPaymentOrderId,
+    updateOrder,
+    showAlert,
+    fetchOrders,
+  ]);
 
   // ✅ FUNCIÓN QUE SOLO SE EJECUTA SI ESTAMOS EN LA PESTAÑA DE HOY
   const fetchTodayOrdersOnly = useCallback(async () => {
@@ -580,7 +675,12 @@ export const OrderPanel = ({
                         selectedOrdersCheckbox={selectedOrdersCheckbox}
                         handleOpenModal={handleOpenModal}
                         onMarkPaid={handleOpenPaymentConfirm}
-                        paymentUpdating={payingOrderId === order.id}
+                        onCancelPayment={handleOpenCancelPaymentConfirm}
+                        canCancelPayment={user?.role === "admin"}
+                        paymentUpdating={
+                          payingOrderId === order.id ||
+                          cancelingPaymentOrderId === order.id
+                        }
                       />
                     );
                   })}
@@ -655,6 +755,16 @@ export const OrderPanel = ({
         onConfirm={handleConfirmMarkPaid}
         enabledPaymentMethods={getConfiguredPaymentMethods(user)}
       />
+
+      <ModalConfirmCancelOrderPayment
+        open={cancelPaymentConfirm.open}
+        order={cancelPaymentConfirm.order}
+        displayID={cancelPaymentConfirm.displayID}
+        loading={Boolean(cancelingPaymentOrderId)}
+        onClose={handleCloseCancelPaymentConfirm}
+        onConfirm={handleConfirmCancelPayment}
+      />
+
       {/* MODAL EDIT ORDER */}
       <ModalEditOrder
         show={openModal}

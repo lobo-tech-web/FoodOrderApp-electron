@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 // ---- Material UI ----
@@ -32,6 +32,9 @@ import { lobotechAppFoodDetailTheme } from "@/theme/main-theme.js";
 import { FoodDetailModal } from "@/components/FoodDetailModal/FoodDetailModal.jsx";
 import { useThermalPrinter } from "@/components/PanelComponents/ModalEditOrder/PrinterConfig/useThermalPrinter.js";
 import { DiscountModal } from "./DiscountModal.jsx";
+import { CashRegisterGate } from "@/views/ControlPanel/StaffPanel/CashRegisterGate/CashRegisterGate.jsx";
+import { ModalConfirmCreateOrderPaid } from "@/components/PanelComponents/ModalConfirmCreateOrderPaid/ModalConfirmCreateOrderPaid.jsx";
+import { ModalConfirmOrderPaid } from "@/components/PanelComponents/ModalConfirmOrderPaid/ModalConfirmOrderPaid.jsx";
 // --------------------
 
 // ---- Hooks ----
@@ -56,6 +59,7 @@ import { getDateNowDayjs } from "@/utils/clientWorking.js";
 import { buildOrderKitchenPrinterHtml } from "@/utils/printTemplates/orderKitchenTemplate.js";
 import { buildOrderTicketPrinterHtml } from "@/utils/printTemplates/orderTicketTemplate.js";
 import { getProductPrice } from "./orderUtils.js";
+import { hasOrderPermission } from "@/utils/orderEditRules.js";
 import { getPaymentMethods, INITIAL_CHECKOUT } from "./constants.jsx";
 // ---------------
 
@@ -74,14 +78,31 @@ const INITIAL_DISCOUNT = {
 
 export const LocalOrders = () => {
   const navigate = useNavigate();
+  const { AlertComponent, showAlert } = useAlert();
   const { lobotechTheme } = useLobotechThemeContext();
+  const createInProgressRef = useRef(false);
+  const { printHtml } = useThermalPrinter();
+
   const { userState, getClientByUserNumber } = useUser();
   const { productState, getAllProducts, getAllCategorys, getAllCustomOptions } =
     useProducts();
   const { addOrder, filterOrderByDate } = useOrders();
-  const { printHtml } = useThermalPrinter();
-  const { AlertComponent, showAlert } = useAlert();
+
   const user = userState.user || {};
+  const isStaff = user.role === "staff";
+
+  const restaurantId = isStaff ? user.restaurantId || "" : user.id || "";
+  const restaurantData = isStaff ? user.restaurant || {} : user;
+  const restaurantName =
+    restaurantData.businessName || restaurantData.name || "LOCAL";
+  const restaurantLogo = restaurantData.businessLogoUrl || "";
+  const canCreateOrder = hasOrderPermission(user, "create");
+  const canMarkPaid = hasOrderPermission(user, "markPaid");
+
+  const [selectedCashRegisterId, setSelectedCashRegisterId] = useState(null);
+  const [cashSession, setCashSession] = useState(null);
+  const [showCreateConfirmation, setShowCreateConfirmation] = useState(false);
+  const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
 
   const [step, setStep] = useState("type");
   const [orderType, setOrderType] = useState("");
@@ -99,34 +120,55 @@ export const LocalOrders = () => {
   const [showDiscountModal, setShowDiscountModal] = useState(false);
 
   const paymentMethods = useMemo(
-    () => getPaymentMethods(user.paymentMethods),
-    [user.paymentMethods],
+    () => getPaymentMethods(restaurantData.paymentMethods),
+    [restaurantData.paymentMethods],
+  );
+
+  const resolvedOrderStatus =
+    orderType === "ESPERA EN LOCAL" ? "FINALIZADO" : "PENDIENTE A CONFIRMAR";
+
+  const paymentRequiredByStatus = resolvedOrderStatus === "FINALIZADO";
+
+  const hasSelectedOpenCash = Boolean(
+    selectedCashRegisterId &&
+    cashSession?.id &&
+    cashSession.status === "OPEN" &&
+    String(cashSession.cashRegisterId) === String(selectedCashRegisterId),
   );
 
   const fetchProducts = useCallback(async () => {
-    if (!user.id) return;
+    if (!restaurantId) return;
+
     setLoading(true);
     setLoadError("");
     try {
       await Promise.all([
-        getAllProducts(user.id),
-        getAllCategorys(user.id),
-        getAllCustomOptions(user.id),
+        getAllProducts(restaurantId),
+        getAllCategorys(restaurantId),
+        getAllCustomOptions(restaurantId),
       ]);
     } catch (error) {
       setLoadError(error?.message || String(error));
     } finally {
       setLoading(false);
     }
-  }, [getAllCategorys, getAllCustomOptions, getAllProducts, user.id]);
+  }, [restaurantId, getAllCategorys, getAllCustomOptions, getAllProducts]);
 
   useEffect(() => {
-    if (!user.id || user.role !== "admin") {
+    const hasAllowedRole = user.role === "admin" || user.role === "staff";
+
+    if (!user.id || !hasAllowedRole) {
       navigate("/", { replace: true });
       return;
     }
+
+    if (isStaff && !canCreateOrder) {
+      navigate("/staff-panel", { replace: true });
+      return;
+    }
+
     fetchProducts();
-  }, [fetchProducts, navigate, user.id, user.role]);
+  }, [fetchProducts, navigate, user.id, user.role, isStaff, canCreateOrder]);
 
   const availableProducts = useMemo(
     () =>
@@ -209,6 +251,12 @@ export const LocalOrders = () => {
     };
   }, [discountConfig, totals.subtotalProducts]);
 
+  const resetDiscount = () => {
+    setDiscountConfig({
+      ...INITIAL_DISCOUNT,
+    });
+  };
+
   const resetOrder = () => {
     setStep("type");
     setOrderType("");
@@ -216,8 +264,14 @@ export const LocalOrders = () => {
     setSearch("");
     setSelectedCategories([]);
     setSelectedProduct(null);
-    setCheckout(INITIAL_CHECKOUT);
-    setDiscountConfig(INITIAL_DISCOUNT);
+
+    setCheckout({
+      ...INITIAL_CHECKOUT,
+    });
+    resetDiscount();
+
+    setShowCreateConfirmation(false);
+    setShowPaymentConfirmation(false);
     setShowDiscountModal(false);
     setSubmitError("");
     setCreatedOrder(null);
@@ -250,6 +304,10 @@ export const LocalOrders = () => {
   };
 
   const updateQuantity = (index, amount) => {
+    const currentItem = cartItems[index];
+    const removesProduct =
+      currentItem && Number(currentItem.quantity || 0) + amount <= 0;
+
     setCartItems((current) =>
       current
         .map((item, itemIndex) =>
@@ -259,17 +317,22 @@ export const LocalOrders = () => {
         )
         .filter((item) => item.quantity > 0),
     );
+
+    if (removesProduct) {
+      resetDiscount();
+    }
   };
 
   const removeItem = (index) => {
     setCartItems((current) =>
       current.filter((_item, itemIndex) => itemIndex !== index),
     );
+    resetDiscount();
   };
 
   const clearCart = () => {
     setCartItems([]);
-    setDiscountConfig(INITIAL_DISCOUNT);
+    resetDiscount();
     setSelectedProduct(null);
   };
 
@@ -303,7 +366,7 @@ export const LocalOrders = () => {
   };
 
   const findCustomer = async (userNumber) => {
-    return getClientByUserNumber(user.id, userNumber);
+    return getClientByUserNumber(restaurantId, userNumber);
   };
 
   const getPrintResultMessage = (label, result) => {
@@ -351,22 +414,93 @@ export const LocalOrders = () => {
     setPrintStatus(printMessages.join(" "));
   };
 
-  const createOrder = async () => {
+  const createOrder = async ({
+    markAsPaid = false,
+    payments = undefined,
+    creationConfirmed = false,
+    paymentConfirmed = false,
+  } = {}) => {
     setSubmitError("");
+
+    if (!canCreateOrder) {
+      const message = "No tenés permisos para crear pedidos";
+      setSubmitError(message);
+      showAlert(message, "warning", lobotechTheme);
+      return;
+    }
+
     if (!checkout.paymentMethod) {
-      setSubmitError("Selecciona como se pagara el pedido.");
-      showAlert(
-        "Selecciona como se pagara el pedido.",
-        "warning",
-        lobotechTheme,
-      );
+      const message = "Selecciona el método de pago del pedido.";
+      setSubmitError(message);
+      showAlert(message, "warning", lobotechTheme);
       return;
     }
+
+    if (
+      !paymentMethods.some((method) => method.value === checkout.paymentMethod)
+    ) {
+      const message = "El método de pago seleccionado no está habilitado";
+      setSubmitError(message);
+      showAlert(message, "warning", lobotechTheme);
+      return;
+    }
+
     if (!checkout.clientName.trim()) {
-      setSubmitError("Ingresa el nombre del cliente.");
-      showAlert("Ingresa el nombre del cliente.", "warning", lobotechTheme);
+      const message = "Ingresá el nombre del cliente";
+      setSubmitError(message);
+      showAlert(message, "warning", lobotechTheme);
       return;
     }
+
+    if (cartItems.length === 0) {
+      const message = "El pedido debe contener al menos un producto";
+      setSubmitError(message);
+      showAlert(message, "warning", lobotechTheme);
+      return;
+    }
+
+    if (isStaff && !hasSelectedOpenCash) {
+      const message =
+        "Debés seleccionar una caja abierta antes de crear el pedido";
+      setSubmitError(message);
+      showAlert(message, "warning", lobotechTheme);
+      return;
+    }
+
+    const shouldCreatePaid = markAsPaid || paymentRequiredByStatus;
+    const isZeroTotal =
+      Math.round(Number(discountSummary.totalAmount || 0) * 100) === 0;
+
+    if (!creationConfirmed) {
+      setShowCreateConfirmation(true);
+      return;
+    }
+    if (shouldCreatePaid && !canMarkPaid) {
+      const message = "No tenés permisos para registrar el pago del pedido";
+      setSubmitError(message);
+      showAlert(message, "warning", lobotechTheme);
+      return;
+    }
+
+    if (
+      shouldCreatePaid &&
+      !isZeroTotal &&
+      checkout.paymentMethod === "SIN ESPECIFICAR"
+    ) {
+      const message = "Seleccioná un método de pago concreto antes de cobrar";
+      setSubmitError(message);
+      showAlert(message, "warning", lobotechTheme);
+      return;
+    }
+
+    if (shouldCreatePaid && !paymentConfirmed) {
+      setShowCreateConfirmation(false);
+      setShowPaymentConfirmation(true);
+      return;
+    }
+
+    if (createInProgressRef.current) return;
+    createInProgressRef.current = true;
 
     setLoading(true);
     try {
@@ -400,17 +534,17 @@ export const LocalOrders = () => {
         const availablePoints = Number(customer.restaurantPoints || 0);
         if (availablePoints < redeemPoints) {
           throw new Error(
-            `El usuario no posee puntos suficientes para esta compra. Tiene ${availablePoints} pts. y necesita ${redeemPoints} pts.`,
+            `El usuario posee ${availablePoints} puntos. y necesita ${redeemPoints}.`,
           );
         }
       }
 
       const orderData = {
-        userId: customer?.id || user.id,
-        restaurantId: user.id,
-        restaurantName: user.businessName || user.name || "LOCAL",
-        businessName: user.businessName || user.name || "LOCAL",
-        businessLogoUrl: user.businessLogoUrl || "",
+        userId: customer?.id || restaurantId,
+        restaurantId,
+        restaurantName,
+        businessName: restaurantName,
+        businessLogoUrl: restaurantLogo,
         tableid: "",
         cartItems,
         totalRewardPoints: customer ? totals.totalRewardPoints : 0,
@@ -421,51 +555,83 @@ export const LocalOrders = () => {
         discountamount: discountSummary.discountamount,
         totalAmount: discountSummary.totalAmount,
         paymentMethod: checkout.paymentMethod,
-        clientEmail: customer?.email || user.email || "",
+        clientEmail:
+          customer?.email || restaurantData.email || "lobotech.bb@gmail.com",
         clientName: checkout.clientName.trim(),
-        deliveryAddress: customer?.address || "",
-        contactPhone: customer?.phone || "",
+        deliveryAddress: customer?.address || "SIN ESPECIFICAR",
+        contactPhone: customer?.phone || "SIN ESPECIFICAR",
         orderType,
         comentary: "",
-        status: "FINALIZADO",
+        status: resolvedOrderStatus,
+        cashRegisterId: selectedCashRegisterId || null,
+        isPaid: shouldCreatePaid,
+        ...(shouldCreatePaid &&
+          checkout.paymentMethod === "COMBINADO" && {
+            payments,
+          }),
         ticketVariant: "local-order",
       };
 
       const response = await addOrder(orderData);
       const savedOrder = response?.order || response;
-      const today = getDateNowDayjs();
-      const refreshedOrders = await filterOrderByDate(
-        today.day,
-        today.month,
-        today.year,
-        user.id,
-      );
+      let refreshedOrders = [];
+
+      try {
+        const today = getDateNowDayjs();
+        const result = await filterOrderByDate(
+          today.day,
+          today.month,
+          today.year,
+          restaurantId,
+        );
+
+        refreshedOrders = Array.isArray(result) ? result : [];
+      } catch (refreshError) {
+        console.error(
+          "El pedido se creó, pero no se pudo actualizar el listado:",
+          refreshError,
+        );
+
+        showAlert(
+          "El pedido se creó correctamente, pero no se pudo actualizar el listado.",
+          "warning",
+          lobotechTheme,
+        );
+      }
+
       const globalIndex = refreshedOrders.findIndex(
         (order) => order.id === savedOrder?.id,
       );
+
       const matchedOrder =
         globalIndex >= 0 ? refreshedOrders[globalIndex] : null;
+
       const orderIndex =
         matchedOrder?.dailyOrderNumber ||
         savedOrder?.dailyOrderNumber ||
         savedOrder?.orderIndex ||
-        (globalIndex >= 0
-          ? refreshedOrders.length - globalIndex
-          : refreshedOrders.length || undefined);
-      const order = {
+        savedOrder?.orderNumber ||
+        (globalIndex >= 0 ? refreshedOrders.length - globalIndex : undefined);
+
+      const finalOrder = {
         ...orderData,
         ...savedOrder,
         orderIndex,
         ticketVariant: "local-order",
       };
-      setCreatedOrder(order);
+
+      setCreatedOrder(finalOrder);
+      setShowCreateConfirmation(false);
+      setShowPaymentConfirmation(false);
       setStep("success");
-      await printCreatedOrder(order);
+
+      await printCreatedOrder(finalOrder);
     } catch (error) {
       const message = error?.message || String(error);
       setSubmitError(message);
       showAlert(message, "warning", lobotechTheme);
     } finally {
+      createInProgressRef.current = false;
       setLoading(false);
     }
   };
@@ -473,7 +639,7 @@ export const LocalOrders = () => {
   const handleBack = () => {
     if (step === "checkout") setStep("products");
     else if (step === "products") setStep("type");
-    else navigate("/control-panel");
+    else navigate(isStaff ? "/staff-panel" : "/control-panel");
   };
 
   return (
@@ -541,7 +707,30 @@ export const LocalOrders = () => {
             )}
           </Toolbar>
         </AppBar>
+
         <Divider />
+
+        {step !== "success" && (
+          <Box
+            sx={{
+              px: 2,
+              py: 1,
+              bgcolor: "background.default",
+            }}
+          >
+            <CashRegisterGate
+              user={user}
+              cashSession={cashSession}
+              selectedCashRegisterId={selectedCashRegisterId}
+              onCashRegisterChange={setSelectedCashRegisterId}
+              onCashSessionChange={setCashSession}
+              showAlert={(message, severity) =>
+                showAlert(message, severity, lobotechTheme)
+              }
+              variant="compact"
+            />
+          </Box>
+        )}
 
         {loading && step !== "checkout" && (
           <Box
@@ -603,6 +792,7 @@ export const LocalOrders = () => {
             onCreateOrder={createOrder}
           />
         )}
+
         {step === "success" && (
           <SuccessStep
             createdOrder={createdOrder}
@@ -621,6 +811,7 @@ export const LocalOrders = () => {
             customTheme={lobotechAppFoodDetailTheme}
           />
         )}
+
         <DiscountModal
           open={showDiscountModal}
           onClose={() => setShowDiscountModal(false)}
@@ -630,6 +821,57 @@ export const LocalOrders = () => {
           totalAmount={discountSummary.totalAmount}
           onDiscountTypeChange={handleDiscountTypeChange}
           onDiscountValueChange={handleDiscountValueChange}
+        />
+
+        <ModalConfirmCreateOrderPaid
+          open={showCreateConfirmation}
+          order={{
+            clientName: checkout.clientName,
+            paymentMethod: checkout.paymentMethod,
+            totalAmount: discountSummary.totalAmount,
+            status: resolvedOrderStatus,
+          }}
+          paymentRequired={paymentRequiredByStatus}
+          canMarkPaid={canMarkPaid}
+          loading={loading}
+          onCancel={() => setShowCreateConfirmation(false)}
+          onCreatePending={() =>
+            createOrder({
+              markAsPaid: false,
+              creationConfirmed: true,
+            })
+          }
+          onContinueToPayment={() =>
+            createOrder({
+              markAsPaid: true,
+              creationConfirmed: true,
+            })
+          }
+        />
+
+        <ModalConfirmOrderPaid
+          open={showPaymentConfirmation}
+          order={{
+            clientName: checkout.clientName,
+            paymentMethod: checkout.paymentMethod,
+            totalAmount: discountSummary.totalAmount,
+            status: resolvedOrderStatus,
+          }}
+          displayID="NUEVO"
+          loading={loading}
+          onClose={() => {
+            setShowPaymentConfirmation(false);
+            setShowCreateConfirmation(true);
+          }}
+          onConfirm={(payments) =>
+            createOrder({
+              markAsPaid: true,
+              payments,
+              creationConfirmed: true,
+              paymentConfirmed: true,
+            })
+          }
+          enabledPaymentMethods={paymentMethods.map((method) => method.value)}
         />
         {AlertComponent}
       </Box>

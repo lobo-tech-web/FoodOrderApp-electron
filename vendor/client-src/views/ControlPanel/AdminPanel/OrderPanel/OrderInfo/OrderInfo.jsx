@@ -47,6 +47,8 @@ export const OrderInfo = ({
   disableSelection = false,
   disableEdit = false,
   onMarkPaid,
+  onCancelPayment,
+  canCancelPayment = false,
   disableMarkPaid = false,
   paymentUpdating = false,
 }) => {
@@ -582,6 +584,41 @@ export const OrderInfo = ({
                       <CircularProgress size={15} color="inherit" />
                     ) : (
                       <PaidIcon fontSize="small" />
+                    )}
+                  </IconButton>
+                </Box>
+              </Tooltip>
+            )}
+
+          {order.isPaid &&
+            canCancelPayment &&
+            typeof onCancelPayment === "function" && (
+              <Tooltip title="Cancelar pago y dejar pendiente" arrow>
+                <Box>
+                  <IconButton
+                    disabled={paymentUpdating}
+                    onClick={() => onCancelPayment(order, displayID)}
+                    size="small"
+                    sx={{
+                      width: 30,
+                      height: 30,
+                      color: "error.main",
+                      border: "1px solid",
+                      borderColor: "error.main",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        bgcolor: "rgba(244, 67, 54, 0.10)",
+                        transform: "translateY(-1px)",
+                      },
+                      "&.Mui-disabled": {
+                        borderColor: "action.disabled",
+                      },
+                    }}
+                  >
+                    {paymentUpdating ? (
+                      <CircularProgress size={15} color="inherit" />
+                    ) : (
+                      <UnpaidIcon fontSize="small" />
                     )}
                   </IconButton>
                 </Box>

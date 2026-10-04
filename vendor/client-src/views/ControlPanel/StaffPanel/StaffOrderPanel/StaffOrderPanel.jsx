@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 
 // ---- Material UI ----
 import {
+  Alert,
   Box,
   Checkbox,
   Chip,
@@ -163,9 +164,16 @@ export const StaffOrderPanel = ({
     return user?.id;
   }, [user?.id, user?.restaurantId, user?.role]);
 
+  const canReadOrders = hasOrderPermission(user, "read");
   const canUpdateStatus = hasOrderPermission(user, "updateStatus");
   const canMarkPaid = hasOrderPermission(user, "markPaid");
-  const isCashOpen = cashSession?.id && cashSession?.status === "OPEN";
+
+  const isCashOpen = Boolean(
+    cashRegisterId &&
+    cashSession?.id &&
+    cashSession.status === "OPEN" &&
+    String(cashSession.cashRegisterId) === String(cashRegisterId),
+  );
 
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedOrderIndex, setSelectedOrderIndex] = useState(null);
@@ -200,17 +208,25 @@ export const StaffOrderPanel = ({
       if (!order?.id) return;
 
       if (!canMarkPaid) {
-        showAlert("No tienes permisos para registrar cobros", "warning");
+        showAlert?.("No tienes permisos para registrar cobros", "warning");
+        return;
+      }
+
+      if (!isCashOpen) {
+        showAlert?.(
+          "Debes seleccionar una caja abierta para registrar el cobro",
+          "warning",
+        );
         return;
       }
 
       if (order.isPaid) {
-        showAlert("Este pedido ya se encuentra pagado", "info");
+        showAlert?.("Este pedido ya se encuentra pagado", "info");
         return;
       }
 
       if (order.status === "CANCELADO") {
-        showAlert(
+        showAlert?.(
           "No se puede registrar el pago desde esta acción en un pedido cancelado",
           "warning",
         );
@@ -223,7 +239,7 @@ export const StaffOrderPanel = ({
         displayID,
       });
     },
-    [canMarkPaid, showAlert],
+    [canMarkPaid, isCashOpen, showAlert],
   );
 
   const handleClosePaymentConfirm = useCallback(() => {
@@ -237,15 +253,15 @@ export const StaffOrderPanel = ({
   }, [payingOrderId]);
 
   const selectableOrders = useMemo(() => {
-    if (!isCashOpen) return [];
+    if (!isCashOpen || !canUpdateStatus) return [];
 
     return filteredOrders.filter(
       (order) => !isTerminalOrderStatus(order.status),
     );
-  }, [filteredOrders, isCashOpen]);
+  }, [filteredOrders, isCashOpen, canUpdateStatus]);
 
   const handleSelectOrders = (event, order) => {
-    if (!isCashOpen) return;
+    if (!isCashOpen || !canUpdateStatus) return;
 
     if (isTerminalOrderStatus(order.status)) return;
 
@@ -260,7 +276,7 @@ export const StaffOrderPanel = ({
 
   const fetchOrders = useCallback(
     async (isAutoRefresh = false) => {
-      if (!restaurantId) return;
+      if (!restaurantId || !canReadOrders) return;
 
       const requestKey = `${activeTab}:${restaurantId}`;
       if (ordersRequestInFlightRef.current === requestKey) return;
@@ -312,6 +328,7 @@ export const StaffOrderPanel = ({
     [
       activeTab,
       restaurantId,
+      canReadOrders,
       filterOrderByDate,
       getRidersByRestaurant,
       showAlert,
@@ -325,11 +342,12 @@ export const StaffOrderPanel = ({
         return;
       }
 
-      if (
-        !cashRegisterId ||
-        !cashSession?.id ||
-        cashSession?.status !== "OPEN"
-      ) {
+      if (!canMarkPaid) {
+        showAlert?.("No tienes permisos para registrar cobros", "warning");
+        return;
+      }
+
+      if (!isCashOpen) {
         showAlert(
           "Debes seleccionar una caja abierta para registrar el cobro",
           "warning",
@@ -370,11 +388,11 @@ export const StaffOrderPanel = ({
       }
     },
     [
+      canMarkPaid,
+      isCashOpen,
       paymentConfirm,
       payingOrderId,
       cashRegisterId,
-      cashSession?.id,
-      cashSession?.status,
       updateOrder,
       showAlert,
       fetchOrders,
@@ -383,7 +401,7 @@ export const StaffOrderPanel = ({
 
   // SELECTED PRODUCTS CHECKBOX
   const handleSelectAll = (event) => {
-    if (!isCashOpen) return;
+    if (!isCashOpen || !canUpdateStatus) return;
 
     if (event.target.checked) {
       setSelectedOrdersCheckbox([...selectableOrders]);
@@ -394,11 +412,17 @@ export const StaffOrderPanel = ({
 
   useEffect(() => {
     const fetchKey = `${activeTab}:${restaurantId || ""}`;
-    if (!restaurantId || initialFetchKeyRef.current === fetchKey) return;
+    if (
+      !restaurantId ||
+      !canReadOrders ||
+      initialFetchKeyRef.current === fetchKey
+    ) {
+      return;
+    }
 
     initialFetchKeyRef.current = fetchKey;
     fetchOrders(false);
-  }, [activeTab, restaurantId, fetchOrders]);
+  }, [activeTab, restaurantId, canReadOrders, fetchOrders]);
 
   // Auto-refresh hook
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -415,7 +439,7 @@ export const StaffOrderPanel = ({
       fetchTodayOrdersOnly,
       30000, // 30 segundos
       {
-        enabled: autoRefreshEnabled && activeTab === 0,
+        enabled: canReadOrders && autoRefreshEnabled && activeTab === 0,
         pauseOnHidden: true,
         onRefresh: () => {
           showAlert("Se actualizaron los pedidos automáticamente", "success");
@@ -430,6 +454,14 @@ export const StaffOrderPanel = ({
   const handleManualRefresh = async () => {
     await fetchOrders(false);
   };
+
+  if (!canReadOrders) {
+    return (
+      <Alert severity="warning">
+        No tenés permisos para consultar pedidos.
+      </Alert>
+    );
+  }
 
   if (loading && !allOrders.length) {
     return <LoadingComponent message="Cargando pedidos..." />;

@@ -56,7 +56,12 @@ export const StaffOrderActionsBar = ({
     setModalState((prevState) => ({ ...prevState, [modal]: value }));
   };
 
-  const isCashOpen = cashSession?.id && cashSession?.status === "OPEN";
+  const isCashOpen = Boolean(
+    cashRegisterId &&
+    cashSession?.id &&
+    cashSession.status === "OPEN" &&
+    String(cashSession.cashRegisterId) === String(cashRegisterId),
+  );
   const canCreate = hasOrderPermission(user, "create");
   const canUpdateStatus = hasOrderPermission(user, "updateStatus");
 

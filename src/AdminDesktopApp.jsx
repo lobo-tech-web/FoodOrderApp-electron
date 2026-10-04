@@ -61,7 +61,12 @@ const ElectronBridge = ({ onOpenPrinterConfig }) => {
         return;
       }
 
-      if (user.role === "admin") {
+      const canOpenRequestedPath =
+        user.role === "admin" ||
+        (user.role === "staff" &&
+          ["/staff-panel", "/local-orders"].includes(path));
+
+      if (canOpenRequestedPath) {
         navigate(path);
         return;
       }

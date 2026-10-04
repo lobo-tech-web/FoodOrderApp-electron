@@ -223,6 +223,29 @@ export const ModalEditArrayOrders = ({
   };
 
   const handleSaveChanges = useCallback(async () => {
+    if (loading) return;
+
+    if (!isCashOpen || !canUpdateStatus) {
+      showAlert(
+        "Necesitas una caja abierta y permisos para modificar estados",
+        "warning",
+      );
+      return;
+    }
+
+    if (status === "CANCELADO" && !canCancel) {
+      showAlert("No tienes permisos para cancelar pedidos", "warning");
+      return;
+    }
+
+    if (!availableBulkStatuses.some((item) => item.value === status)) {
+      showAlert(
+        "El estado seleccionado no está permitido para todos los pedidos",
+        "warning",
+      );
+      return;
+    }
+
     if (!showOrders || showOrders.length === 0)
       return showAlert(
         "No hay pedidos para actualizar, por favor seleccione los pedidos para actualizar",
@@ -276,6 +299,12 @@ export const ModalEditArrayOrders = ({
       }, 1500);
     }
   }, [
+    loading,
+    isCashOpen,
+    canUpdateStatus,
+    canCancel,
+    availableBulkStatuses,
+    isStaff,
     status,
     extraPoints,
     rider,

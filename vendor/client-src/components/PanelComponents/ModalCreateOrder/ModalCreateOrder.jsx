@@ -43,6 +43,9 @@ import { ModalSelectProducts } from "../ModalEditOrder/ModalSelectProducts/Modal
 import { OrderSummary } from "./OrderSummary/OrderSummary.jsx";
 import { ClientSearchModal } from "./ClientSearchModal/ClientSearchModal.jsx";
 import { ClientInfoTab } from "./ClientInfoTab/ClientInfoTab.jsx";
+import { ModalConfirmOrderPaid } from "../ModalConfirmOrderPaid/ModalConfirmOrderPaid.jsx";
+import { ModalConfirmCreateOrderPaid } from "../ModalConfirmCreateOrderPaid/ModalConfirmCreateOrderPaid.jsx";
+// --------------------
 
 // ---- TABS ----
 import { OrderDetailsTab } from "./OrderDetailsTab/OrderDetailsTab.jsx";
@@ -61,6 +64,7 @@ import {
   calculateDiscount,
   calculateFinalTotal,
 } from "@/utils/orderCalculations.js";
+import { hasOrderPermission } from "@/utils/orderEditRules.js";
 import { getAvailablePaymentMethods } from "@/utils/components/PaymentUtils.jsx";
 // ---------------
 
@@ -143,7 +147,11 @@ export const ModalCreateOrder = ({
   const { productState } = useProducts();
   const { printHtml } = useThermalPrinter();
 
+  const [showCreateConfirmation, setShowCreateConfirmation] = useState(false);
+  const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
   const currentUser = useMemo(() => userState?.user || {}, [userState?.user]);
+  const canCreateOrder = hasOrderPermission(currentUser, "create");
+  const canMarkPaid = hasOrderPermission(currentUser, "markPaid");
 
   const availablePaymentMethods = useMemo(
     () => getAvailablePaymentMethods(currentUser),
@@ -155,16 +163,12 @@ export const ModalCreateOrder = ({
     !isStaff || currentUser?.permissions?.clients?.read === true;
 
   const restaurantId = useMemo(() => {
-    if (isStaff) {
-      return currentUser?.restaurantId || "";
-    }
+    if (isStaff) return currentUser?.restaurantId || "";
     return currentUser?.id || "";
   }, [isStaff, currentUser?.id, currentUser?.restaurantId]);
 
   const restaurantData = useMemo(() => {
-    if (isStaff) {
-      return currentUser?.restaurant || {};
-    }
+    if (isStaff) return currentUser?.restaurant || {};
     return currentUser || {};
   }, [isStaff, currentUser]);
 
@@ -252,6 +256,11 @@ export const ModalCreateOrder = ({
     }
     setShowConfirmClose(false);
   };
+
+  const resolvedOrderStatus = useMemo(() => {
+    return getStatusForOrderType(order.orderType, order.status);
+  }, [order.orderType, order.status]);
+  const paymentRequiredByStatus = resolvedOrderStatus === "FINALIZADO";
 
   const hasChanges = useMemo(() => {
     if (!orderCopy) return false;
@@ -721,135 +730,194 @@ export const ModalCreateOrder = ({
     [tryPrintOrderDocument],
   );
 
-  const handleCreateOrder = useCallback(async () => {
-    if (!order.status) {
-      showAlert("Debe seleccionar un estado para el pedido", "warning");
-      return;
-    }
+  const handleCreateOrder = useCallback(
+    async ({
+      markAsPaid = false,
+      payments = undefined,
+      creationConfirmed = false,
+      paymentConfirmed = false,
+    } = {}) => {
+      if (loading) return;
 
-    if (order.cartItems.length === 0) {
-      showAlert("El pedido debe tener al menos un producto", "warning");
-      return;
-    }
+      if (!canCreateOrder) {
+        showAlert("No tienes permisos para crear pedidos", "warning");
+        return;
+      }
 
-    if (!order.clientName.trim()) {
-      showAlert("El nombre del cliente es requerido", "warning");
-      return;
-    }
+      if (!order.status) {
+        showAlert("Debe seleccionar un estado para el pedido", "warning");
+        return;
+      }
 
-    if (!order.clientEmail.trim()) {
-      showAlert("El email del cliente es requerido", "warning");
-      return;
-    }
+      if (order.cartItems.length === 0) {
+        showAlert("El pedido debe tener al menos un producto", "warning");
+        return;
+      }
 
-    if (!order.orderType) {
-      showAlert("Debe seleccionar un tipo de entrega", "warning");
-      return;
-    }
+      if (!order.clientName.trim()) {
+        showAlert("El nombre del cliente es requerido", "warning");
+        return;
+      }
 
-    if (isStaff && !cashRegisterId) {
-      showAlert(
-        "Debes seleccionar una caja operativa antes de crear el pedido",
-        "warning",
-      );
-      return;
-    }
+      if (!order.clientEmail.trim()) {
+        showAlert("El email del cliente es requerido", "warning");
+        return;
+      }
 
-    if (
-      !availablePaymentMethods.some(
-        (method) => method.value === order.paymentMethod,
-      )
-    ) {
-      showAlert(
-        "Seleccioná un método de pago habilitado para el local",
-        "warning",
-      );
-      return;
-    }
+      if (!order.orderType) {
+        showAlert("Debe seleccionar un tipo de entrega", "warning");
+        return;
+      }
 
-    setLoading(true);
-    try {
-      const resolvedStatus = getStatusForOrderType(
-        order.orderType,
-        order.status,
-      );
-      const createData = {
-        userId: order.userId || null,
-        restaurantId,
-        restaurantName,
-        businessName: restaurantName || "LOCAL",
-        businessLogoUrl: restaurantLogo,
-        cartItems: order.cartItems,
-        totalRewardPoints: calculatedProductTotals.totalRewardPoints,
-        totalRedeemPoints: calculatedProductTotals.totalRedeemPoints,
-        deliverycost: cleanMoneyValue(order.deliverycost).toNumber(),
-        servicetax: cleanMoneyValue(order.servicetax).toNumber(),
-        discount: Number(order.discount) || 0.0,
-        discountamount: calculatedDiscount.discountamount,
-        totalAmount: order.totalAmount,
-        paymentMethod: order.paymentMethod,
-        clientEmail: order.clientEmail,
-        clientName: order.clientName,
-        deliveryAddress:
-          order.deliveryAddress.trim() !== ""
-            ? order.deliveryAddress
-            : "SIN ESPECIFICAR",
-        contactPhone:
-          order.contactPhone.trim() !== ""
-            ? order.contactPhone
-            : "SIN ESPECIFICAR",
-        orderType: order.orderType,
-        comentary: order.comentary,
-        status: resolvedStatus,
-        cashRegisterId: cashRegisterId || null,
-        ticketVariant:
-          order.orderType === "ESPERA EN LOCAL" ? "local-order" : undefined,
-      };
+      if (isStaff && !cashRegisterId) {
+        showAlert(
+          "Debes seleccionar una caja operativa antes de crear el pedido",
+          "warning",
+        );
+        return;
+      }
 
-      const savedOrder = await addOrder(createData);
-      const orderIndex = await getOrderIndexFromToday(savedOrder);
-      const createdOrder = {
-        ...createData,
-        ...savedOrder,
-        orderIndex,
-        orderNumber: orderIndex,
-        number: orderIndex,
-        ticketVariant:
-          order.orderType === "ESPERA EN LOCAL" ? "local-order" : undefined,
-      };
+      if (
+        !availablePaymentMethods.some(
+          (method) => method.value === order.paymentMethod,
+        )
+      ) {
+        showAlert(
+          "Seleccioná un método de pago habilitado para el local",
+          "warning",
+        );
+        return;
+      }
 
-      await printCreatedOrder(createdOrder);
-      showAlert("Pedido creado correctamente!", "success");
-      onClose();
-    } catch (error) {
-      const errorMessage =
-        typeof error === "string"
-          ? error
-          : error?.message || "Error desconocido";
-      showAlert(errorMessage, "error");
-    } finally {
-      setLoading(false);
-      setTimeout(() => {
-        refreshOrders();
-      }, 1500);
-    }
-  }, [
-    order,
-    availablePaymentMethods,
-    restaurantId,
-    restaurantName,
-    restaurantLogo,
-    cashRegisterId,
-    calculatedDiscount.discountamount,
-    calculatedProductTotals.totalRedeemPoints,
-    calculatedProductTotals.totalRewardPoints,
-    getOrderIndexFromToday,
-    showAlert,
-    onClose,
-    addOrder,
-    printCreatedOrder,
-    refreshOrders,
-  ]);
+      const shouldCreatePaid = markAsPaid || paymentRequiredByStatus;
+      const isZeroTotal = Math.round(Number(finalOrderTotal || 0) * 100) === 0;
+
+      if (!creationConfirmed) {
+        setShowCreateConfirmation(true);
+        return;
+      }
+
+      if (shouldCreatePaid && !canMarkPaid) {
+        showAlert(
+          "No tienes permisos para registrar el pago del pedido",
+          "warning",
+        );
+        return;
+      }
+
+      if (
+        shouldCreatePaid &&
+        !isZeroTotal &&
+        order.paymentMethod === "SIN ESPECIFICAR"
+      ) {
+        showAlert(
+          "Debes seleccionar un método de pago concreto antes de cobrar",
+          "warning",
+        );
+        return;
+      }
+
+      if (shouldCreatePaid && !paymentConfirmed) {
+        setShowCreateConfirmation(false);
+        setShowPaymentConfirmation(true);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const createData = {
+          userId: order.userId || null,
+          restaurantId,
+          restaurantName,
+          businessName: restaurantName || "LOCAL",
+          businessLogoUrl: restaurantLogo,
+          cartItems: order.cartItems,
+          totalRewardPoints: calculatedProductTotals.totalRewardPoints,
+          totalRedeemPoints: calculatedProductTotals.totalRedeemPoints,
+          deliverycost: cleanMoneyValue(order.deliverycost).toNumber(),
+          servicetax: cleanMoneyValue(order.servicetax).toNumber(),
+          discount: Number(order.discount) || 0.0,
+          discountamount: calculatedDiscount.discountamount,
+          totalAmount: order.totalAmount,
+          paymentMethod: order.paymentMethod,
+          clientEmail: order.clientEmail,
+          clientName: order.clientName,
+          deliveryAddress:
+            order.deliveryAddress.trim() !== ""
+              ? order.deliveryAddress
+              : "SIN ESPECIFICAR",
+          contactPhone:
+            order.contactPhone.trim() !== ""
+              ? order.contactPhone
+              : "SIN ESPECIFICAR",
+          orderType: order.orderType,
+          comentary: order.comentary,
+          status: resolvedOrderStatus,
+          cashRegisterId: cashRegisterId || null,
+          isPaid: shouldCreatePaid,
+          ...(shouldCreatePaid &&
+            order.paymentMethod === "COMBINADO" && {
+              payments,
+            }),
+          ticketVariant:
+            order.orderType === "ESPERA EN LOCAL" ? "local-order" : undefined,
+        };
+
+        const savedOrder = await addOrder(createData);
+        const orderIndex = await getOrderIndexFromToday(savedOrder);
+        const createdOrder = {
+          ...createData,
+          ...savedOrder,
+          orderIndex,
+          orderNumber: orderIndex,
+          number: orderIndex,
+          ticketVariant:
+            order.orderType === "ESPERA EN LOCAL" ? "local-order" : undefined,
+        };
+
+        await printCreatedOrder(createdOrder);
+
+        showAlert("Pedido creado correctamente!", "success");
+        setShowCreateConfirmation(false);
+        setShowPaymentConfirmation(false);
+        onClose();
+      } catch (error) {
+        const errorMessage =
+          typeof error === "string"
+            ? error
+            : error?.message || "Error desconocido";
+        showAlert(errorMessage, "error");
+      } finally {
+        setLoading(false);
+        setTimeout(() => {
+          refreshOrders();
+        }, 1500);
+      }
+    },
+    [
+      canMarkPaid,
+      paymentRequiredByStatus,
+      resolvedOrderStatus,
+      loading,
+      canCreateOrder,
+      isStaff,
+      order,
+      availablePaymentMethods,
+      restaurantId,
+      restaurantName,
+      restaurantLogo,
+      cashRegisterId,
+      calculatedDiscount.discountamount,
+      calculatedProductTotals.totalRedeemPoints,
+      calculatedProductTotals.totalRewardPoints,
+      getOrderIndexFromToday,
+      showAlert,
+      onClose,
+      addOrder,
+      printCreatedOrder,
+      refreshOrders,
+    ],
+  );
 
   useEffect(() => {
     if (!show || !availablePaymentMethods.length) return;
@@ -1222,11 +1290,13 @@ export const ModalCreateOrder = ({
           >
             CANCELAR
           </Button>
+
           <Button
-            onClick={handleCreateOrder}
             variant="contained"
-            color="primary"
             startIcon={<CheckCircleIcon />}
+            color="primary"
+            disabled={loading || order.cartItems.length === 0}
+            onClick={() => handleCreateOrder()}
             sx={{
               fontFamily: "fontFamily.primary",
               color: "text.terciary",
@@ -1234,7 +1304,6 @@ export const ModalCreateOrder = ({
               minWidth: { xs: 150, sm: 190 },
               boxShadow: "0 8px 20px rgba(245, 166, 35, 0.25)",
             }}
-            disabled={order.cartItems.length === 0}
           >
             CREAR PEDIDO
           </Button>
@@ -1276,6 +1345,57 @@ export const ModalCreateOrder = ({
           onSelectClient={handleSelectClient}
         />
       )}
+
+      <ModalConfirmCreateOrderPaid
+        open={showCreateConfirmation}
+        order={{
+          ...order,
+          status: resolvedOrderStatus,
+          totalAmount: finalOrderTotal,
+        }}
+        paymentRequired={paymentRequiredByStatus}
+        canMarkPaid={canMarkPaid}
+        loading={loading}
+        onCancel={() => setShowCreateConfirmation(false)}
+        onCreatePending={() =>
+          handleCreateOrder({
+            markAsPaid: false,
+            creationConfirmed: true,
+          })
+        }
+        onContinueToPayment={() =>
+          handleCreateOrder({
+            markAsPaid: true,
+            creationConfirmed: true,
+          })
+        }
+      />
+
+      <ModalConfirmOrderPaid
+        open={showPaymentConfirmation}
+        order={{
+          ...order,
+          status: resolvedOrderStatus,
+          totalAmount: finalOrderTotal,
+        }}
+        displayID="NUEVO"
+        loading={loading}
+        onClose={() => {
+          setShowPaymentConfirmation(false);
+          setShowCreateConfirmation(true);
+        }}
+        onConfirm={(payments) =>
+          handleCreateOrder({
+            markAsPaid: true,
+            payments,
+            creationConfirmed: true,
+            paymentConfirmed: true,
+          })
+        }
+        enabledPaymentMethods={availablePaymentMethods.map(
+          (method) => method.value,
+        )}
+      />
     </>
   );
 };

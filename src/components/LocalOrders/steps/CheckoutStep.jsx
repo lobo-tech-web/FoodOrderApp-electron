@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  InputAdornment,
   Paper,
   Stack,
   TextField,
@@ -236,7 +235,7 @@ export const CheckoutStep = ({
           <Button
             size="large"
             variant="contained"
-            onClick={onCreateOrder}
+            onClick={() => onCreateOrder()}
             disabled={loading || paymentMethods.length === 0}
             startIcon={
               loading ? <CircularProgress size={20} /> : <SuccessIcon />

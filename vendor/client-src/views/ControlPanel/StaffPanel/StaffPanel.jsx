@@ -380,7 +380,11 @@ export const StaffPanel = () => {
           )}
 
           {activeTab === 5 && (
-            <CashRegisterHistoryPanel user={staffUser} showAlert={showAlert} />
+            <CashRegisterHistoryPanel
+              user={staffUser}
+              showAlert={showAlert}
+              refreshKey={cashRefreshKey}
+            />
           )}
         </Box>
 
@@ -390,7 +394,9 @@ export const StaffPanel = () => {
           cashSession={cashSession}
           showAlert={showAlert}
           onClose={() => setCashMovementDialog(false)}
-          onMovementCreated={() => {}}
+          onMovementCreated={() => {
+            setCashRefreshKey((prev) => prev + 1);
+          }}
         />
 
         <CashCloseModal

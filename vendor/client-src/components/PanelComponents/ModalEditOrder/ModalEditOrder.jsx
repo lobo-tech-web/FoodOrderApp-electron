@@ -556,6 +556,19 @@ export const ModalEditOrder = ({
     async (nextStatus) => {
       if (!order.id) return null;
 
+      const canApplyStatus =
+        nextStatus === originalStatus ||
+        (availableStatuses.includes(nextStatus) &&
+          (nextStatus === "CANCELADO"
+            ? editCapabilities.canCancel
+            : editCapabilities.canUpdateStatus));
+
+      if (!canSaveOrder || !canApplyStatus) {
+        throw new Error(
+          "No tienes permisos para aplicar este estado al pedido",
+        );
+      }
+
       const updateData = buildOrderUpdateData(nextStatus);
 
       const response = await updateOrder(order.id, updateData);
@@ -583,11 +596,27 @@ export const ModalEditOrder = ({
 
       return response;
     },
-    [order, updateOrder, buildOrderUpdateData],
+    [
+      originalStatus,
+      availableStatuses,
+      editCapabilities.canCancel,
+      editCapabilities.canUpdateStatus,
+      canSaveOrder,
+      order,
+      updateOrder,
+      buildOrderUpdateData,
+    ],
   );
 
   // ✅ GUARDAR CAMBIOS
   const handleSaveChanges = useCallback(async () => {
+    if (loading) return;
+
+    if (!canSaveOrder) {
+      showAlert("No tienes permisos para modificar este pedido", "warning");
+      return;
+    }
+
     if (!order.status) {
       showAlert("Debe seleccionar un estado para el pedido", "warning");
       return;
@@ -654,6 +683,8 @@ export const ModalEditOrder = ({
       setLoading(false);
     }
   }, [
+    loading,
+    canSaveOrder,
     order,
     cancelReason,
     originalStatus,

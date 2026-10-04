@@ -55,6 +55,9 @@ export const ModalConfirmOrderPaid = ({
     [order?.totalAmount],
   );
 
+  const requiresCombinedSplit =
+    isCombined && totalCents !== null && totalCents > 0;
+
   const splitMethods = SPLIT_METHODS.filter((method) =>
     enabledPaymentMethods.includes(method),
   );
@@ -73,7 +76,7 @@ export const ModalConfirmOrderPaid = ({
 
   const enteredCents = parts.map((part) => toCents(part.amount));
   const validSplit =
-    isCombined &&
+    requiresCombinedSplit &&
     totalCents !== null &&
     parts.length >= 2 &&
     parts.length <= 4 &&
@@ -93,7 +96,7 @@ export const ModalConfirmOrderPaid = ({
   };
 
   const confirmPayment = () => {
-    if (isCombined) {
+    if (requiresCombinedSplit) {
       if (!validSplit || loading) return;
 
       onConfirm(
@@ -296,7 +299,7 @@ export const ModalConfirmOrderPaid = ({
           </Box>
         )}
 
-        {isCombined && (
+        {requiresCombinedSplit && (
           <Box sx={{ mt: 2, display: "grid", gap: 1.5 }}>
             <Typography
               variant="subtitle1"
@@ -426,7 +429,7 @@ export const ModalConfirmOrderPaid = ({
 
         <Button
           onClick={confirmPayment}
-          disabled={loading || (isCombined && !validSplit)}
+          disabled={loading || (requiresCombinedSplit && !validSplit)}
           variant="contained"
           color="success"
           sx={{

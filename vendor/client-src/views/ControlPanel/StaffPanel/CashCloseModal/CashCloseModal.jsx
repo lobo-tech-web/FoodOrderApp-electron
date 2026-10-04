@@ -79,6 +79,9 @@ export const CashCloseModal = ({
   const totalPaidOrders = Number(totals.totalPaidOrders || 0);
   const totalUnpaidOrders = Number(totals.totalUnpaidOrders || 0);
   const totalUnpaidAmount = Number(totals.totalUnpaidAmount || 0);
+  const combinedOrders = Array.isArray(report?.combinedOrders)
+    ? report.combinedOrders
+    : [];
 
   const riderCashClosures = Array.isArray(report?.riderCashClosures)
     ? report.riderCashClosures
@@ -86,6 +89,7 @@ export const CashCloseModal = ({
 
   const totalRiderPayout = Number(totals.totalRiderPayout || 0);
   const totalRiderCashDifference = Number(totals.totalRiderCashDifference || 0);
+  const totalRiderHeldCashSales = Number(totals.totalRiderHeldCashSales || 0);
   const totalRiderCashImpact = Number(totals.totalRiderCashImpact || 0);
   const totalRiderDeliveryFees = Number(totals.totalRiderDeliveryFees || 0);
   const totalRiderAdjustments = Number(totals.totalRiderAdjustments || 0);
@@ -281,8 +285,12 @@ export const CashCloseModal = ({
                   value: totals.totalSalesAmount,
                 },
                 {
-                  label: "Ventas efectivo",
+                  label: "Ventas cobradas en efectivo",
                   value: totals.totalCashSalesAmount,
+                },
+                {
+                  label: "Efectivo delivery excluido del ingreso directo",
+                  value: totalRiderHeldCashSales,
                 },
                 {
                   label: "Pendiente de cobro",
@@ -291,11 +299,11 @@ export const CashCloseModal = ({
                 ...(hasRiderClosures
                   ? [
                       {
-                        label: "Pago a deliveries",
+                        label: "Honorarios a deliveries (informativo)",
                         value: totalRiderPayout,
                       },
                       {
-                        label: "Impacto neto delivery",
+                        label: "Efectivo entregado por deliverys",
                         value: totalRiderCashImpact,
                       },
                     ]
@@ -434,6 +442,90 @@ export const CashCloseModal = ({
                   </Stack>
                 </Paper>
               )}
+
+            {combinedOrders.length > 0 && (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: "background.main",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontFamily: "fontFamily.primary",
+                    color: "primary.main",
+                    mb: 1,
+                  }}
+                >
+                  DETALLE DE PAGOS COMBINADOS
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontFamily: "fontFamily.secondary",
+                    color: "text.primary",
+                    mb: 2,
+                  }}
+                >
+                  Estos importes ya están incluidos en los cobros por método de
+                  pago mostrados arriba.
+                </Typography>
+
+                <Stack spacing={2}>
+                  {combinedOrders.map((order) => (
+                    <Box
+                      key={order.orderId}
+                      sx={{
+                        p: 1.5,
+                        border: "1px solid",
+                        borderColor: "divider",
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Typography sx={{ fontFamily: "fontFamily.primary" }}>
+                        PEDIDO #{order.orderId} · COMBINADO
+                      </Typography>
+
+                      <Typography
+                        variant="body2"
+                        sx={{ fontFamily: "fontFamily.primary", mb: 1 }}
+                      >
+                        {order.orderType} · TOTAL:{" "}
+                        {formatMoney(order.totalAmount)}
+                      </Typography>
+
+                      <Stack spacing={0.5}>
+                        {order.payments.map((payment) => (
+                          <Stack
+                            key={payment.method}
+                            direction="row"
+                            justifyContent="space-between"
+                            spacing={2}
+                          >
+                            <Typography
+                              variant="body2"
+                              sx={{ fontFamily: "fontFamily.secondary" }}
+                            >
+                              {payment.method}
+                            </Typography>
+
+                            <Typography
+                              variant="body2"
+                              sx={{ fontFamily: "fontFamily.primary" }}
+                            >
+                              {formatMoney(payment.amount)}
+                            </Typography>
+                          </Stack>
+                        ))}
+                      </Stack>
+                    </Box>
+                  ))}
+                </Stack>
+              </Paper>
+            )}
 
             {hasRiderClosures && (
               <Paper
@@ -755,6 +847,72 @@ export const CashCloseModal = ({
                 sx={textFieldStyle}
               />
             </Box>
+
+            <Alert
+              severity="info"
+              variant="filled"
+              sx={{ fontFamily: "fontFamily.secondary" }}
+            >
+              <Box sx={{ display: "flex", flexDirection: "column" }}>
+                <Typography
+                  variant="body2"
+                  sx={{ fontFamily: "fontFamily.secondary" }}
+                >
+                  Efectivo esperado:
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  sx={{ fontFamily: "fontFamily.secondary" }}
+                >
+                  + Monto inicial: ({formatMoney(totals.openingAmount)})
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  sx={{ fontFamily: "fontFamily.secondary" }}
+                >
+                  + Ventas en efectivo (
+                  {formatMoney(totals.totalCashSalesAmount)})
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  sx={{ fontFamily: "fontFamily.secondary" }}
+                >
+                  + Ingresos manuales ({formatMoney(totals.totalCashIn)})
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  sx={{ fontFamily: "fontFamily.secondary" }}
+                >
+                  + Entregas de deliveries a esta caja (
+                  {formatMoney(totalRiderCashImpact)}).
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  sx={{ fontFamily: "fontFamily.secondary" }}
+                >
+                  − Efectivo cobrado por riders (
+                  {formatMoney(totalRiderHeldCashSales)})
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  sx={{ fontFamily: "fontFamily.secondary" }}
+                >
+                  − Retiros manuales ({formatMoney(totals.totalCashOut)})
+                </Typography>
+
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  Las ventas en efectivo incluyen la parte en efectivo de los
+                  pagos combinados. El efectivo de delivery se incorpora a esta
+                  caja mediante el cierre del rider asignado como receptor.
+                </Typography>
+              </Box>
+            </Alert>
           </Stack>
         )}
       </DialogContent>
