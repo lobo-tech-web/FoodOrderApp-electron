@@ -288,6 +288,7 @@ export const ModalRiderCashClosure = ({
       setDeliveries(response.deliveries || []);
 
       showAlert?.("Borrador guardado correctamente", "success");
+      onClose?.();
     } catch (error) {
       showAlert?.(error.message || "Error al guardar el borrador", "error");
     } finally {

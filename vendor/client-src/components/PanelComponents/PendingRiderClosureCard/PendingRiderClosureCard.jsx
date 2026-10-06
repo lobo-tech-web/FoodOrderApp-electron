@@ -18,7 +18,9 @@ import {
 } from "@mui/icons-material";
 // ---------------------
 
+// ---- Utils ----
 import { formatCurrency } from "@/utils/orderCalculations.js";
+// ---------------
 
 export const PendingRiderClosureCard = ({ group, rider, onOpenClosure }) => {
   if (!group || !rider) return null;
@@ -129,7 +131,12 @@ export const PendingRiderClosureCard = ({ group, rider, onOpenClosure }) => {
             borderColor: "divider",
           }}
         >
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            justifyContent="center"
+          >
             <ReceiptLongIcon color="primary" fontSize="small" />
 
             <Typography
@@ -145,10 +152,11 @@ export const PendingRiderClosureCard = ({ group, rider, onOpenClosure }) => {
 
           <Typography
             sx={{
-              mt: 0.7,
               fontFamily: "fontFamily.primary",
               color: "text.primary",
               fontSize: "1.15rem",
+              textAlign: "center",
+              mt: 0.7,
             }}
           >
             {rider.trips || 0}
@@ -157,14 +165,19 @@ export const PendingRiderClosureCard = ({ group, rider, onOpenClosure }) => {
 
         <Box
           sx={{
-            p: 1.5,
-            borderRadius: 2,
             bgcolor: "background.default",
             border: "1px solid",
             borderColor: "divider",
+            borderRadius: 2,
+            p: 1.5,
           }}
         >
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            justifyContent="center"
+          >
             <PaymentsIcon color="success" fontSize="small" />
 
             <Typography
@@ -180,10 +193,11 @@ export const PendingRiderClosureCard = ({ group, rider, onOpenClosure }) => {
 
           <Typography
             sx={{
-              mt: 0.7,
               fontFamily: "fontFamily.primary",
               color: "success.main",
               fontSize: "1.15rem",
+              textAlign: "center",
+              mt: 0.7,
             }}
           >
             {formatCurrency(rider.cashCollected || 0)}
@@ -199,7 +213,12 @@ export const PendingRiderClosureCard = ({ group, rider, onOpenClosure }) => {
             borderColor: "divider",
           }}
         >
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            justifyContent="center"
+          >
             <TwoWheelerIcon color="primary" fontSize="small" />
 
             <Typography
@@ -215,10 +234,11 @@ export const PendingRiderClosureCard = ({ group, rider, onOpenClosure }) => {
 
           <Typography
             sx={{
-              mt: 0.7,
               fontFamily: "fontFamily.primary",
               color: "primary.main",
               fontSize: "1.15rem",
+              textAlign: "center",
+              mt: 0.7,
             }}
           >
             {formatCurrency(rider.deliveryFeeTotal || 0)}
@@ -229,14 +249,7 @@ export const PendingRiderClosureCard = ({ group, rider, onOpenClosure }) => {
       {/* PEDIDOS */}
       {Array.isArray(rider.deliveries) && rider.deliveries.length > 0 && (
         <Box sx={{ mt: 2 }}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-start",
-              gap: 1,
-              mb: 1,
-            }}
-          >
+          <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
             <ReceiptLongIcon color="primary" />
 
             <Typography
@@ -251,33 +264,42 @@ export const PendingRiderClosureCard = ({ group, rider, onOpenClosure }) => {
             </Typography>
           </Box>
 
-          <Stack
-            spacing={0.8}
+          <Box
             sx={{
+              width: "100%",
               maxHeight: 190,
               overflowY: "auto",
-              pr: 0.5,
+              display: "flex",
+              flexDirection: "column",
+              gap: 0.8,
             }}
           >
             {rider.deliveries.map((delivery) => (
               <Box
                 key={delivery.id}
                 sx={{
-                  p: 1.2,
+                  width: "100%",
+                  boxSizing: "border-box",
                   display: "grid",
                   gridTemplateColumns: {
                     xs: "1fr",
-                    sm: "100px 1fr 160px 130px",
+                    md: "1fr 1fr 1fr 1fr",
                   },
-                  gap: 1,
+                  gap: 1.5,
                   alignItems: "center",
                   borderRadius: 2,
                   bgcolor: "background.default",
                   border: "1px solid",
                   borderColor: "divider",
+                  p: 1.2,
                 }}
               >
-                <Box sx={{ display: "flex", gap: 1 }}>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  alignItems="center"
+                  justifyContent="center"
+                >
                   <ReceiptLongIcon color="primary" />
                   <Typography
                     sx={{
@@ -286,9 +308,9 @@ export const PendingRiderClosureCard = ({ group, rider, onOpenClosure }) => {
                       fontSize: "0.82rem",
                     }}
                   >
-                    #{delivery.orderId}
+                    ID #{delivery.orderId}
                   </Typography>
-                </Box>
+                </Stack>
 
                 <Typography
                   sx={{
@@ -296,40 +318,73 @@ export const PendingRiderClosureCard = ({ group, rider, onOpenClosure }) => {
                     color: "text.primary",
                     fontSize: "0.82rem",
                     textTransform: "uppercase",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    minWidth: 0,
                   }}
                 >
                   {delivery.clientName || "Cliente"} -{" "}
                   {delivery.deliveryAddress || "Sin dirección"}
                 </Typography>
 
-                <Chip
-                  size="small"
-                  label={delivery.paymentMethod || "SIN ESPECIFICAR"}
-                  color={
-                    delivery.paymentMethod === "EFECTIVO"
-                      ? "success"
-                      : "default"
-                  }
-                  variant="outlined"
-                  sx={{
-                    fontFamily: "fontFamily.secondary",
-                    justifySelf: "start",
-                  }}
-                />
-
-                <Typography
-                  sx={{
-                    fontFamily: "fontFamily.primary",
-                    color: "success.main",
-                    textAlign: { xs: "left", sm: "right" },
-                    fontSize: "1rem",
-                  }}
+                <Stack
+                  direction="column"
+                  alignItems={{ xs: "flex-start", md: "center" }}
                 >
-                  {formatCurrency(delivery.deliveryCost || 0)}
-                </Typography>
+                  <Chip
+                    size="small"
+                    label={delivery.paymentMethod || "SIN ESPECIFICAR"}
+                    color={
+                      delivery.paymentMethod === "EFECTIVO"
+                        ? "success"
+                        : "default"
+                    }
+                    variant="filled"
+                    sx={{ fontFamily: "fontFamily.secondary" }}
+                  />
+
+                  <Typography
+                    sx={{
+                      fontFamily: "fontFamily.primary",
+                      color: "text.primary",
+                      fontSize: "1rem",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {formatCurrency(delivery?.orderTotal || 0)}
+                  </Typography>
+                </Stack>
+
+                <Stack
+                  direction="column"
+                  alignItems={{ xs: "flex-start", md: "center" }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: "fontFamily.secondary",
+                      color: "text.primary",
+                      fontSize: "1rem",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Costo de envio
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      fontFamily: "fontFamily.primary",
+                      color: "success.main",
+                      fontSize: "1rem",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {formatCurrency(delivery.deliveryCost || 0)}
+                  </Typography>
+                </Stack>
               </Box>
             ))}
-          </Stack>
+          </Box>
         </Box>
       )}
 

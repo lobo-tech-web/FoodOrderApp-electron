@@ -185,11 +185,18 @@ export const RiderCashClosuresHistory = ({
             name="riderId"
             value={filters.riderId}
             onChange={handleFilterChange}
+            sx={{ fontFamily: "fontFamily.secondary" }}
           >
-            <MenuItem value="">Todos</MenuItem>
+            <MenuItem value="" sx={{ fontFamily: "fontFamily.primary" }}>
+              TODOS
+            </MenuItem>
 
             {riders.map((rider) => (
-              <MenuItem key={rider.id} value={rider.id}>
+              <MenuItem
+                key={rider.id}
+                value={rider.id}
+                sx={{ fontFamily: "fontFamily.primary" }}
+              >
                 {rider.name}
               </MenuItem>
             ))}
@@ -202,11 +209,23 @@ export const RiderCashClosuresHistory = ({
             name="status"
             value={filters.status}
             onChange={handleFilterChange}
+            sx={{ fontFamily: "fontFamily.secondary" }}
           >
-            <MenuItem value="">Todos</MenuItem>
-            <MenuItem value="OPEN">Abiertos</MenuItem>
-            <MenuItem value="CLOSED">Cerrados</MenuItem>
-            <MenuItem value="CANCELLED">Cancelados</MenuItem>
+            <MenuItem value="" sx={{ fontFamily: "fontFamily.primary" }}>
+              TODOS
+            </MenuItem>
+            <MenuItem value="OPEN" sx={{ fontFamily: "fontFamily.primary" }}>
+              ABIERTOS
+            </MenuItem>
+            <MenuItem value="CLOSED" sx={{ fontFamily: "fontFamily.primary" }}>
+              CERRADOS
+            </MenuItem>
+            <MenuItem
+              value="CANCELLED"
+              sx={{ fontFamily: "fontFamily.primary" }}
+            >
+              CANCELADOS
+            </MenuItem>
           </TextField>
         </Box>
       </Stack>
@@ -247,11 +266,16 @@ export const RiderCashClosuresHistory = ({
                 borderColor: "divider",
               }}
             >
-              <Stack
-                direction={{ xs: "column", md: "row" }}
-                alignItems={{ xs: "stretch", md: "center" }}
-                justifyContent="space-between"
-                spacing={1.5}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    md: "1fr 1fr 100px",
+                  },
+                  gap: 1,
+                  alignItems: "center",
+                }}
               >
                 <Stack direction="row" spacing={1.2} alignItems="center">
                   <TwoWheelerIcon sx={{ color: "primary.main" }} />
@@ -275,7 +299,7 @@ export const RiderCashClosuresHistory = ({
                       }}
                     >
                       {closure.status === "CLOSED"
-                        ? formatDate(closure.closedAt)
+                        ? `Fecha de cierre: ${formatDate(closure.closedAt)}`
                         : `Abierto desde ${formatDate(closure.startedAt || closure.createdAt)}`}
                     </Typography>
                   </Box>
@@ -284,47 +308,54 @@ export const RiderCashClosuresHistory = ({
                 <Stack
                   direction={{ xs: "column", sm: "row" }}
                   spacing={1}
-                  alignItems={{ xs: "stretch", sm: "center" }}
+                  alignItems={{ xs: "stretch", md: "center" }}
                 >
-                  <Chip
-                    icon={<PaymentsIcon />}
-                    label={`Entrega local: ${formatCurrency(
-                      closure.expectedCashToAdmin || 0,
-                    )}`}
-                    variant="outlined"
-                    sx={{
-                      fontFamily: "fontFamily.secondary",
-                      justifyContent: "flex-start",
-                    }}
-                  />
+                  <Stack direction="column" spacing={1}>
+                    <Chip
+                      icon={<PaymentsIcon />}
+                      label={`Efectivo entregado al local: ${formatCurrency(
+                        closure.expectedCashToAdmin || 0,
+                      )}`}
+                      variant="outlined"
+                      sx={{
+                        fontFamily: "fontFamily.secondary",
+                        justifyContent: "flex-start",
+                      }}
+                    />
 
-                  <Chip
-                    icon={<PriceCheckIcon />}
-                    label={`Rider: ${formatCurrency(
-                      closure.riderShouldKeep || 0,
-                    )}`}
-                    color="success"
-                    variant="outlined"
-                    sx={{
-                      fontFamily: "fontFamily.secondary",
-                      justifyContent: "flex-start",
-                    }}
-                  />
-
-                  <Chip
-                    label={closure.status === "OPEN" ? "Abierto" : "Cerrado"}
-                    color={closure.status === "OPEN" ? "success" : "warning"}
-                    sx={{ fontFamily: "fontFamily.secondary" }}
-                  />
-
+                    <Chip
+                      icon={<PriceCheckIcon />}
+                      label={`Pagado al rider: ${formatCurrency(
+                        closure.riderShouldKeep || 0,
+                      )}`}
+                      color={
+                        Number(closure.riderShouldKeep || 0) <= 0
+                          ? "error"
+                          : "success"
+                      }
+                      variant="outlined"
+                      sx={{
+                        fontFamily: "fontFamily.secondary",
+                        justifyContent: "flex-start",
+                      }}
+                    />
+                  </Stack>
+                </Stack>
+                <Stack direction="column" spacing={1}>
                   <IconButton
                     size="small"
                     onClick={() => handleViewDetail(closure.id)}
                   >
                     <VisibilityIcon />
                   </IconButton>
+
+                  <Chip
+                    label={closure.status === "OPEN" ? "ABIERTO" : "CERRADO"}
+                    color={closure.status === "OPEN" ? "success" : "default"}
+                    sx={{ fontFamily: "fontFamily.primary" }}
+                  />
                 </Stack>
-              </Stack>
+              </Box>
             </Paper>
           ))}
         </Stack>

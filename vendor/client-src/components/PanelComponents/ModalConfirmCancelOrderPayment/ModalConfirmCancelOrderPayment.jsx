@@ -13,14 +13,17 @@ import {
 } from "@mui/material";
 // Icons
 import {
+  ReceiptLong as OrderIcon,
+  Person as PersonIcon,
+  Paid as PaidIcon,
   ArrowBack as ArrowBackIcon,
   MoneyOff as MoneyOffIcon,
-  ReceiptLong as OrderIcon,
 } from "@mui/icons-material";
 // ----------------------
 
 // ---- Utils ----
 import { formatCurrency } from "@/utils/orderCalculations.js";
+import { paymentMethods } from "@/utils/components/PaymentUtils.jsx";
 // ---------------
 
 export const ModalConfirmCancelOrderPayment = ({
@@ -31,6 +34,12 @@ export const ModalConfirmCancelOrderPayment = ({
   onClose,
   onConfirm,
 }) => {
+  const findIcon = (value) => {
+    return (
+      paymentMethods.find((pay) => pay.value === value)?.icon || <PaidIcon />
+    );
+  };
+
   return (
     <Dialog
       open={open}
@@ -58,106 +67,132 @@ export const ModalConfirmCancelOrderPayment = ({
 
       <DialogContent dividers sx={{ bgcolor: "background.default" }}>
         <Stack spacing={2}>
-          <Alert severity="warning" variant="standard">
+          <Alert severity="error" variant="standard">
             <Typography
               sx={{
                 fontFamily: "fontFamily.primary",
                 textTransform: "uppercase",
               }}
             >
-              El pedido volverá a quedar pendiente de pago.
-            </Typography>
-            <Typography
-              sx={{
-                fontFamily: "fontFamily.primary",
-                textTransform: "uppercase",
-              }}
-            >
-              El movimiento de cobro será anulado y dejará de contabilizarse en
-              la caja.
+              ESTAS POR REVERTIR EL PAGO DE UN PEDIDO
             </Typography>
           </Alert>
+
+          <Typography
+            sx={{
+              fontFamily: "fontFamily.secondary",
+              color: "primary.main",
+              fontSize: "0.9rem",
+            }}
+          >
+            El pedido volverá a quedar pendiente de pago y el movimiento de
+            cobro en caja quedara anulado, revisa si es correcta la información
+            del pedido antes de continuar con el proceso.
+          </Typography>
 
           <Box
             sx={{
               p: 2,
               borderRadius: 2,
-              bgcolor: "background.paper",
+              bgcolor: "background.main",
               border: "1px solid",
               borderColor: "divider",
             }}
           >
-            <Stack spacing={1}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <OrderIcon color="primary" />
-
-                <Typography sx={{ fontFamily: "fontFamily.primary" }}>
-                  PEDIDO #{displayID || order?.id}
-                </Typography>
-              </Stack>
-
-              <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction="row" justifyContent="space-around" spacing={1}>
+              <Stack direction="column" spacing={1} alignItems="center">
                 <Typography
                   sx={{
                     fontFamily: "fontFamily.secondary",
-                    color: "primary.main",
-                    borderBottom: "1px solid",
+                    color: "text.secondary",
+                    fontSize: "0.85rem",
                   }}
                 >
-                  Cliente:
+                  PEDIDO
                 </Typography>
 
-                <Typography
-                  sx={{
-                    fontFamily: "fontFamily.primary",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {order?.clientName || "SIN ESPECIFICAR"}
-                </Typography>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <OrderIcon />
+
+                  <Typography sx={{ fontFamily: "fontFamily.primary" }}>
+                    #{displayID || order?.id}
+                  </Typography>
+                </Stack>
               </Stack>
 
-              <Stack direction="row" spacing={1} alignItems="center">
+              <Stack direction="column" spacing={1} alignItems="center">
                 <Typography
                   sx={{
                     fontFamily: "fontFamily.secondary",
-                    color: "primary.main",
-                    borderBottom: "1px solid",
+                    color: "text.secondary",
+                    fontSize: "0.85rem",
                   }}
                 >
-                  Método de pago:
+                  CLIENTE
                 </Typography>
 
-                <Typography
-                  sx={{
-                    fontFamily: "fontFamily.primary",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {order?.paymentMethod || "SIN ESPECIFICAR"}
-                </Typography>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <PersonIcon />
+
+                  <Typography
+                    sx={{
+                      fontFamily: "fontFamily.primary",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {order?.clientName || "SIN ESPECIFICAR"}
+                  </Typography>
+                </Stack>
               </Stack>
 
-              <Stack direction="row" spacing={1} alignItems="center">
+              <Stack direction="column" spacing={1} alignItems="center">
                 <Typography
                   sx={{
                     fontFamily: "fontFamily.secondary",
-                    color: "primary.main",
-                    borderBottom: "1px solid",
+                    color: "text.secondary",
+                    fontSize: "0.85rem",
                   }}
                 >
-                  Total del pedido:
+                  MÉTODO DE PAGO:
                 </Typography>
 
+                <Stack direction="row" spacing={1} alignItems="center">
+                  {findIcon(order?.paymentMethod)}
+                  <Typography
+                    sx={{
+                      fontFamily: "fontFamily.primary",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {order?.paymentMethod || "SIN ESPECIFICAR"}
+                  </Typography>
+                </Stack>
+              </Stack>
+
+              <Stack direction="column" spacing={1} alignItems="center">
                 <Typography
                   sx={{
-                    fontFamily: "fontFamily.primary",
-                    color: "text.primary",
-                    fontSize: "1.1rem",
+                    fontFamily: "fontFamily.secondary",
+                    color: "text.secondary",
+                    fontSize: "0.85rem",
                   }}
                 >
-                  {formatCurrency(order?.totalAmount || 0)}
+                  TOTAL DEL PEDIDO:
                 </Typography>
+
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <PaidIcon />
+
+                  <Typography
+                    sx={{
+                      fontFamily: "fontFamily.primary",
+                      color: "text.primary",
+                      fontSize: "1.1rem",
+                    }}
+                  >
+                    {formatCurrency(order?.totalAmount || 0)}
+                  </Typography>
+                </Stack>
               </Stack>
             </Stack>
           </Box>

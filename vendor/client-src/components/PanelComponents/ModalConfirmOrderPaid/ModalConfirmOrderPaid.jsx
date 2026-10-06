@@ -168,7 +168,7 @@ export const ModalConfirmOrderPaid = ({
               mt: 2,
               p: 1.5,
               borderRadius: 2,
-              bgcolor: "background.default",
+              bgcolor: "background.main",
               border: "1px solid",
               borderColor: "divider",
             }}
@@ -227,7 +227,7 @@ export const ModalConfirmOrderPaid = ({
                   sx={{
                     fontFamily: "fontFamily.primary",
                     color: "text.primary",
-                    fontWeight: 800,
+                    textTransform: "uppercase",
                   }}
                 >
                   {order.clientName || "SIN ESPECIFICAR"}
@@ -285,6 +285,7 @@ export const ModalConfirmOrderPaid = ({
               </Typography>
               <Box sx={{ display: "flex", gap: 1 }}>
                 <PaidIcon color="success" />
+
                 <Typography
                   sx={{
                     fontFamily: "fontFamily.primary",
@@ -389,11 +390,19 @@ export const ModalConfirmOrderPaid = ({
               AGREGAR MÉTODO
             </Button>
 
-            <Box sx={{ textAlign: "center" }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                borderRadius: 3,
+                textAlign: "center",
+              }}
+            >
               <Typography
                 sx={{
                   fontFamily: "fontFamily.primary",
                   color: validSplit ? "success.main" : "error.main",
+                  fontSize: "1rem",
                 }}
               >
                 INGRESADO:{" "}
@@ -401,7 +410,14 @@ export const ModalConfirmOrderPaid = ({
                   enteredCents.reduce((sum, amount) => sum + (amount || 0), 0) /
                     100,
                 )}
-                {" · "}
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: "fontFamily.primary",
+                  color: "text.primary",
+                  fontSize: "1.1rem",
+                }}
+              >
                 TOTAL: {formatCurrency(order?.totalAmount)}
               </Typography>
             </Box>

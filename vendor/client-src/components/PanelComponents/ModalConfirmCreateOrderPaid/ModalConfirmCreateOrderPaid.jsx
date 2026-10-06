@@ -12,15 +12,17 @@ import {
 } from "@mui/material";
 // Icons
 import {
-  ArrowBack as ArrowBackIcon,
-  MoneyOff as MoneyOffIcon,
-  Paid as PaidIcon,
+  Person as PersonIcon,
   ReceiptLong as OrderIcon,
+  Paid as PaidIcon,
+  MoneyOff as MoneyOffIcon,
+  ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
 // ----------------------
 
 // ---- Utils ----
 import { formatCurrency } from "@/utils/orderCalculations.js";
+import { paymentMethods } from "@/utils/components/PaymentUtils.jsx";
 // ---------------
 
 export const ModalConfirmCreateOrderPaid = ({
@@ -33,6 +35,12 @@ export const ModalConfirmCreateOrderPaid = ({
   onCreatePending,
   onContinueToPayment,
 }) => {
+  const findIcon = (value) => {
+    return (
+      paymentMethods.find((pay) => pay.value === value)?.icon || <PaidIcon />
+    );
+  };
+
   return (
     <Dialog
       open={open}
@@ -84,22 +92,23 @@ export const ModalConfirmCreateOrderPaid = ({
             sx={{
               p: 2,
               borderRadius: 2,
-              bgcolor: "background.paper",
+              bgcolor: "background.main",
               border: "1px solid",
               borderColor: "divider",
             }}
           >
             <Stack spacing={1}>
-              <Box sx={{ display: "flex", gap: 1 }}>
+              <Stack direction="row" alignItems="center" spacing={1}>
                 <Typography
                   sx={{
                     fontFamily: "fontFamily.secondary",
-                    color: "primary.main",
-                    borderBottom: "1px solid",
+                    color: "text.secondary",
                   }}
                 >
                   Cliente:
                 </Typography>
+
+                <PersonIcon fontSize="medium" />
                 <Typography
                   sx={{
                     fontFamily: "fontFamily.primary",
@@ -108,14 +117,13 @@ export const ModalConfirmCreateOrderPaid = ({
                 >
                   {order?.clientName || "CLIENTE SIN ESPECIFICAR"}
                 </Typography>
-              </Box>
+              </Stack>
 
-              <Box sx={{ display: "flex", gap: 1 }}>
+              <Stack direction="row" alignItems="center" spacing={1}>
                 <Typography
                   sx={{
                     fontFamily: "fontFamily.secondary",
-                    color: "primary.main",
-                    borderBottom: "1px solid",
+                    color: "text.secondary",
                   }}
                 >
                   Estado del pedido:
@@ -128,19 +136,19 @@ export const ModalConfirmCreateOrderPaid = ({
                 >
                   {order?.status || "SIN ESPECIFICAR"}
                 </Typography>
-              </Box>
+              </Stack>
 
-              <Box sx={{ display: "flex", gap: 1 }}>
+              <Stack direction="row" alignItems="center" spacing={1}>
                 <Typography
                   sx={{
                     fontFamily: "fontFamily.secondary",
-                    color: "primary.main",
-                    borderBottom: "1px solid",
+                    color: "text.secondary",
                   }}
                 >
                   Método de pago:
                 </Typography>
 
+                {findIcon(order?.paymentMethod)}
                 <Typography
                   sx={{
                     fontFamily: "fontFamily.primary",
@@ -149,29 +157,29 @@ export const ModalConfirmCreateOrderPaid = ({
                 >
                   {order?.paymentMethod || "SIN ESPECIFICAR"}
                 </Typography>
-              </Box>
+              </Stack>
 
-              <Box sx={{ display: "flex", gap: 1 }}>
+              <Stack direction="row" alignItems="center" spacing={1}>
                 <Typography
                   sx={{
                     fontFamily: "fontFamily.secondary",
-                    color: "primary.main",
-                    borderBottom: "1px solid",
+                    color: "text.secondary",
                   }}
                 >
                   Total a pagar:
                 </Typography>
 
+                <PaidIcon color="success" />
                 <Typography
                   sx={{
                     fontFamily: "fontFamily.primary",
-                    color: "success.main",
+                    color: "text.primary",
                     fontSize: "1.1rem",
                   }}
                 >
                   {formatCurrency(order?.totalAmount || 0)}
                 </Typography>
-              </Box>
+              </Stack>
             </Stack>
           </Box>
         </Stack>
