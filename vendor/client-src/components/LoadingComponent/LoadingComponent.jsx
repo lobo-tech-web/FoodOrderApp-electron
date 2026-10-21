@@ -8,7 +8,7 @@ import {
 // --------------------
 
 // ---- CONTEXT ----
-import { useLobotechThemeContext } from '@/context/ThemeContext.jsx';
+import { useLobotechThemeContext } from '@/context/lobotechThemeContext.js';
 // ---------------
 
 export const LoadingComponent = ({ message = 'Cargando...', theme }) => {

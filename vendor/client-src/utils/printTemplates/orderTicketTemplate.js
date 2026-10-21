@@ -82,8 +82,14 @@ const getDeliveryCost = (order = {}) =>
   cleanMoneyValue(order.deliverycost).toNumber();
 
 const getTotalAmount = (order = {}) => {
-  const rawTotal = cleanMoneyValue(order.totalAmount).toNumber();
-  if (rawTotal > 0) return rawTotal;
+  const hasStoredTotal =
+    order.totalAmount !== undefined &&
+    order.totalAmount !== null &&
+    String(order.totalAmount).trim() !== "";
+
+  if (hasStoredTotal) {
+    return cleanMoneyValue(order.totalAmount).toNumber();
+  }
 
   return (
     getProductsSubtotal(order) +
@@ -183,19 +189,6 @@ const getPointsHtml = (order = {}) => {
       )}</span></div>`
       : ''
     }
-    </section>
-  `;
-};
-
-const getCommentHtml = (order = {}) => {
-  const comment = String(order.comentary || order.comment || '').trim();
-
-  if (!comment || comment === 'SIN COMENTARIOS') return '';
-
-  return `
-    <section class="ticket-section">
-      <h2>COMENTARIOS</h2>
-      <p class="ticket-comment">${escapeHtml(normalizeUpper(comment))}</p>
     </section>
   `;
 };

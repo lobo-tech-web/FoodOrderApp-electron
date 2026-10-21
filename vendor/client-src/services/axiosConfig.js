@@ -2,13 +2,19 @@ import axios from "axios";
 
 const mainURL = import.meta.env.VITE_API_URL;
 
-export const api = axios.create({
-    baseURL: mainURL,
-})
+const redirectToLogin = () => {
+    if (window.electronAPI) {
+        const loginURL = new URL(window.location.href);
+        loginURL.hash = "/";
+        window.location.replace(loginURL.toString());
+        return;
+    }
 
-export const apiWithToken = axios.create({
-    baseURL: mainURL,
-});
+    window.location.replace("/");
+};
+
+export const api = axios.create({ baseURL: mainURL })
+export const apiWithToken = axios.create({ baseURL: mainURL });
 
 // DECODIFICADOR DE JWT
 import { jwtDecode } from 'jwt-decode';
@@ -33,7 +39,7 @@ apiWithToken.interceptors.request.use(
         if (isTokenExpired()) {
             window.localStorage.removeItem('token');
             window.localStorage.removeItem('user');
-            window.location.href = '/';
+            redirectToLogin();
             return Promise.reject(new Error("Sesión expirada, por favor inicie sesión nuevamente"));
         }
 
@@ -52,14 +58,14 @@ apiWithToken.interceptors.response.use(
     async (error) => {
         const { config, response } = error;
 
-        if (response?.status === 401 && !config._retry) {
+        if (response?.status === 401 && config && !config._retry) {
             // Si el token ha expirado o es inválido
             config._retry = true; // Evita bucles infinitos
 
             // Cerrar sesión y redirigir a la página principal
             window.localStorage.removeItem('token');
             window.localStorage.removeItem('user');
-            window.location.href = '/';  // Redirige a la página principal
+            redirectToLogin();
 
             return Promise.reject(error);
         }

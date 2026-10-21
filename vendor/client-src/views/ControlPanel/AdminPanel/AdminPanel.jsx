@@ -37,7 +37,7 @@ import { CashRegisterHistoryPanel } from "../StaffPanel/CashRegisterHistoryPanel
 // ---- CONTEXT ----
 import { useOrders } from "@/context/Orders.jsx";
 import { useProducts } from "@/context/Products.jsx";
-import { useLobotechThemeContext } from "@/context/ThemeContext.jsx";
+import { useLobotechThemeContext } from "@/context/lobotechThemeContext.js";
 import { useUser } from "@/context/Users.jsx";
 // <----------------
 

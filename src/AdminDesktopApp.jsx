@@ -1,20 +1,8 @@
-import { PrinterConfigModal } from "@/components/PanelComponents/ModalEditOrder/PrinterConfig/PrinterConfigModal.jsx";
-import { useUser } from "@/context/Users.jsx";
-import { AdminPanel } from "@/views/ControlPanel/AdminPanel/AdminPanel.jsx";
-import { DevPanel } from "@/views/ControlPanel/DevPanel/DevPanel.jsx";
-import { StaffPanel } from "@/views/ControlPanel/StaffPanel/StaffPanel.jsx";
-import { useOrders } from "@/context/Orders.jsx";
-import {
-  getOfflineStatusSnapshot,
-  setBackendReachable,
-  setForcedOfflineMode,
-  subscribeOfflineStatus,
-} from "@/utils/offlineStorage.js";
-import CloudDoneIcon from "@mui/icons-material/CloudDone";
-import CloudOffIcon from "@mui/icons-material/CloudOff";
-import SyncIcon from "@mui/icons-material/Sync";
-import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+
+// ---- Material UI ----
 import {
   Alert,
   Box,
@@ -26,13 +14,45 @@ import {
   Snackbar,
   Typography,
 } from "@mui/material";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+// Icons
+import CloudDoneIcon from "@mui/icons-material/CloudDone";
+import CloudOffIcon from "@mui/icons-material/CloudOff";
+import SyncIcon from "@mui/icons-material/Sync";
+import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
+// ---------------------
+
+// ---- Components ----
+import { PrinterConfigModal } from "@/components/PanelComponents/ModalEditOrder/PrinterConfig/PrinterConfigModal.jsx";
 import { AdminLogin } from "./components/AdminLogin/AdminLogin.jsx";
 import { LocalOrders } from "./components/LocalOrders/LocalOrders.jsx";
-import { clearDesktopRuntimeSession } from "./utils/desktopSessionCleanup.js";
+// --------------------
+
+// ---- Panels ----
+import { AdminPanel } from "@/views/ControlPanel/AdminPanel/AdminPanel.jsx";
+import { DevPanel } from "@/views/ControlPanel/DevPanel/DevPanel.jsx";
+import { StaffPanel } from "@/views/ControlPanel/StaffPanel/StaffPanel.jsx";
+import { TotemDevicesPanel } from "./components/TotemDevicesPanel/TotemDevicesPanel.jsx";
+// ----------------
+
+// ---- Context ----
+import { useUser } from "@/context/Users.jsx";
+import { useOrders } from "@/context/Orders.jsx";
+// -----------------
+
+// ---- Services ----
 import { checkBackendHealthService } from "@/services/health.js";
 import { refreshDesktopTokenService } from "@/services/users.js";
+// ------------------
+
+// ---- Utils ----
+import {
+  getOfflineStatusSnapshot,
+  setBackendReachable,
+  setForcedOfflineMode,
+  subscribeOfflineStatus,
+} from "@/utils/offlineStorage.js";
+import { clearDesktopRuntimeSession } from "./utils/desktopSessionCleanup.js";
+// ---------------
 
 const DESKTOP_TOKEN_REFRESH_STORAGE_KEY = "lobotech:desktop-token:last-refresh";
 const DESKTOP_TOKEN_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000;
@@ -500,6 +520,7 @@ export const AdminDesktopApp = () => {
         <Route path="/dev-control-panel" element={<DevPanel />} />
         <Route path="/staff-panel" element={<StaffPanel />} />
         <Route path="/local-orders" element={<LocalOrders />} />
+        <Route path="/totem-devices" element={<TotemDevicesPanel />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <PrinterConfigModal

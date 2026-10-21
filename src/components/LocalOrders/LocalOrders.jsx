@@ -42,7 +42,7 @@ import { useAlert } from "@/hooks/Alert.jsx";
 // ---------------
 
 // ---- Context ----
-import { useLobotechThemeContext } from "@/context/ThemeContext.jsx";
+import { useLobotechThemeContext } from "@/context/lobotechThemeContext.js";
 import { useProducts } from "@/context/Products.jsx";
 import { useUser } from "@/context/Users.jsx";
 import { useOrders } from "@/context/Orders.jsx";
@@ -269,7 +269,6 @@ export const LocalOrders = () => {
       ...INITIAL_CHECKOUT,
     });
     resetDiscount();
-
     setShowCreateConfirmation(false);
     setShowPaymentConfirmation(false);
     setShowDiscountModal(false);

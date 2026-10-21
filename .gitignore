@@ -1,5 +1,7 @@
 node_modules
 dist
+dist-main
+test-artifacts
 release
 build/*
 !build/icon.ico

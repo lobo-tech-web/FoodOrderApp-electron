@@ -39,7 +39,7 @@ import { useAlert } from "@/hooks/Alert.jsx";
 // ---------------
 
 // ---- CONTEXT ----
-import { useLobotechThemeContext } from "@/context/ThemeContext.jsx";
+import { useLobotechThemeContext } from "@/context/lobotechThemeContext.js";
 // ---------------
 
 // ---- UTILS ----

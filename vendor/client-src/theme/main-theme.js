@@ -47,7 +47,7 @@ export const lobotechAppTheme = createTheme({
     fontFamily: {
       primary: 'main-app-oswald',
       secondary: 'main-app-text',
-      terciary: 'main-app-oswald',
+      terciary: '"Roboto", Arial, sans-serif',
     }
   }
 });
@@ -113,6 +113,48 @@ export const lobotechAppThemeLight = createTheme({
     },
   },
 })
+
+export const lobotechAppThemeDarkBlue = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#f5a623',
+      light: "#f8e71c",
+      dark: '#212529',
+    },
+    secondary: {
+      main: "#b8b6ba",
+      dark: "#9a989c",
+    },
+    background: {
+      main: '#171E26',
+      default: '#2B3745',
+      paper: "#222C38",
+      light: "#edede9",
+    },
+    text: {
+      primary: "#F2F5F8",
+      secondary: '#ABB8C8',
+      terciary: '#000',
+    },
+    divider: '#3A4859',
+    loading: { main: '#f5a623', background: '#171E26' },
+    error: {
+      main: "#dc3545",
+    },
+    success: {
+      main: "#28a745",
+    },
+    navbarmenu: { background: '#171E26', text: '#F2F5F8' },
+  },
+  typography: {
+    fontFamily: {
+      primary: 'main-app-oswald',
+      secondary: 'main-app-text',
+      terciary: '"Roboto", Arial, sans-serif',
+    }
+  }
+});
 
 // THEME PARA LOS MODALES
 export const mainAppModalTheme = createTheme({

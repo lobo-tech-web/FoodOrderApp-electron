@@ -1,8 +1,11 @@
 const http = require('http');
+const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 
 const root = path.resolve(__dirname, '..');
+const envFile = path.join(root, '.env');
+if (fs.existsSync(envFile)) process.loadEnvFile(envFile);
 const viteBin = path.resolve(root, 'node_modules', 'vite', 'bin', 'vite.js');
 const electronBin = path.resolve(
   root,
@@ -80,7 +83,13 @@ spawnChild(process.execPath, [
   '--strictPort',
 ]);
 
-waitForServer(devServerUrl)
+const buildTicket = () => new Promise((resolve, reject) => {
+  const child = spawn(process.execPath, [viteBin, 'build', '--config', 'vite.ticket.config.mjs'], { cwd: root, stdio: 'inherit', shell: false });
+  child.on('error', reject);
+  child.on('exit', (code) => code === 0 ? resolve() : reject(new Error('No se pudo preparar el ticket del tótem')));
+});
+
+Promise.all([waitForServer(devServerUrl), buildTicket()])
   .then(() => {
     spawnChild(process.execPath, [electronBin, '.'], {
       ELECTRON_RENDERER_URL: devServerUrl,

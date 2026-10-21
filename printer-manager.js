@@ -93,8 +93,21 @@ const createPrinterManager = (app, BrowserWindow, options = {}) => {
 
       const printers = await listPrinters(printWindow.webContents);
       const printer = printers.find((item) => item.name === deviceName);
+
       if (!printers.length) {
         return { printed: false, reason: 'no-printer' };
+      }
+
+      const requireConfiguredPrinter =
+        typeof options.requireConfiguredPrinter === "function" &&
+        options.requireConfiguredPrinter();
+
+      if (requireConfiguredPrinter && !printer) {
+        return {
+          printed: false,
+          reason: "configured-printer-unavailable",
+          message: "La impresora del tótem no está configurada o no está disponible",
+        };
       }
 
       await new Promise((resolve, reject) => {

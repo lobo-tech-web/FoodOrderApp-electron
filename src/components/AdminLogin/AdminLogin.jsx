@@ -34,7 +34,7 @@ import logo from "@/assets/main/logo-lobotech-oj.png";
 // --------------
 
 // ---- Context ----
-import { useLobotechThemeContext } from "@/context/ThemeContext.jsx";
+import { useLobotechThemeContext } from "@/context/lobotechThemeContext.js";
 import { useUser } from "@/context/Users.jsx";
 // -----------------
 

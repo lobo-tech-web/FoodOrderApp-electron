@@ -28,7 +28,7 @@ import {
 import { useThermalPrinter } from "./useThermalPrinter.js";
 
 // ---- Context ----
-import { useLobotechThemeContext } from "@/context/ThemeContext.jsx";
+import { useLobotechThemeContext } from "@/context/lobotechThemeContext.js";
 // -----------------
 
 const EMPTY_SELECTION = { ticket: "", kitchen: "" };

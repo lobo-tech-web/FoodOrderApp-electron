@@ -22,7 +22,7 @@ import { useAlert } from "@/hooks/Alert.jsx";
 // ---------------
 
 // ---- Context ----
-import { useLobotechThemeContext } from "@/context/ThemeContext.jsx";
+import { useLobotechThemeContext } from "@/context/lobotechThemeContext.js";
 import { useUser } from "@/context/Users.jsx";
 import { useProducts } from "@/context/Products.jsx";
 import { useOrders } from "@/context/Orders.jsx";

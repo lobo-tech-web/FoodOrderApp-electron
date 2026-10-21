@@ -4,7 +4,10 @@ const setMainMenu = (
   mainWindow,
   isDevelopment = false,
   onCheckForUpdates = () => { },
-  offlineState = {}
+  offlineState = {},
+  onStartTotem = () => { },
+  totemThemeMenu = [],
+  totemBackgroundMenu = [],
 ) => {
   const forcedOffline = Boolean(offlineState.forcedOffline);
   const backendReachable = offlineState.backendReachable !== false;
@@ -33,6 +36,28 @@ const setMainMenu = (
       ],
     },
     {
+      label: "Tótem",
+      submenu: [
+        {
+          label: "Tema del tótem",
+          submenu: totemThemeMenu,
+        },
+        {
+          label: "Fondo del tótem",
+          submenu: totemBackgroundMenu,
+        },
+        {
+          label: "Gestión del tótem",
+          click: () => mainWindow.webContents.send("navigate", "/totem-devices"),
+        },
+        {
+          label: "Iniciar tótem",
+          click: onStartTotem,
+        },
+
+      ],
+    },
+    {
       label: 'Configuracion',
       submenu: [
         {
@@ -46,8 +71,7 @@ const setMainMenu = (
           type: 'checkbox',
           checked: forcedOffline,
           accelerator: 'CmdOrCtrl+Shift+O',
-          click: (menuItem) =>
-            mainWindow.webContents.send('offline-mode:toggle', menuItem.checked),
+          click: (menuItem) => mainWindow.webContents.send('offline-mode:toggle', menuItem.checked),
         },
       ],
     },
@@ -100,6 +124,4 @@ const setMainMenu = (
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 };
 
-module.exports = {
-  setMainMenu,
-};
+module.exports = { setMainMenu };

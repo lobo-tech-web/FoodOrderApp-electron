@@ -1,113 +1,84 @@
-// ---- MATERIAL UI ----
-import { Box, Switch, Tooltip, Typography } from "@mui/material";
-// ICONS
+// ---- Material UI ----
+import { Box, MenuItem, Select, Typography } from "@mui/material";
+// Icons
 import {
   DarkMode as DarkModeIcon,
   LightMode as LightModeIcon,
 } from "@mui/icons-material";
 // ---------------------
 
-// ---- CONTEXT ----
-import { useLobotechThemeContext } from "@/context/ThemeContext.jsx";
+// ---- Context ----
+import { useLobotechThemeContext } from "@/context/lobotechThemeContext.js";
+import { availableThemeOptions } from "@/theme/themeRegistry.js";
 // -----------------
 
 export const ThemeToggle = ({ size = "medium", showLabel = false }) => {
-  const { currentTheme, toggleTheme } = useLobotechThemeContext();
-
-  const isDark = currentTheme === "dark";
+  const { currentTheme, setTheme, lobotechTheme } = useLobotechThemeContext();
   const isSmall = size === "small";
+  const ThemeIcon =
+    lobotechTheme.palette.mode === "light" ? LightModeIcon : DarkModeIcon;
 
   return (
-    <Tooltip
-      title={isDark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
-      arrow
-      placement="bottom"
-    >
-      <Box
-        component="label"
-        role="group"
-        aria-label="Selector de tema"
-        sx={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 0.6,
-          px: isSmall ? 1 : 1.25,
-          py: isSmall ? 0.35 : 0.5,
-          borderRadius: 2.5,
-          border: "1px solid",
-          borderColor: "divider",
-          bgcolor: "background.default",
-          cursor: "pointer",
-          userSelect: "none",
-          transition: "background-color 0.2s ease, border-color 0.2s ease",
-          "&:hover": {
-            borderColor: "primary.main",
-            bgcolor: "action.hover",
-          },
-        }}
-      >
-        {/* CLARO */}
-
-        <LightModeIcon
+    <Box sx={{ width: "100%", maxWidth: 200, minWidth: 0 }}>
+      {showLabel && (
+        <Typography
+          component="div"
           sx={{
-            fontSize: isSmall ? 17 : 20,
-            color: !isDark ? "warning.main" : "text.disabled",
-            opacity: !isDark ? 1 : 0.55,
-            transition: "all 0.2s ease",
+            fontFamily: "fontFamily.secondary",
+            mb: 0.5,
+            fontSize: 12,
+            color: "text.secondary",
           }}
-        />
+        >
+          Tema de la aplicación
+        </Typography>
+      )}
 
-        {/* SWITCH */}
-
-        <Switch
-          checked={isDark}
-          onChange={() => toggleTheme()}
-          size={size}
-          color="primary"
-          inputProps={{
-            "aria-label": isDark
-              ? "Cambiar a tema claro"
-              : "Cambiar a tema oscuro",
-          }}
-          sx={{
-            mx: -0.3,
-            "& .MuiSwitch-thumb": {
-              boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
-            },
-          }}
-        />
-
-        {/* OSCURO */}
-
-        <DarkModeIcon
-          sx={{
-            fontSize: isSmall ? 17 : 20,
-            color: isDark ? "primary.main" : "text.disabled",
-            opacity: isDark ? 1 : 0.55,
-            transition: "all 0.2s ease",
-          }}
-        />
-
-        {/* LABEL */}
-
-        {showLabel && (
-          <Typography
-            component="span"
+      <Select
+        fullWidth
+        size={size}
+        value={currentTheme}
+        onChange={(event) => setTheme(event.target.value)}
+        inputProps={{ "aria-label": "Tema de la aplicación" }}
+        renderValue={(value) => (
+          <Box
             sx={{
-              ml: 0.4,
-              minWidth: isSmall ? 52 : 62,
-              fontFamily: "fontFamily.primary",
-              fontWeight: 700,
-              fontSize: isSmall ? 10 : 11,
-              letterSpacing: "0.04em",
-              color: "text.primary",
-              lineHeight: 1,
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
             }}
           >
-            {isDark ? "OSCURO" : "CLARO"}
-          </Typography>
+            <ThemeIcon
+              sx={{ fontSize: isSmall ? 18 : 20, color: "primary.main" }}
+            />
+            <Typography
+              sx={{
+                fontFamily: "fontFamily.secondary",
+                fontSize: { xs: "0.8rem", md: "0.85rem" },
+              }}
+            >
+              {
+                availableThemeOptions.find((option) => option.value === value)
+                  ?.label
+              }
+            </Typography>
+          </Box>
         )}
-      </Box>
-    </Tooltip>
+        sx={{ bgcolor: "background.default", borderRadius: 2 }}
+      >
+        {availableThemeOptions.map(({ value, label }) => (
+          <MenuItem
+            key={value}
+            value={value}
+            sx={{
+              fontFamily: "fontFamily.secondary",
+              fontSize: { xs: "0.7rem", md: "0.8rem" },
+            }}
+          >
+            {label}
+          </MenuItem>
+        ))}
+      </Select>
+    </Box>
   );
 };
