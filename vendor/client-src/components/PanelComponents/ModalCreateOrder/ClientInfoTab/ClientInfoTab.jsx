@@ -1,3 +1,4 @@
+// ---- Material UI ----
 import {
   Box,
   Button,
@@ -16,6 +17,7 @@ import {
   LocationOnOutlined as LocationIcon,
   Person as PersonIcon,
 } from "@mui/icons-material";
+// ---------------------
 
 // ---- SHARED ----
 import { SectionHeading } from "../shared/SectionHeading.jsx";
@@ -88,6 +90,7 @@ export const ClientInfoTab = ({
               fontFamily: "fontFamily.primary",
               color: "primary.main",
               fontSize: 17,
+              borderBottom: "1px solid",
               mb: 1.5,
             }}
           >
@@ -99,6 +102,7 @@ export const ClientInfoTab = ({
               <FieldLabel icon={<PersonOutlineIcon fontSize="small" />}>
                 NOMBRE DEL CLIENTE
               </FieldLabel>
+
               <TextField
                 fullWidth
                 name="clientName"
@@ -106,7 +110,6 @@ export const ClientInfoTab = ({
                 value={order.clientName}
                 onChange={handleInputChange}
                 sx={fieldStyles}
-                required
               />
             </Box>
 
@@ -114,6 +117,7 @@ export const ClientInfoTab = ({
               <FieldLabel icon={<EmailIcon fontSize="small" />}>
                 EMAIL
               </FieldLabel>
+
               <Box
                 sx={{
                   display: "grid",
@@ -183,13 +187,14 @@ export const ClientInfoTab = ({
         <Paper elevation={0} sx={innerCardStyle}>
           <Typography
             sx={{
-              fontFamily: "fontFamily.primary",
-              color: "primary.main",
-              fontSize: 17,
-              mb: 1.5,
               display: "flex",
               alignItems: "center",
               gap: 0.8,
+              fontFamily: "fontFamily.primary",
+              color: "primary.main",
+              fontSize: 17,
+              borderBottom: "1px solid",
+              mb: 1.5,
             }}
           >
             <LocationIcon fontSize="small" />

@@ -444,7 +444,7 @@ export const ModalRiderCashClosure = ({
                   lineHeight: 1,
                 }}
               >
-                {isDraftMode ? "EDITAR BORRADOR DEL TURNO" : "CIERRE DE TURNO"}
+                {isDraftMode ? "BORRADOR DEL TURNO" : "CIERRE DE TURNO"}
               </Typography>
 
               <Chip
@@ -1137,11 +1137,11 @@ export const ModalRiderCashClosure = ({
           sx={{ width: "100%" }}
         >
           <Button
-            onClick={onClose}
-            disabled={saving}
-            variant="outlined"
-            color="inherit"
             startIcon={<CloseIcon />}
+            color="inherit"
+            variant="outlined"
+            disabled={saving}
+            onClick={onClose}
             sx={{ fontFamily: "fontFamily.primary" }}
           >
             Cancelar
@@ -1149,11 +1149,11 @@ export const ModalRiderCashClosure = ({
 
           {canEditDraft && (
             <Button
-              onClick={handleSaveDraft}
-              disabled={saving || loading}
-              variant="outlined"
-              color="primary"
               startIcon={<SaveIcon />}
+              color="primary"
+              variant="contained"
+              disabled={saving || loading}
+              onClick={handleSaveDraft}
               sx={{ fontFamily: "fontFamily.primary" }}
             >
               Guardar Borrador
@@ -1162,11 +1162,11 @@ export const ModalRiderCashClosure = ({
 
           {canFinalize && (
             <Button
-              onClick={handleAskConfirmClose}
-              disabled={saving || loading || deliveries.length === 0}
-              variant="contained"
-              color="success"
               startIcon={<CheckCircleIcon />}
+              color="success"
+              variant="contained"
+              disabled={saving || loading || deliveries.length === 0}
+              onClick={handleAskConfirmClose}
               sx={{
                 fontFamily: "fontFamily.primary",
                 minWidth: 210,

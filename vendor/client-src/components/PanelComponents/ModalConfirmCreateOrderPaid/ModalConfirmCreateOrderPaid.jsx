@@ -9,14 +9,15 @@ import {
   DialogTitle,
   Stack,
   Typography,
+  IconButton,
 } from "@mui/material";
 // Icons
 import {
+  Close as CloseIcon,
   Person as PersonIcon,
   ReceiptLong as OrderIcon,
   Paid as PaidIcon,
   MoneyOff as MoneyOffIcon,
-  ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
 // ----------------------
 
@@ -57,13 +58,32 @@ export const ModalConfirmCreateOrderPaid = ({
       }}
     >
       <DialogTitle sx={{ bgcolor: "background.main" }}>
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          <OrderIcon color="primary" />
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 2,
+          }}
+        >
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <OrderIcon color="primary" />
 
-          <Typography variant="h6" sx={{ fontFamily: "fontFamily.primary" }}>
-            CONFIRMAR PEDIDO
-          </Typography>
-        </Stack>
+            <Typography variant="h6" sx={{ fontFamily: "fontFamily.primary" }}>
+              CONFIRMAR PEDIDO
+            </Typography>
+          </Stack>
+
+          <IconButton
+            color="primary"
+            size="small"
+            disabled={loading}
+            onClick={onCancel}
+            sx={{ flexShrink: 0 }}
+          >
+            <CloseIcon fontSize="medium" />
+          </IconButton>
+        </Box>
       </DialogTitle>
 
       <DialogContent dividers sx={{ bgcolor: "background.default" }}>
@@ -192,18 +212,16 @@ export const ModalConfirmCreateOrderPaid = ({
           flexDirection: "column",
           alignItems: "stretch",
           gap: 1,
-          "& > :not(style) ~ :not(style)": {
-            marginLeft: 0,
-          },
+          "& > :not(style) ~ :not(style)": { marginLeft: 0 },
         }}
       >
         <Button
           startIcon={<PaidIcon />}
-          variant="contained"
           color="success"
+          variant="contained"
           disabled={loading || !canMarkPaid}
           onClick={onContinueToPayment}
-          sx={{ fontFamily: "fontFamily.primary" }}
+          sx={{ fontFamily: "fontFamily.primary", p: 1.5 }}
         >
           {paymentRequired ? "CONTINUAR AL PAGO" : "COBRAR PEDIDO"}
         </Button>
@@ -211,26 +229,15 @@ export const ModalConfirmCreateOrderPaid = ({
         {!paymentRequired && (
           <Button
             startIcon={<MoneyOffIcon />}
-            variant="contained"
             color="warning"
+            variant="contained"
             disabled={loading}
             onClick={onCreatePending}
-            sx={{ fontFamily: "fontFamily.primary" }}
+            sx={{ fontFamily: "fontFamily.primary", p: 1.5 }}
           >
             CREAR SIN COBRAR
           </Button>
         )}
-
-        <Button
-          startIcon={<ArrowBackIcon />}
-          variant="outlined"
-          onClick={onCancel}
-          disabled={loading}
-          color="inherit"
-          sx={{ fontFamily: "fontFamily.primary" }}
-        >
-          VOLVER AL PEDIDO
-        </Button>
       </DialogActions>
     </Dialog>
   );

@@ -252,33 +252,45 @@ export const OrderProvider = ({ children }) => {
   const [orderState, dispatch] = useReducer(orderReducer, initialState);
 
   const getAllOrders = useCallback(
-    async (userId = null, restaurantId = null) => {
+    async (userId = null, restaurantId = null, { updateState = true } = {}) => {
       try {
         if (isForcedOfflineMode()) {
           const offlineOrders = mergeOrdersWithOffline([], restaurantId);
-          dispatch({
-            type: ACTION_TYPES.GET_ALL_ORDERS,
-            payload: offlineOrders,
-          });
+
+          if (updateState) {
+            dispatch({
+              type: ACTION_TYPES.GET_ALL_ORDERS,
+              payload: offlineOrders,
+            });
+          }
+
           return offlineOrders;
         }
 
         const response = await getAllOrdersServices(userId, restaurantId);
         setBackendReachable(true);
         const mergedOrders = mergeOrdersWithOffline(response, restaurantId);
-        dispatch({
-          type: ACTION_TYPES.GET_ALL_ORDERS,
-          payload: mergedOrders,
-        });
+
+        if (updateState) {
+          dispatch({
+            type: ACTION_TYPES.GET_ALL_ORDERS,
+            payload: mergedOrders,
+          });
+        }
+
         return mergedOrders;
       } catch (error) {
         if (isNetworkError(error)) {
           setBackendReachable(false);
+
           const offlineOrders = mergeOrdersWithOffline([], restaurantId);
-          dispatch({
-            type: ACTION_TYPES.GET_ALL_ORDERS,
-            payload: offlineOrders,
-          });
+          if (updateState) {
+            dispatch({
+              type: ACTION_TYPES.GET_ALL_ORDERS,
+              payload: offlineOrders,
+            });
+          }
+
           return offlineOrders;
         }
 
@@ -310,20 +322,25 @@ export const OrderProvider = ({ children }) => {
 
       const response = await addNewOrderServices(data);
       setBackendReachable(true);
+
       const createdOrder = response?.order || response;
       dispatch({
         type: ACTION_TYPES.ADD_ORDER,
         payload: createdOrder,
       });
+
       return createdOrder;
     } catch (error) {
       if (isNetworkError(error)) {
         setBackendReachable(false);
+
         const offlineOrder = createOfflineOrder(data);
+
         dispatch({
           type: ACTION_TYPES.ADD_ORDER,
           payload: offlineOrder,
         });
+
         return offlineOrder;
       }
 
@@ -368,80 +385,106 @@ export const OrderProvider = ({ children }) => {
     });
   }, []);
 
-  const filterOrderByDate = useCallback(async (day, month, year, userId) => {
-    const dateKey = getOrderDateKey({ day, month, year });
-    const dateFilter = { day, month, year };
+  const filterOrderByDate = useCallback(
+    async (day, month, year, userId, { updateState = true } = {}) => {
+      const dateKey = getOrderDateKey({ day, month, year });
+      const dateFilter = { day, month, year };
 
-    try {
-      if (isForcedOfflineMode()) {
-        const cachedOrders = getCachedOrdersForDate(userId, dateKey);
+      try {
+        if (isForcedOfflineMode()) {
+          const cachedOrders = getCachedOrdersForDate(userId, dateKey);
+          const mergedOrders = mergeOrdersWithOffline(
+            cachedOrders,
+            userId,
+            dateKey,
+            dateFilter,
+          );
+
+          if (updateState) {
+            dispatch({
+              type: ACTION_TYPES.FILTER_BY_DATE,
+              payload: mergedOrders,
+            });
+          }
+
+          return mergedOrders;
+        }
+
+        const response = await filterOrderByDateServices(
+          day,
+          month,
+          year,
+          userId,
+        );
+
+        setBackendReachable(true);
+        cacheOrdersForDate(userId, dateKey, response);
+
         const mergedOrders = mergeOrdersWithOffline(
-          cachedOrders,
+          response,
           userId,
           dateKey,
           dateFilter,
         );
 
-        dispatch({
-          type: ACTION_TYPES.FILTER_BY_DATE,
-          payload: mergedOrders,
-        });
+        if (updateState) {
+          dispatch({
+            type: ACTION_TYPES.FILTER_BY_DATE,
+            payload: mergedOrders,
+          });
+        }
+
         return mergedOrders;
+      } catch (error) {
+        if (isNetworkError(error)) {
+          setBackendReachable(false);
+
+          const cachedOrders = getCachedOrdersForDate(userId, dateKey);
+          const mergedOrders = mergeOrdersWithOffline(
+            cachedOrders,
+            userId,
+            dateKey,
+            dateFilter,
+          );
+
+          if (updateState) {
+            dispatch({
+              type: ACTION_TYPES.FILTER_BY_DATE,
+              payload: mergedOrders,
+            });
+          }
+
+          return mergedOrders;
+        }
+
+        throw error.response?.data?.message || error.message;
       }
-
-      const response = await filterOrderByDateServices(
-        day,
-        month,
-        year,
-        userId,
-      );
-      setBackendReachable(true);
-      cacheOrdersForDate(userId, dateKey, response);
-      const mergedOrders = mergeOrdersWithOffline(
-        response,
-        userId,
-        dateKey,
-        dateFilter,
-      );
-      dispatch({
-        type: ACTION_TYPES.FILTER_BY_DATE,
-        payload: mergedOrders,
-      });
-      return mergedOrders;
-    } catch (error) {
-      if (isNetworkError(error)) {
-        setBackendReachable(false);
-        const cachedOrders = getCachedOrdersForDate(userId, dateKey);
-        const mergedOrders = mergeOrdersWithOffline(
-          cachedOrders,
-          userId,
-          dateKey,
-          dateFilter,
-        );
-
-        dispatch({
-          type: ACTION_TYPES.FILTER_BY_DATE,
-          payload: mergedOrders,
-        });
-        return mergedOrders;
-      }
-
-      throw error.response?.data?.message || error.message;
-    }
-  }, []);
+    },
+    [],
+  );
 
   const filterOrderByNamePhone = useCallback(
-    async (clientName, contactPhone, restaurantId) => {
+    async (
+      clientName,
+      contactPhone,
+      restaurantId,
+      { updateState = true } = {},
+    ) => {
       try {
         const response = await filterOrdersByNamePhoneServices(
           clientName,
           contactPhone,
           restaurantId,
         );
-        dispatch({
-          type: ACTION_TYPES.FILTER_ORDERS_BY_NAME_PHONE,
-          payload: response,
-        });
+
+        if (updateState) {
+          dispatch({
+            type: ACTION_TYPES.FILTER_ORDERS_BY_NAME_PHONE,
+            payload: response,
+          });
+        }
+
+        return response;
       } catch (error) {
         throw error.response?.data?.message || error.message;
       }

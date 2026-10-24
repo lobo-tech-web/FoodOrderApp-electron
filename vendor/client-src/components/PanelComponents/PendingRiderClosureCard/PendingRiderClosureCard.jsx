@@ -267,7 +267,6 @@ export const PendingRiderClosureCard = ({ group, rider, onOpenClosure }) => {
           <Box
             sx={{
               width: "100%",
-              maxHeight: 190,
               overflowY: "auto",
               display: "flex",
               flexDirection: "column",
@@ -406,7 +405,7 @@ export const PendingRiderClosureCard = ({ group, rider, onOpenClosure }) => {
             minWidth: 180,
           }}
         >
-          Editar borrador
+          Modificar
         </Button>
 
         <Button

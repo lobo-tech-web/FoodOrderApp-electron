@@ -283,6 +283,8 @@ export const ModalEditArrayOrders = ({
 
       await updateArrayOrderServices(ordersData);
       showAlert("Pedido/s actualizado/s Correctamente!", "success");
+
+      await refreshOrders?.();
       handleClose();
     } catch (error) {
       const errorMessage =
@@ -294,9 +296,6 @@ export const ModalEditArrayOrders = ({
       showAlert(errorMessage, "error");
     } finally {
       setLoading(false);
-      setTimeout(async () => {
-        await refreshOrders?.();
-      }, 1500);
     }
   }, [
     loading,

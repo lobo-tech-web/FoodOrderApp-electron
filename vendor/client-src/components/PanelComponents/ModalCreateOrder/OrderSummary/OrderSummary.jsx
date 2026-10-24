@@ -84,12 +84,7 @@ export const OrderSummary = ({
             gap: 1,
           }}
         >
-          <ShoppingCartIcon
-            sx={{
-              color: "primary.main",
-              fontSize: 23,
-            }}
-          />
+          <ShoppingCartIcon sx={{ color: "primary.main", fontSize: 23 }} />
 
           <Box>
             <Typography
@@ -192,6 +187,7 @@ export const OrderSummary = ({
               >
                 Agregá al menos un producto para continuar.
               </Typography>
+
               <Button
                 size="small"
                 variant="contained"
@@ -213,21 +209,10 @@ export const OrderSummary = ({
               display: "flex",
               flexDirection: "column",
               gap: 1,
-              maxHeight: {
-                xs: "none",
-                lg: 300,
-              },
-              overflowY: {
-                xs: "visible",
-                lg: "auto",
-              },
-              pr: {
-                xs: 0,
-                lg: 0.5,
-              },
-              "&::-webkit-scrollbar": {
-                width: 5,
-              },
+              maxHeight: { xs: "none", lg: 300 },
+              overflowY: { xs: "visible", lg: "auto" },
+              pr: { xs: 0, lg: 0.5 },
+              "&::-webkit-scrollbar": { width: 5 },
               "&::-webkit-scrollbar-thumb": {
                 bgcolor: "rgba(184, 182, 186, 0.25)",
                 borderRadius: 999,
@@ -249,11 +234,7 @@ export const OrderSummary = ({
         )}
       </Box>
 
-      <Divider
-        sx={{
-          borderColor: "rgba(184, 182, 186, 0.18)",
-        }}
-      />
+      <Divider sx={{ borderColor: "rgba(184, 182, 186, 0.18)" }} />
 
       {/* RESUMEN DE PRECIOS */}
       <Box
@@ -278,6 +259,7 @@ export const OrderSummary = ({
           }}
         >
           <BarChartIcon sx={{ color: "primary.main", fontSize: 23 }} />
+
           <Typography
             sx={{
               fontFamily: "fontFamily.primary",
@@ -291,12 +273,7 @@ export const OrderSummary = ({
         </Box>
       </Box>
 
-      <Box
-        sx={{
-          p: { xs: 1.5, sm: 2 },
-          bgcolor: "background.paper",
-        }}
-      >
+      <Box sx={{ bgcolor: "background.paper", p: { xs: 1.5, sm: 2 } }}>
         <SummaryRow
           label="Subtotal productos"
           value={formatCurrency(calculatedProductTotals.subtotalProducts)}
@@ -326,12 +303,7 @@ export const OrderSummary = ({
           />
         )}
 
-        <Divider
-          sx={{
-            my: 1.5,
-            borderColor: "text.primary",
-          }}
-        />
+        <Divider sx={{ my: 1.5, borderColor: "text.primary" }} />
 
         <Box
           sx={{
@@ -353,7 +325,7 @@ export const OrderSummary = ({
 
           <Typography
             sx={{
-              fontFamily: "fontFamily.terciary",
+              fontFamily: "fontFamily.primary",
               color: "primary.main",
               fontSize: { xs: 22, md: 26 },
             }}
@@ -361,14 +333,12 @@ export const OrderSummary = ({
             {formatCurrency(finalOrderTotal)}
           </Typography>
         </Box>
+
         {(calculatedProductTotals.totalRewardPoints > 0 ||
           calculatedProductTotals.totalRedeemPoints > 0) && (
           <>
             <Divider
-              sx={{
-                my: 1.5,
-                borderColor: "rgba(184, 182, 186, 0.18)",
-              }}
+              sx={{ my: 1.5, borderColor: "rgba(184, 182, 186, 0.18)" }}
             />
 
             <Box

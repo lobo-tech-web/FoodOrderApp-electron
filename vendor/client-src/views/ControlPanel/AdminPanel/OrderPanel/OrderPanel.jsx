@@ -2,23 +2,24 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 
 // ---- MATERIAL UI ----
 import {
+  Alert,
   Box,
+  Checkbox,
+  LinearProgress,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  Typography,
-  Checkbox,
   TablePagination,
+  Typography,
 } from "@mui/material";
 // -----------------------
 
 // ---- COMPONENTS ----
-import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
-import { PanelNavBar } from "@/components/PanelComponents/PanelNavBar/PanelNavBar.jsx";
+import { AdminOrderNavbar } from "./AdminOrderNavbar/AdminOrderNavbar.jsx";
 import { ModalEditOrder } from "@/components/PanelComponents/ModalEditOrder/ModalEditOrder.jsx";
 import { OrderInfo } from "./OrderInfo/OrderInfo.jsx";
 import { OrderTableFilters } from "./OrderTableFilters/OrderTableFilters.jsx";
@@ -41,7 +42,13 @@ import { useAutoRefresh } from "@/hooks/AutoRefreshOrders.jsx";
 // ---------------
 
 // ---- UTILS ----
-import { getDateNowDayjs, getTimeNowDayjs } from "@/utils/clientWorking.js";
+import { useOrderPanelData } from "@/hooks/useOrderPanelData.js";
+import { getRidersByRestaurantServices } from "@/services/riders.js";
+import {
+  createOrderPanelFilters,
+  getOrderPanelQuery,
+  getOrderPanelTitle,
+} from "./orderPanelFilters.js";
 import { getConfiguredPaymentMethods } from "@/utils/components/PaymentUtils.jsx";
 // ---------------
 
@@ -64,11 +71,22 @@ export const OrderPanel = ({
   const isElectronApp =
     typeof window !== "undefined" && Boolean(window.electronAPI);
   const { AlertComponent, showAlert } = useAlert();
-  const [loading, setLoading] = useState(false);
+
+  const [filters, setFilters] = useState(() =>
+    createOrderPanelFilters(externalView),
+  );
+
+  const currentFilters =
+    filters.view === externalView
+      ? filters
+      : createOrderPanelFilters(externalView);
+  const [navbarHeight, setNavbarHeight] = useState(0);
+  const [navbarModals, setNavbarModals] = useState({
+    createOrder: false,
+    editArrayOrders: false,
+  });
 
   // REFRESH AUTOMÁTICO
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastRefresh, setLastRefresh] = useState(null);
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
 
   // PAGINADO
@@ -84,39 +102,130 @@ export const OrderPanel = ({
     setPage(0);
   };
 
-  const activeTab = useMemo(() => {
-    if (externalView === 1) return 0;
-    if (externalView === 11) return 1;
-    return 2;
-  }, [externalView]);
-
   // TRAEMOS LAS ORDENES DEL CONTEXT
   const {
-    orderState,
     getAllOrders,
     filterOrderByDate,
-    getRidersByRestaurant,
+    filterOrderByNamePhone,
     updateOrder,
   } = useOrders();
 
-  const allOrders = useMemo(() => orderState.orders || [], [orderState.orders]);
-  const availableRiders = useMemo(
-    () => orderState?.riders || [],
-    [orderState?.riders],
+  const query = useMemo(
+    () => getOrderPanelQuery(currentFilters, user?.id),
+    [
+      currentFilters.mode,
+      currentFilters.searchTerm,
+      currentFilters.period,
+      currentFilters.date,
+      user?.id,
+    ],
+  );
+
+  const loadOrders = useCallback(
+    (requested) => {
+      const readOnly = { updateState: false };
+      if (requested.mode === "search") {
+        const numeric = /^\d+$/.test(requested.searchTerm);
+        return filterOrderByNamePhone(
+          numeric ? "" : requested.searchTerm,
+          numeric ? requested.searchTerm : "",
+          requested.restaurantId,
+          readOnly,
+        );
+      }
+      if (requested.period === "all")
+        return getAllOrders(null, requested.restaurantId, readOnly);
+      const [year, month, day] = requested.date.split("-");
+      return filterOrderByDate(
+        requested.period === "month" ? "" : day,
+        month,
+        year,
+        requested.restaurantId,
+        readOnly,
+      );
+    },
+    [getAllOrders, filterOrderByDate, filterOrderByNamePhone],
+  );
+
+  const onLoadError = useCallback(
+    (error) => showAlert(error?.message || String(error), "error"),
+    [showAlert],
+  );
+
+  const {
+    orders: allOrders,
+    riders: availableRiders,
+    isRefreshing,
+    lastRefresh,
+    isProtected,
+    pendingUpdates,
+    refresh,
+    setInteractionBlocked,
+  } = useOrderPanelData({
+    query,
+    loadOrders,
+    loadRiders: getRidersByRestaurantServices,
+    autoRefreshEnabled,
+    onError: onLoadError,
+  });
+
+  const fetchOrders = useCallback(() => refresh(), [refresh]);
+  const changeNavbarModal = useCallback(
+    (modal, open) => {
+      setInteractionBlocked(modal, open);
+      setNavbarModals((current) => ({ ...current, [modal]: open }));
+    },
+    [setInteractionBlocked],
   );
 
   // ESTADOS PARA EDITAR EL PEDIDO
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedOrderIndex, setSelectedOrderIndex] = useState(null);
 
-  const [selectedOrdersCheckbox, setSelectedOrdersCheckbox] = useState([]);
+  const [selectedOrderIds, setSelectedOrderIds] = useState([]);
+  const selectedOrdersCheckbox = useMemo(
+    () => allOrders.filter((order) => selectedOrderIds.includes(order.id)),
+    [allOrders, selectedOrderIds],
+  );
+
+  useEffect(() => {
+    setSelectedOrderIds((previous) =>
+      previous.filter((id) => allOrders.some((order) => order.id === id)),
+    );
+  }, [allOrders]);
+  const setSelectedOrdersCheckbox = useCallback((value) => {
+    if (Array.isArray(value))
+      setSelectedOrderIds(value.map((order) => order.id));
+  }, []);
+
+  useEffect(() => {
+    setFilters(createOrderPanelFilters(externalView));
+    setSelectedOrderIds([]);
+    setPage(0);
+  }, [externalView, user?.id]);
+
+  const changeFilters = useCallback(
+    (patch) => {
+      setFilters((previous) => ({
+        ...(previous.view === externalView
+          ? previous
+          : createOrderPanelFilters(externalView)),
+        ...patch,
+      }));
+      setSelectedOrderIds([]);
+      setPage(0);
+    },
+    [externalView],
+  );
 
   const handleSelectOrders = (event, order) => {
     if (event.target.checked) {
-      setSelectedOrdersCheckbox((prev) => [...prev, order]);
+      setSelectedOrderIds((previous) =>
+        previous.includes(order.id) ? previous : [...previous, order.id],
+      );
     } else {
-      setSelectedOrdersCheckbox((prev) =>
-        prev.filter((o) => o.id !== order.id),
+      setSelectedOrderIds((previous) =>
+        previous.filter((id) => id !== order.id),
       );
     }
   };
@@ -132,19 +241,22 @@ export const OrderPanel = ({
 
   const [openModal, setOpenModal] = useState(false);
 
-  const handleOpenModal = useCallback((order, index) => {
-    setAutoRefreshEnabled(false);
-    setSelectedOrder(order);
-    setSelectedOrderIndex(index);
-    setOpenModal(true);
-  }, []);
+  const handleOpenModal = useCallback(
+    (order, index) => {
+      setInteractionBlocked("editOrder", true);
+      setSelectedOrder(order);
+      setSelectedOrderIndex(index);
+      setOpenModal(true);
+    },
+    [setInteractionBlocked],
+  );
 
   const handleCloseModal = useCallback(() => {
     setSelectedOrder(null);
     setSelectedOrderIndex(null);
-    setAutoRefreshEnabled(true);
     setOpenModal(false);
-  }, []);
+    setInteractionBlocked("editOrder", false);
+  }, [setInteractionBlocked]);
 
   const [paymentConfirm, setPaymentConfirm] = useState({
     open: false,
@@ -177,13 +289,14 @@ export const OrderPanel = ({
         return;
       }
 
+      setInteractionBlocked("payment", true);
       setPaymentConfirm({
         open: true,
         order,
         displayID,
       });
     },
-    [showAlert],
+    [showAlert, setInteractionBlocked],
   );
 
   const handleClosePaymentConfirm = useCallback(() => {
@@ -194,7 +307,8 @@ export const OrderPanel = ({
       order: null,
       displayID: null,
     });
-  }, [payingOrderId]);
+    setInteractionBlocked("payment", false);
+  }, [payingOrderId, setInteractionBlocked]);
 
   const handleOpenCancelPaymentConfirm = useCallback(
     (order, displayID) => {
@@ -212,13 +326,14 @@ export const OrderPanel = ({
         return;
       }
 
+      setInteractionBlocked("cancelPayment", true);
       setCancelPaymentConfirm({
         open: true,
         order,
         displayID,
       });
     },
-    [user?.role, showAlert],
+    [user?.role, showAlert, setInteractionBlocked],
   );
 
   const handleCloseCancelPaymentConfirm = useCallback(() => {
@@ -229,34 +344,18 @@ export const OrderPanel = ({
       order: null,
       displayID: null,
     });
-  }, [cancelingPaymentOrderId]);
+    setInteractionBlocked("cancelPayment", false);
+  }, [cancelingPaymentOrderId, setInteractionBlocked]);
 
-  // FILTRADO DE PEDIDOS
-  const [statusFilter, setStatusFilter] = useState("TODOS");
-  const [orderTypeFilter, setOrderTypeFilter] = useState("TODOS");
-
-  const handleStatusChange = (newValue) => {
-    setStatusFilter(newValue);
-    setPage(0);
-    setSelectedOrdersCheckbox([]);
-  };
-
-  const handleOrderTypeChange = (newValue) => {
-    setOrderTypeFilter(newValue);
-    setPage(0);
-    setSelectedOrdersCheckbox([]);
-  };
-
-  const handleClearTableFilters = () => {
-    setStatusFilter("TODOS");
-    setOrderTypeFilter("TODOS");
-    setPage(0);
-    setSelectedOrdersCheckbox([]);
-  };
+  const statusFilter = currentFilters.status;
+  const orderTypeFilter = currentFilters.orderType;
+  const handleStatusChange = (status) => changeFilters({ status });
+  const handleOrderTypeChange = (orderType) => changeFilters({ orderType });
+  const handleClearTableFilters = () =>
+    changeFilters({ status: "TODOS", orderType: "TODOS" });
 
   const ordersFilteredByType = useMemo(() => {
     if (orderTypeFilter === "TODOS") return allOrders;
-
     return allOrders.filter((order) => order.orderType === orderTypeFilter);
   }, [allOrders, orderTypeFilter]);
 
@@ -295,56 +394,6 @@ export const OrderPanel = ({
     return counts;
   }, [allOrders, statusFilter]);
 
-  const fetchOrders = useCallback(
-    async (isAutoRefresh = false) => {
-      const userId = user?.id;
-      if (!userId) return;
-
-      if (isAutoRefresh) {
-        setIsRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-
-      try {
-        if (activeTab === 0) {
-          const today = getDateNowDayjs();
-          await filterOrderByDate(today.day, today.month, today.year, userId);
-          await getRidersByRestaurant(userId);
-        } else if (activeTab === 1) {
-          const today = getDateNowDayjs();
-          await filterOrderByDate("", today.month, today.year, userId);
-        } else {
-          await getAllOrders(null, userId);
-        }
-
-        if (!isAutoRefresh) {
-          setSelectedOrdersCheckbox([]);
-          setPage(0);
-        }
-
-        const time = getTimeNowDayjs();
-        setLastRefresh(time);
-      } catch (error) {
-        showAlert(`Error al obtener los pedidos: ${error}`, "error");
-      } finally {
-        if (isAutoRefresh) {
-          setIsRefreshing(false);
-        } else {
-          setLoading(false);
-        }
-      }
-    },
-    [
-      activeTab,
-      filterOrderByDate,
-      getRidersByRestaurant,
-      getAllOrders,
-      showAlert,
-      user?.id,
-    ],
-  );
-
   const handleConfirmMarkPaid = useCallback(
     async (payments) => {
       const targetOrder = paymentConfirm.order;
@@ -372,7 +421,8 @@ export const OrderPanel = ({
           displayID: null,
         });
 
-        await fetchOrders(true);
+        await fetchOrders();
+        setInteractionBlocked("payment", false);
       } catch (error) {
         const errorMessage =
           typeof error === "string"
@@ -390,6 +440,7 @@ export const OrderPanel = ({
       updateOrder,
       showAlert,
       fetchOrders,
+      setInteractionBlocked,
     ],
   );
 
@@ -426,7 +477,8 @@ export const OrderPanel = ({
         displayID: null,
       });
 
-      await fetchOrders(true);
+      await fetchOrders();
+      setInteractionBlocked("cancelPayment", false);
     } catch (error) {
       const errorMessage =
         typeof error === "string"
@@ -444,54 +496,42 @@ export const OrderPanel = ({
     updateOrder,
     showAlert,
     fetchOrders,
+    setInteractionBlocked,
   ]);
 
-  // ✅ FUNCIÓN QUE SOLO SE EJECUTA SI ESTAMOS EN LA PESTAÑA DE HOY
-  const fetchTodayOrdersOnly = useCallback(async () => {
-    if (activeTab !== 0) return;
-    await fetchOrders(true);
-  }, [activeTab, fetchOrders]);
-
-  // Auto-refresh hook
-  const { startPolling, stopPolling, restartPolling, countdown } =
-    useAutoRefresh(
-      fetchTodayOrdersOnly,
-      30000, // 30 segundos
-      {
-        enabled: autoRefreshEnabled && activeTab === 0,
-        pauseOnHidden: true,
-        onRefresh: () => {
-          showAlert("Se actualizaron los pedidos automáticamente", "success");
-        },
-      },
+  const { countdown } = useAutoRefresh(
+    () => refresh({ automatic: true }),
+    30000,
+    {
+      enabled:
+        autoRefreshEnabled &&
+        !isProtected &&
+        currentFilters.mode !== "search" &&
+        currentFilters.period === "day",
+      pauseOnHidden: true,
+    },
+  );
+  const handleToggleAutoRefresh = () =>
+    setAutoRefreshEnabled((previous) => !previous);
+  const handleManualRefresh = useCallback(() => refresh(), [refresh]);
+  const displayedPage = Math.min(
+    page,
+    Math.max(0, Math.ceil(filteredOrders.length / rowsPerPage) - 1),
+  );
+  useEffect(() => {
+    setPage((previous) =>
+      Math.min(
+        previous,
+        Math.max(0, Math.ceil(filteredOrders.length / rowsPerPage) - 1),
+      ),
     );
-
-  const handleToggleAutoRefresh = () => {
-    setAutoRefreshEnabled((prev) => !prev);
-  };
-
-  const handleManualRefresh = async () => {
-    await fetchOrders(false);
-  };
-
-  useEffect(() => {
-    fetchOrders(false);
-  }, [fetchOrders]);
-
-  useEffect(() => {
-    if (activeTab === 0 && autoRefreshEnabled) {
-      restartPolling();
-    } else {
-      stopPolling();
-    }
-  }, [activeTab, autoRefreshEnabled, restartPolling, stopPolling]);
+  }, [filteredOrders.length, rowsPerPage]);
 
   const totalOrders = allOrders.length;
 
-  if (loading) return <LoadingComponent message={"Cargando pedidos..."} />;
-
   return (
     <Box
+      data-order-panel
       sx={{
         width: "100%",
         height: isElectronApp ? "calc(100vh - 112px)" : "auto",
@@ -502,25 +542,64 @@ export const OrderPanel = ({
       }}
     >
       {/* PANELNAVBAR DE LOS PEDIDOS */}
-      <PanelNavBar
-        showAlert={showAlert}
-        isOrderPanel={true}
+      <AdminOrderNavbar
         handleRefresh={handleManualRefresh}
         selectedOrdersCheckbox={selectedOrdersCheckbox}
-        setAutoRefreshEnabled={setAutoRefreshEnabled}
+        filters={currentFilters}
+        onSearchInputChange={(searchInput) =>
+          setFilters((previous) => ({ ...previous, searchInput }))
+        }
+        onSearch={() => {
+          const searchTerm = currentFilters.searchInput.trim();
+          changeFilters({
+            mode: searchTerm ? "search" : "date",
+            searchTerm,
+            searchInput: searchTerm,
+          });
+        }}
+        onClearSearch={() =>
+          changeFilters({ mode: "date", searchInput: "", searchTerm: "" })
+        }
+        onDateChange={(patch) =>
+          changeFilters({
+            ...patch,
+            mode: "date",
+            searchInput: "",
+            searchTerm: "",
+          })
+        }
+        disabled={isProtected}
+        refreshing={isRefreshing}
+        modalState={navbarModals}
+        onModalChange={changeNavbarModal}
+        onHeightChange={setNavbarHeight}
         cashSession={cashSession}
         cashRegisterId={cashRegisterId}
+        showAlert={showAlert}
       />
 
-      {/* RIDERS */}
-      {availableRiders.length > 0 && activeTab === 0 && (
-        <Box sx={{ width: "100%", mb: 2 }}>
-          <RiderCountIndicator
-            totalOrders={allOrders}
-            availableRiders={availableRiders}
-          />
-        </Box>
+      <LinearProgress
+        aria-label="Actualizando pedidos"
+        sx={{ visibility: isRefreshing ? "visible" : "hidden", mb: 1 }}
+      />
+
+      {pendingUpdates && isProtected && (
+        <Alert severity="info" sx={{ mb: 1 }}>
+          Actualización pendiente, se aplicará al terminar la operación.
+        </Alert>
       )}
+
+      {/* RIDERS */}
+      {availableRiders.length > 0 &&
+        currentFilters.mode !== "search" &&
+        currentFilters.period === "day" && (
+          <Box sx={{ width: "100%", mb: 2 }}>
+            <RiderCountIndicator
+              totalOrders={allOrders}
+              availableRiders={availableRiders}
+            />
+          </Box>
+        )}
 
       {/* INDICADORES DE REFRESH/STATUS/TOTALAMOUNT */}
       <Box
@@ -536,15 +615,17 @@ export const OrderPanel = ({
       >
         {/* Indicador de Auto-refresh */}
         <Box sx={{ display: "flex", alignItems: "center", minWidth: 200 }}>
-          {activeTab === 0 && (
-            <AutoRefreshIndicator
-              isEnabled={autoRefreshEnabled}
-              onToggle={handleToggleAutoRefresh}
-              lastRefresh={lastRefresh}
-              isRefreshing={isRefreshing}
-              countdown={countdown}
-            />
-          )}
+          {currentFilters.mode !== "search" &&
+            currentFilters.period === "day" && (
+              <AutoRefreshIndicator
+                isEnabled={autoRefreshEnabled}
+                onToggle={handleToggleAutoRefresh}
+                lastRefresh={lastRefresh}
+                isRefreshing={isRefreshing}
+                countdown={countdown}
+                pauseReason={isProtected ? "Formulario abierto" : undefined}
+              />
+            )}
         </Box>
 
         <Box
@@ -556,18 +637,25 @@ export const OrderPanel = ({
           }}
         >
           <OrderStatusIndicator totalOrders={allOrders} />
-          {activeTab === 0 && availableRiders?.length > 0 && (
-            <RiderSummaryIndicator
-              totalOrders={allOrders}
-              availableRiders={availableRiders}
-            />
-          )}
-          {(activeTab === 0 || activeTab === 1) && (
-            <OrderSummaryIndicator
-              totalOrders={allOrders}
-              title={activeTab === 0 ? "SUBTOTAL DEL DIA" : "SUBTOTAL DEL MES"}
-            />
-          )}
+          {currentFilters.mode !== "search" &&
+            currentFilters.period === "day" &&
+            availableRiders?.length > 0 && (
+              <RiderSummaryIndicator
+                totalOrders={allOrders}
+                availableRiders={availableRiders}
+              />
+            )}
+          {currentFilters.mode !== "search" &&
+            currentFilters.period !== "all" && (
+              <OrderSummaryIndicator
+                totalOrders={allOrders}
+                title={
+                  currentFilters.period === "day"
+                    ? "SUBTOTAL DEL DÍA SELECCIONADO"
+                    : "SUBTOTAL DEL MES SELECCIONADO"
+                }
+              />
+            )}
         </Box>
       </Box>
 
@@ -583,20 +671,17 @@ export const OrderPanel = ({
         }}
       >
         <Typography
-          variant="h6"
           sx={{
-            fontFamily: "fontFamily.primary",
             display: "flex",
             justifyContent: "center",
-            color: "text.primary",
+            fontFamily: "fontFamily.terciary",
+            fontWeight: 800,
+            fontSize: "1rem",
+            color: "primary.main",
             m: 1,
           }}
         >
-          {activeTab === 0
-            ? "PEDIDOS DE HOY"
-            : activeTab === 1
-              ? "PEDIDOS DEL MES"
-              : "HISTORIAL DE PEDIDOS"}
+          {getOrderPanelTitle(currentFilters)}
         </Typography>
 
         {/* BARRA DE FILTROS POR ESTADO */}
@@ -618,17 +703,27 @@ export const OrderPanel = ({
               : { xs: "calc(100vh - 360px)", md: "calc(100vh - 390px)" },
             minHeight: isElectronApp ? "auto" : 260,
             overflow: isElectronApp ? "visible" : "auto",
+            border: "1px solid",
+            borderColor: "background.main",
           }}
         >
           {filteredOrders.length > 0 ? (
             <Table
               stickyHeader
               aria-label="collapsible table"
-              sx={{ minWidth: 1180 }}
+              sx={{
+                minWidth: 1040,
+                "& .MuiTableCell-stickyHeader": {
+                  top: isElectronApp ? navbarHeight : 0,
+                },
+              }}
             >
               <TableHead sx={{ bgcolor: "background.paper" }}>
                 <TableRow>
-                  <TableCell padding="checkbox">
+                  <TableCell
+                    padding="checkbox"
+                    sx={{ bgcolor: "background.paper" }}
+                  >
                     <Checkbox
                       indeterminate={
                         selectedOrdersCheckbox.length > 0 &&
@@ -649,7 +744,6 @@ export const OrderPanel = ({
                   </TableCell>
                   <TableCell sx={tableHeadStyle}>N° PEDIDO</TableCell>
                   <TableCell sx={tableHeadStyle}>CLIENTE</TableCell>
-                  <TableCell sx={tableHeadStyle}>DIRECCIÓN</TableCell>
                   <TableCell sx={tableHeadStyle}>TOTAL</TableCell>
                   <TableCell sx={tableHeadStyle}>PUNTOS</TableCell>
                   <TableCell sx={tableHeadStyle}>FECHA/HORA</TableCell>
@@ -660,7 +754,10 @@ export const OrderPanel = ({
               </TableHead>
               <TableBody sx={{ bgcolor: "background.default" }}>
                 {filteredOrders
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .slice(
+                    displayedPage * rowsPerPage,
+                    displayedPage * rowsPerPage + rowsPerPage,
+                  )
                   .map((order) => {
                     const globalIndex = allOrders.findIndex(
                       (o) => o.id === order.id,
@@ -696,7 +793,9 @@ export const OrderPanel = ({
                   mb: 1,
                 }}
               >
-                No hay pedidos para los filtros seleccionados
+                {isRefreshing
+                  ? "Cargando pedidos..."
+                  : "No hay pedidos para los filtros seleccionados"}
               </Typography>
               <Typography
                 sx={{
@@ -724,13 +823,14 @@ export const OrderPanel = ({
             </Box>
           )}
         </TableContainer>
+
         {filteredOrders.length > 0 && (
           <TablePagination
             rowsPerPageOptions={[10, 20, 30, 50, 100]}
             component="div"
             count={filteredOrders.length}
             rowsPerPage={rowsPerPage}
-            page={page}
+            page={displayedPage}
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
             labelRowsPerPage="Mostrar por página:"
@@ -774,7 +874,7 @@ export const OrderPanel = ({
         showOrderIndex={selectedOrderIndex}
         cashSession={cashSession}
         cashRegisterId={cashRegisterId}
-        onOrderUpdated={() => fetchOrders(true)}
+        onOrderUpdated={fetchOrders}
       />
       {AlertComponent}
     </Box>

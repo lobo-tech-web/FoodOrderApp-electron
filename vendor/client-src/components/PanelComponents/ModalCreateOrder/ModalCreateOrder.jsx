@@ -754,11 +754,6 @@ export const ModalCreateOrder = ({
         return;
       }
 
-      if (!order.clientName.trim()) {
-        showAlert("El nombre del cliente es requerido", "warning");
-        return;
-      }
-
       if (!order.clientEmail.trim()) {
         showAlert("El email del cliente es requerido", "warning");
         return;
@@ -841,7 +836,10 @@ export const ModalCreateOrder = ({
           totalAmount: order.totalAmount,
           paymentMethod: order.paymentMethod,
           clientEmail: order.clientEmail,
-          clientName: order.clientName,
+          clientName:
+            order.clientName.trim() !== ""
+              ? order.clientName
+              : "SIN ESPECIFICAR",
           deliveryAddress:
             order.deliveryAddress.trim() !== ""
               ? order.deliveryAddress
@@ -880,6 +878,7 @@ export const ModalCreateOrder = ({
         showAlert("Pedido creado correctamente!", "success");
         setShowCreateConfirmation(false);
         setShowPaymentConfirmation(false);
+        await refreshOrders?.();
         onClose();
       } catch (error) {
         const errorMessage =
@@ -889,9 +888,6 @@ export const ModalCreateOrder = ({
         showAlert(errorMessage, "error");
       } finally {
         setLoading(false);
-        setTimeout(() => {
-          refreshOrders();
-        }, 1500);
       }
     },
     [
@@ -1040,6 +1036,7 @@ export const ModalCreateOrder = ({
               >
                 <AddIcon />
               </Box>
+
               <Typography
                 sx={{
                   fontFamily: "fontFamily.primary",
@@ -1051,6 +1048,7 @@ export const ModalCreateOrder = ({
               >
                 CREAR NUEVO PEDIDO
               </Typography>
+
               <FormControl
                 size="small"
                 sx={{
@@ -1090,6 +1088,7 @@ export const ModalCreateOrder = ({
                   ))}
                 </Select>
               </FormControl>
+
               <Chip
                 label={order.status}
                 color={getStatusColor(order.status)}
@@ -1239,10 +1238,8 @@ export const ModalCreateOrder = ({
                         "No tienes permisos para consultar clientes",
                         "warning",
                       );
-
                       return;
                     }
-
                     toggleModal("clientsData", true);
                   }}
                 />

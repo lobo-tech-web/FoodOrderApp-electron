@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useId } from "react";
 
 // ---- MATERIAL UI ----
 import {
@@ -42,7 +42,7 @@ import {
 //------------------
 
 // ---- LOGO ----
-import lobotechLogo from "@/assets/main/logo-lobotech-oj.png";
+import lobotechLogo from "@/assets/main/lobotech-drawer.png";
 // --------------
 
 // ---- COMPONENTS ----
@@ -61,11 +61,17 @@ export const AdminDrawer = ({
     if (onCloseMobile) onCloseMobile();
   };
 
-  const [openCashRegister, setOpenCashRegister] = useState(false);
-  const [openOrders, setOpenOrders] = useState(false);
-  const [openProducts, setOpenProducts] = useState(false);
-  const [openStats, setOpenStats] = useState(false);
-  const [openRiders, setOpenRiders] = useState(false);
+  const [openMenu, setOpenMenu] = useState(null);
+  const menuId = useId();
+  const toggleMenu = (menu) => {
+    setOpenMenu((current) => (current === menu ? null : menu));
+  };
+
+  const openCashRegister = openMenu === "cashRegister";
+  const openOrders = openMenu === "orders";
+  const openProducts = openMenu === "products";
+  const openStats = openMenu === "stats";
+  const openRiders = openMenu === "riders";
 
   const cashRegisterTabs = [7, 71];
   const isCashRegisterSelected = cashRegisterTabs.includes(activeTab);
@@ -165,85 +171,94 @@ export const AdminDrawer = ({
         </ListItemButton>
 
         {/* CAJA */}
-        <ListItemButton
-          selected={isCashRegisterSelected}
-          onClick={() => setOpenCashRegister(!openCashRegister)}
-          sx={{
-            fontFamily: "fontFamily.secondary",
-            borderRadius: 2,
-            mb: 0.5,
-            "&.Mui-selected": {
-              bgcolor: "primary.main",
-              color: "text.terciary",
-              "& .MuiListItemIcon-root": { color: "text.terciary" },
-            },
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            <PointOfSaleIcon />
-          </ListItemIcon>
+        <Box component="li">
+          <ListItemButton
+            selected={isCashRegisterSelected}
+            onClick={() => toggleMenu("cashRegister")}
+            aria-expanded={openCashRegister}
+            aria-controls={`${menuId}-cashRegister`}
+            sx={{
+              fontFamily: "fontFamily.secondary",
+              borderRadius: 2,
+              mb: 0.5,
+              "&.Mui-selected": {
+                bgcolor: "primary.main",
+                color: "text.terciary",
+                "& .MuiListItemIcon-root": { color: "text.terciary" },
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <PointOfSaleIcon />
+            </ListItemIcon>
 
-          <ListItemText
-            primary="Caja"
-            primaryTypographyProps={{ fontSize: "0.9rem" }}
-          />
+            <ListItemText
+              primary="Caja"
+              primaryTypographyProps={{ fontSize: "0.9rem" }}
+            />
 
-          {openCashRegister ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-        </ListItemButton>
+            {openCashRegister ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </ListItemButton>
 
-        <Collapse in={openCashRegister} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            {/* CONFIGURACIÓN DE CAJAS*/}
-            <ListItemButton
-              selected={activeTab === 7}
-              onClick={() => handleAction(7)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <TuneIcon
-                  fontSize="small"
-                  color={activeTab === 7 ? "primary" : "inherit"}
-                />
-              </ListItemIcon>
-
-              <ListItemText
-                primary="Configurar cajas"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
-
-            {/* HISTORIAL Y REPORTES */}
-            <ListItemButton
-              selected={activeTab === 71}
-              onClick={() => handleAction(71)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <CurrencyExchangeIcon
-                  fontSize="small"
-                  color={activeTab === 71 ? "primary" : "inherit"}
-                />
-              </ListItemIcon>
-
-              <ListItemText
-                primary="Historial y reportes"
-                primaryTypographyProps={{
-                  fontSize: "0.85rem",
+          <Collapse
+            id={`${menuId}-cashRegister`}
+            in={openCashRegister}
+            timeout="auto"
+            unmountOnExit
+          >
+            <List component="div" disablePadding>
+              {/* CONFIGURACIÓN DE CAJAS*/}
+              <ListItemButton
+                selected={activeTab === 7}
+                onClick={() => handleAction(7)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
                 }}
-              />
-            </ListItemButton>
-          </List>
-        </Collapse>
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <TuneIcon
+                    fontSize="small"
+                    color={activeTab === 7 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+
+                <ListItemText
+                  primary="Configurar cajas"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
+                />
+              </ListItemButton>
+
+              {/* HISTORIAL Y REPORTES */}
+              <ListItemButton
+                selected={activeTab === 71}
+                onClick={() => handleAction(71)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <CurrencyExchangeIcon
+                    fontSize="small"
+                    color={activeTab === 71 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+
+                <ListItemText
+                  primary="Historial y reportes"
+                  primaryTypographyProps={{
+                    fontSize: "0.85rem",
+                  }}
+                />
+              </ListItemButton>
+            </List>
+          </Collapse>
+        </Box>
       </List>
 
       <Divider>
@@ -262,226 +277,244 @@ export const AdminDrawer = ({
       {/* SECCIÓN 2: PANELES DEL ADMIN (TABS) */}
       <List sx={{ px: 1 }}>
         {/* PEDIDOS */}
-        <ListItemButton
-          selected={
-            activeTab === 1 ||
-            activeTab === 11 ||
-            activeTab === 12 ||
-            activeTab === 13
-          }
-          onClick={() => setOpenOrders(!openOrders)}
-          sx={{
-            fontFamily: "fontFamily.secondary",
-            borderRadius: 2,
-            mb: 0.5,
-            "&.Mui-selected": {
-              bgcolor: "primary.main",
-              color: "text.terciary",
-              "& .MuiListItemIcon-root": { color: "text.terciary" },
-            },
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            <ReceiptLongIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary="Pedidos"
-            primaryTypographyProps={{ fontSize: "0.9rem" }}
-          />
-          {openOrders ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-        </ListItemButton>
+        <Box component="li">
+          <ListItemButton
+            selected={
+              activeTab === 1 ||
+              activeTab === 11 ||
+              activeTab === 12 ||
+              activeTab === 13
+            }
+            onClick={() => toggleMenu("orders")}
+            aria-expanded={openOrders}
+            aria-controls={`${menuId}-orders`}
+            sx={{
+              fontFamily: "fontFamily.secondary",
+              borderRadius: 2,
+              mb: 0.5,
+              "&.Mui-selected": {
+                bgcolor: "primary.main",
+                color: "text.terciary",
+                "& .MuiListItemIcon-root": { color: "text.terciary" },
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <ReceiptLongIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary="Pedidos"
+              primaryTypographyProps={{ fontSize: "0.9rem" }}
+            />
+            {openOrders ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </ListItemButton>
 
-        {/* COLLAPSE PEDIDOS */}
-        <Collapse in={openOrders} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            <ListItemButton
-              selected={activeTab === 1}
-              onClick={() => handleAction(1)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <TodayIcon
-                  fontSize="small"
-                  color={activeTab === 1 ? "primary" : "inherit"}
+          {/* COLLAPSE PEDIDOS */}
+          <Collapse
+            id={`${menuId}-orders`}
+            in={openOrders}
+            timeout="auto"
+            unmountOnExit
+          >
+            <List component="div" disablePadding>
+              <ListItemButton
+                selected={activeTab === 1}
+                onClick={() => handleAction(1)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <TodayIcon
+                    fontSize="small"
+                    color={activeTab === 1 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Hoy"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
-              <ListItemText
-                primary="Hoy"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
+              </ListItemButton>
 
-            <ListItemButton
-              selected={activeTab === 11}
-              onClick={() => handleAction(11)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <CalendarMonthIcon
-                  fontSize="small"
-                  color={activeTab === 11 ? "primary" : "inherit"}
+              <ListItemButton
+                selected={activeTab === 11}
+                onClick={() => handleAction(11)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <CalendarMonthIcon
+                    fontSize="small"
+                    color={activeTab === 11 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Este Mes"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
-              <ListItemText
-                primary="Este Mes"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
+              </ListItemButton>
 
-            <ListItemButton
-              selected={activeTab === 12}
-              onClick={() => handleAction(12)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <HistoryIcon
-                  fontSize="small"
-                  color={activeTab === 12 ? "primary" : "inherit"}
+              <ListItemButton
+                selected={activeTab === 12}
+                onClick={() => handleAction(12)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <HistoryIcon
+                    fontSize="small"
+                    color={activeTab === 12 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Historial"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
-              <ListItemText
-                primary="Historial"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
+              </ListItemButton>
 
-            <ListItemButton
-              selected={activeTab === 13}
-              onClick={() => handleAction(13)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <PlagiarismIcon
-                  fontSize="small"
-                  color={activeTab === 13 ? "primary" : "inherit"}
+              <ListItemButton
+                selected={activeTab === 13}
+                onClick={() => handleAction(13)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <PlagiarismIcon
+                    fontSize="small"
+                    color={activeTab === 13 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Auditoria de pedidos"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
-              <ListItemText
-                primary="Auditoria de pedidos"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
-          </List>
-        </Collapse>
+              </ListItemButton>
+            </List>
+          </Collapse>
+        </Box>
 
         {/* PRODUCTOS */}
-        <ListItemButton
-          selected={activeTab === 2 || activeTab === 21 || activeTab === 22}
-          onClick={() => setOpenProducts(!openProducts)}
-          sx={{
-            fontFamily: "fontFamily.secondary",
-            borderRadius: 2,
-            mb: 0.5,
-            "&.Mui-selected": {
-              bgcolor: "primary.main",
-              color: "text.terciary",
-              "& .MuiListItemIcon-root": { color: "text.terciary" },
-            },
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            <FastfoodIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary="Carta Digital"
-            primaryTypographyProps={{ fontSize: "0.9rem" }}
-          />
-          {openProducts ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-        </ListItemButton>
+        <Box component="li">
+          <ListItemButton
+            selected={activeTab === 2 || activeTab === 21 || activeTab === 22}
+            onClick={() => toggleMenu("products")}
+            aria-expanded={openProducts}
+            aria-controls={`${menuId}-products`}
+            sx={{
+              fontFamily: "fontFamily.secondary",
+              borderRadius: 2,
+              mb: 0.5,
+              "&.Mui-selected": {
+                bgcolor: "primary.main",
+                color: "text.terciary",
+                "& .MuiListItemIcon-root": { color: "text.terciary" },
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <FastfoodIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary="Carta Digital"
+              primaryTypographyProps={{ fontSize: "0.9rem" }}
+            />
+            {openProducts ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </ListItemButton>
 
-        {/* COLLAPSE PRODUCTOS */}
-        <Collapse in={openProducts} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            {/* CATEGORIAS */}
-            <ListItemButton
-              selected={activeTab === 2}
-              onClick={() => handleAction(2)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <CategoryIcon
-                  fontSize="small"
-                  color={activeTab === 2 ? "primary" : "inherit"}
+          {/* COLLAPSE PRODUCTOS */}
+          <Collapse
+            id={`${menuId}-products`}
+            in={openProducts}
+            timeout="auto"
+            unmountOnExit
+          >
+            <List component="div" disablePadding>
+              {/* CATEGORIAS */}
+              <ListItemButton
+                selected={activeTab === 2}
+                onClick={() => handleAction(2)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <CategoryIcon
+                    fontSize="small"
+                    color={activeTab === 2 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Categorías"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
-              <ListItemText
-                primary="Categorías"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
+              </ListItemButton>
 
-            {/* PRODUCTOS */}
-            <ListItemButton
-              selected={activeTab === 21}
-              onClick={() => handleAction(21)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <LunchDiningIcon
-                  fontSize="small"
-                  color={activeTab === 21 ? "primary" : "inherit"}
+              {/* PRODUCTOS */}
+              <ListItemButton
+                selected={activeTab === 21}
+                onClick={() => handleAction(21)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <LunchDiningIcon
+                    fontSize="small"
+                    color={activeTab === 21 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Productos"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
-              <ListItemText
-                primary="Productos"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
+              </ListItemButton>
 
-            {/* PERSONALIZACIÓNES */}
-            <ListItemButton
-              selected={activeTab === 22}
-              onClick={() => handleAction(22)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <LocalDiningIcon
-                  fontSize="small"
-                  color={activeTab === 22 ? "primary" : "inherit"}
+              {/* PERSONALIZACIÓNES */}
+              <ListItemButton
+                selected={activeTab === 22}
+                onClick={() => handleAction(22)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <LocalDiningIcon
+                    fontSize="small"
+                    color={activeTab === 22 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Personalizaciónes"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
-              <ListItemText
-                primary="Personalizaciónes"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
-          </List>
-        </Collapse>
+              </ListItemButton>
+            </List>
+          </Collapse>
+        </Box>
 
         {/* PUNTOS DE USUARIOS */}
         <ListItemButton
@@ -508,251 +541,269 @@ export const AdminDrawer = ({
         </ListItemButton>
 
         {/* ESTADISTICAS */}
-        <ListItemButton
-          selected={activeTab === 4 || activeTab === 41 || activeTab === 42}
-          onClick={() => setOpenStats(!openStats)}
-          sx={{
-            fontFamily: "fontFamily.secondary",
-            borderRadius: 2,
-            mb: 0.5,
-            "&.Mui-selected": {
-              bgcolor: "primary.main",
-              color: "text.terciary",
-              "& .MuiListItemIcon-root": { color: "text.terciary" },
-            },
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            <QueryStatsIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary="Estadísticas"
-            primaryTypographyProps={{ fontSize: "0.9rem" }}
-          />
-          {openStats ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-        </ListItemButton>
+        <Box component="li">
+          <ListItemButton
+            selected={activeTab === 4 || activeTab === 41 || activeTab === 42}
+            onClick={() => toggleMenu("stats")}
+            aria-expanded={openStats}
+            aria-controls={`${menuId}-stats`}
+            sx={{
+              fontFamily: "fontFamily.secondary",
+              borderRadius: 2,
+              mb: 0.5,
+              "&.Mui-selected": {
+                bgcolor: "primary.main",
+                color: "text.terciary",
+                "& .MuiListItemIcon-root": { color: "text.terciary" },
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <QueryStatsIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary="Estadísticas"
+              primaryTypographyProps={{ fontSize: "0.9rem" }}
+            />
+            {openStats ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </ListItemButton>
 
-        {/* COLLAPSE ESTADISTICAS */}
-        <Collapse in={openStats} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            <ListItemButton
-              selected={activeTab === 4}
-              onClick={() => handleAction(4)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <AttachMoneyIcon
-                  fontSize="small"
-                  color={activeTab === 4 ? "primary" : "inherit"}
+          {/* COLLAPSE ESTADISTICAS */}
+          <Collapse
+            id={`${menuId}-stats`}
+            in={openStats}
+            timeout="auto"
+            unmountOnExit
+          >
+            <List component="div" disablePadding>
+              <ListItemButton
+                selected={activeTab === 4}
+                onClick={() => handleAction(4)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <AttachMoneyIcon
+                    fontSize="small"
+                    color={activeTab === 4 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Ventas diarias"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
-              <ListItemText
-                primary="Ventas diarias"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
+              </ListItemButton>
 
-            <ListItemButton
-              selected={activeTab === 41}
-              onClick={() => handleAction(41)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <SavingsIcon
-                  fontSize="small"
-                  color={activeTab === 41 ? "primary" : "inherit"}
+              <ListItemButton
+                selected={activeTab === 41}
+                onClick={() => handleAction(41)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <SavingsIcon
+                    fontSize="small"
+                    color={activeTab === 41 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Ventas mensuales"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
-              <ListItemText
-                primary="Ventas mensuales"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
+              </ListItemButton>
 
-            <ListItemButton
-              selected={activeTab === 42}
-              onClick={() => handleAction(42)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <BarChartIcon
-                  fontSize="small"
-                  color={activeTab === 42 ? "primary" : "inherit"}
+              <ListItemButton
+                selected={activeTab === 42}
+                onClick={() => handleAction(42)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <BarChartIcon
+                    fontSize="small"
+                    color={activeTab === 42 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Ventas por categoría"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
-              <ListItemText
-                primary="Ventas por categoría"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
-          </List>
-        </Collapse>
+              </ListItemButton>
+            </List>
+          </Collapse>
+        </Box>
 
         {/* CADETES */}
-        <ListItemButton
-          selected={isRidersSelected}
-          onClick={() => setOpenRiders(!openRiders)}
-          sx={{
-            fontFamily: "fontFamily.secondary",
-            borderRadius: 2,
-            mb: 0.5,
-            "&.Mui-selected": {
-              bgcolor: "primary.main",
-              color: "text.terciary",
-              "& .MuiListItemIcon-root": { color: "text.terciary" },
-            },
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            <MopedIcon />
-          </ListItemIcon>
+        <Box component="li">
+          <ListItemButton
+            selected={isRidersSelected}
+            onClick={() => toggleMenu("riders")}
+            aria-expanded={openRiders}
+            aria-controls={`${menuId}-riders`}
+            sx={{
+              fontFamily: "fontFamily.secondary",
+              borderRadius: 2,
+              mb: 0.5,
+              "&.Mui-selected": {
+                bgcolor: "primary.main",
+                color: "text.terciary",
+                "& .MuiListItemIcon-root": { color: "text.terciary" },
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <MopedIcon />
+            </ListItemIcon>
 
-          <ListItemText
-            primary="Cadetes"
-            primaryTypographyProps={{ fontSize: "0.9rem" }}
-          />
+            <ListItemText
+              primary="Cadetes"
+              primaryTypographyProps={{ fontSize: "0.9rem" }}
+            />
 
-          {openRiders ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-        </ListItemButton>
+            {openRiders ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </ListItemButton>
 
-        <Collapse in={openRiders} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            {/* MIS CADETES */}
-            <ListItemButton
-              selected={activeTab === 5}
-              onClick={() => handleAction(5)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <MopedIcon
-                  fontSize="small"
-                  color={activeTab === 5 ? "primary" : "inherit"}
+          <Collapse
+            id={`${menuId}-riders`}
+            in={openRiders}
+            timeout="auto"
+            unmountOnExit
+          >
+            <List component="div" disablePadding>
+              {/* MIS CADETES */}
+              <ListItemButton
+                selected={activeTab === 5}
+                onClick={() => handleAction(5)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <MopedIcon
+                    fontSize="small"
+                    color={activeTab === 5 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+
+                <ListItemText
+                  primary="Mis Cadetes"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
+              </ListItemButton>
 
-              <ListItemText
-                primary="Mis Cadetes"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
+              {/* CIERRES PENDIENTES */}
+              <ListItemButton
+                selected={activeTab === 51}
+                onClick={() => handleAction(51)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <RequestQuoteIcon
+                    fontSize="small"
+                    color={activeTab === 51 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
 
-            {/* CIERRES PENDIENTES */}
-            <ListItemButton
-              selected={activeTab === 51}
-              onClick={() => handleAction(51)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <RequestQuoteIcon
-                  fontSize="small"
-                  color={activeTab === 51 ? "primary" : "inherit"}
+                <ListItemText
+                  primary="Cierre de turno"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
+              </ListItemButton>
 
-              <ListItemText
-                primary="Cierre de turno"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
+              {/* HISTORIAL DE CIERRES */}
+              <ListItemButton
+                selected={activeTab === 52}
+                onClick={() => handleAction(52)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <HistoryIcon
+                    fontSize="small"
+                    color={activeTab === 52 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
 
-            {/* HISTORIAL DE CIERRES */}
-            <ListItemButton
-              selected={activeTab === 52}
-              onClick={() => handleAction(52)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <HistoryIcon
-                  fontSize="small"
-                  color={activeTab === 52 ? "primary" : "inherit"}
+                <ListItemText
+                  primary="Historial de Cierres"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
+              </ListItemButton>
 
-              <ListItemText
-                primary="Historial de Cierres"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
+              {/* ENVIOS DEL MES */}
+              <ListItemButton
+                selected={activeTab === 53}
+                onClick={() => handleAction(53)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <CalendarMonthIcon
+                    fontSize="small"
+                    color={activeTab === 53 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
 
-            {/* ENVIOS DEL MES */}
-            <ListItemButton
-              selected={activeTab === 53}
-              onClick={() => handleAction(53)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <CalendarMonthIcon
-                  fontSize="small"
-                  color={activeTab === 53 ? "primary" : "inherit"}
+                <ListItemText
+                  primary="Envíos del Mes"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
+              </ListItemButton>
 
-              <ListItemText
-                primary="Envíos del Mes"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
+              {/* ESTADISTICAS TOTALES */}
+              <ListItemButton
+                selected={activeTab === 54}
+                onClick={() => handleAction(54)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <QueryStatsIcon
+                    fontSize="small"
+                    color={activeTab === 54 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
 
-            {/* ESTADISTICAS TOTALES */}
-            <ListItemButton
-              selected={activeTab === 54}
-              onClick={() => handleAction(54)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <QueryStatsIcon
-                  fontSize="small"
-                  color={activeTab === 54 ? "primary" : "inherit"}
+                <ListItemText
+                  primary="Estadísticas Totales"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
-
-              <ListItemText
-                primary="Estadísticas Totales"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
-          </List>
-        </Collapse>
+              </ListItemButton>
+            </List>
+          </Collapse>
+        </Box>
 
         {/* EMPLEADOS */}
         <ListItemButton

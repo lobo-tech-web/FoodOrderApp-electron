@@ -7,7 +7,6 @@ import { AppBar, Toolbar, Box } from "@mui/material";
 // ---- ACTIONS ----
 import { ProductsActions } from "./PanelNavBarActions/ProductsActions.jsx";
 import { CategoryActions } from "./PanelNavBarActions/CategoryActions.jsx";
-import { OrdersActions } from "./PanelNavBarActions/OrdersActions.jsx";
 import { UserPointsActions } from "./PanelNavBarActions/UserPointsActions.jsx";
 import { StatsActions } from "./PanelNavBarActions/StatsActions.jsx";
 import { RiderActions } from "./PanelNavBarActions/RiderActions.jsx";
@@ -19,11 +18,6 @@ export const PanelNavBar = ({
   isProductPanel,
   countAllProducts,
   isCategoryPanel,
-  isOrderPanel,
-  selectedOrdersCheckbox,
-  setAutoRefreshEnabled,
-  cashSession = null,
-  cashRegisterId = null,
   isUserPointsPanel,
   countAllUserPoints,
   isStatsPanel,
@@ -96,20 +90,6 @@ export const PanelNavBar = ({
               refreshCategorys={handleRefresh}
               modalState={modalState}
               toggleModal={toggleModal}
-              showAlert={showAlert}
-            />
-          )}
-
-          {/* ORDENES */}
-          {isOrderPanel && (
-            <OrdersActions
-              refreshOrders={handleRefresh}
-              modalState={modalState}
-              toggleModal={toggleModal}
-              selectedOrdersCheckbox={selectedOrdersCheckbox}
-              setAutoRefreshEnabled={setAutoRefreshEnabled}
-              cashSession={cashSession}
-              cashRegisterId={cashRegisterId}
               showAlert={showAlert}
             />
           )}

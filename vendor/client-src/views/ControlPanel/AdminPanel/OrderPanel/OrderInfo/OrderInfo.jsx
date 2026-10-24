@@ -13,8 +13,7 @@ import {
 // ICONS
 import {
   Edit as EditIcon,
-  Person as PersonIcon,
-  Smartphone as SmartphoneIcon,
+  Phone as PhoneIcon,
   Restaurant as RestaurantIcon,
   Moped as MopedIcon,
   Paid as PaidIcon,
@@ -33,7 +32,9 @@ const tableBodyStyle = {
   fontSize: "0.85rem",
   color: "text.primary",
   textAlign: "center",
-  py: 1.5,
+  py: 0.875,
+  px: 1,
+  verticalAlign: "middle",
 };
 // -----------------
 
@@ -137,6 +138,8 @@ export const OrderInfo = ({
     <TableRow
       selected={isSelected}
       sx={{
+        "& > .MuiTableCell-root": { py: 0.875, px: 1 },
+        "& .MuiTypography-root": { lineHeight: 1.35 },
         transition: "background-color 0.2s ease, box-shadow 0.2s ease",
         bgcolor: isSelected ? "rgba(245, 158, 11, 0.14)" : "transparent",
         boxShadow: isSelected ? "inset 4px 0 0 #f59e0b" : "none",
@@ -173,7 +176,7 @@ export const OrderInfo = ({
             alignItems: "center",
             justifyContent: "center",
             flexWrap: "wrap",
-            gap: 0.5,
+            gap: 0.25,
           }}
         >
           <Typography
@@ -228,39 +231,36 @@ export const OrderInfo = ({
             display: "flex",
             alignItems: "center",
             flexDirection: "column",
+            minWidth: 140,
+            maxWidth: 200,
+            mx: "auto",
           }}
         >
+          <Typography
+            variant="caption"
+            sx={{
+              fontFamily: "fontFamily.secondary",
+              fontSize: "0.85rem",
+              color: "text.primary",
+              overflowWrap: "anywhere",
+            }}
+          >
+            {order?.clientName?.toUpperCase() || "SIN NOMBRE"}
+          </Typography>
+
           <Box
             sx={{
               display: "flex",
               flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "center",
               textAlign: "center",
               flexDirection: "row",
               gap: 0.5,
             }}
           >
-            <PersonIcon sx={{ color: "primary.main", fontSize: "1rem" }} />
-            <Typography
-              variant="caption"
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                fontSize: "0.85rem",
-                color: "text.primary",
-              }}
-            >
-              {order?.clientName?.toUpperCase() || "SIN NOMBRE"}
-            </Typography>
-          </Box>
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              textAlign: "center",
-              flexDirection: "row",
-              gap: 0.5,
-            }}
-          >
-            <SmartphoneIcon sx={{ color: "primary.main", fontSize: "1rem" }} />
+            <PhoneIcon sx={{ color: "primary.main", fontSize: "1rem" }} />
+
             <Typography
               variant="caption"
               sx={{
@@ -276,12 +276,6 @@ export const OrderInfo = ({
       </TableCell>
 
       <TableCell sx={tableBodyStyle}>
-        {order.orderType === "DELIVERY"
-          ? order.deliveryAddress?.toUpperCase() || "SIN DIRECCIÓN"
-          : "-"}
-      </TableCell>
-
-      <TableCell sx={tableBodyStyle}>
         <Box
           sx={{
             display: "flex",
@@ -289,7 +283,7 @@ export const OrderInfo = ({
             alignItems: "center",
             justifyContent: "center",
             flexWrap: "wrap",
-            gap: 0.5,
+            gap: 0.25,
           }}
         >
           <Typography
@@ -339,7 +333,6 @@ export const OrderInfo = ({
               color={paymentStatus.color}
               variant={paymentStatus.variant}
               sx={{
-                mt: 0.3,
                 height: 22,
                 fontFamily: "fontFamily.secondary",
                 fontWeight: 800,
@@ -361,7 +354,7 @@ export const OrderInfo = ({
             alignItems: "center",
             justifyContent: "center",
             flexWrap: "wrap",
-            gap: 1,
+            gap: 0.5,
           }}
         >
           {order.totalRewardPoints > 0 && (
@@ -376,6 +369,7 @@ export const OrderInfo = ({
               }}
             />
           )}
+
           {order.totalRedeemPoints > 0 && (
             <Chip
               label={`-${order.totalRedeemPoints} pts`}
@@ -388,6 +382,7 @@ export const OrderInfo = ({
               }}
             />
           )}
+
           {!order.totalRewardPoints && !order.totalRedeemPoints && "-"}
         </Box>
       </TableCell>
@@ -400,7 +395,7 @@ export const OrderInfo = ({
             alignItems: "center",
             justifyContent: "center",
             flexWrap: "wrap",
-            gap: 0.5,
+            gap: 0.25,
           }}
         >
           <Typography
@@ -408,15 +403,18 @@ export const OrderInfo = ({
             sx={{
               fontSize: "0.85rem",
               color: "text.secondary",
+              whiteSpace: "nowrap",
             }}
           >
             {formatOrderDate(order?.orderDate)}
           </Typography>
+
           <Typography
             variant="caption"
             sx={{
               fontSize: "0.85rem",
               color: "text.primary",
+              whiteSpace: "nowrap",
             }}
           >
             {formatOrderTime(order?.orderDate)}
@@ -463,41 +461,52 @@ export const OrderInfo = ({
           <Box
             sx={{
               display: "flex",
-              alignItems: "center",
               flexDirection: "column",
-              gap: 0.4,
+              alignItems: "center",
+              gap: 0.5,
+              minWidth: 220,
+              maxWidth: 280,
+              mx: "auto",
+              textAlign: "left",
             }}
           >
-            <Typography
-              variant="caption"
+            <Box
               sx={{
-                fontSize: "0.85rem",
-                color: "text.primary",
-                fontWeight: 800,
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 0.5,
               }}
             >
-              DELIVERY
-            </Typography>
+              <Typography
+                variant="caption"
+                sx={{ fontSize: "0.85rem", color: "primary.main" }}
+              >
+                DELIVERY
+              </Typography>
+            </Box>
 
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
                 gap: 0.5,
-                px: 0.8,
-                py: 0.3,
+                px: 0.75,
                 borderRadius: 5,
                 border: "1px solid",
                 borderColor: order?.rider?.name
                   ? "primary.main"
                   : "warning.main",
                 bgcolor: "background.paper",
+                minWidth: 0,
+                maxWidth: "100%",
               }}
             >
               <MopedIcon
                 sx={{
                   color: order?.rider?.name ? "primary.main" : "warning.main",
-                  fontSize: "1rem",
+                  fontSize: "0.9rem",
+                  flexShrink: 0,
                 }}
               />
               <Typography
@@ -507,6 +516,7 @@ export const OrderInfo = ({
                   color: order?.rider?.name ? "text.primary" : "warning.main",
                   fontFamily: "fontFamily.secondary",
                   fontWeight: 800,
+                  overflowWrap: "anywhere",
                 }}
               >
                 {order?.rider?.name
@@ -514,6 +524,18 @@ export const OrderInfo = ({
                   : "SIN RIDER"}
               </Typography>
             </Box>
+
+            <Typography
+              sx={{
+                fontFamily: "fontFamily.secondary",
+                fontSize: "0.80rem",
+                fontWeight: 500,
+                color: "text.primary",
+                overflowWrap: "anywhere",
+              }}
+            >
+              {order.deliveryAddress?.trim().toUpperCase() || "SIN DIRECCIÓN"}
+            </Typography>
           </Box>
         ) : (
           <Typography
@@ -530,9 +552,11 @@ export const OrderInfo = ({
 
       <TableCell align="center">
         <Chip
+          size="small"
           label={order.status}
           sx={{
             fontFamily: "fontFamily.primary",
+            fontSize: "0.85rem",
             color: "text.primary",
             bgcolor: handleColor(order.status),
           }}
@@ -575,9 +599,7 @@ export const OrderInfo = ({
                         bgcolor: "rgba(76, 175, 80, 0.10)",
                         transform: "translateY(-1px)",
                       },
-                      "&.Mui-disabled": {
-                        borderColor: "action.disabled",
-                      },
+                      "&.Mui-disabled": { borderColor: "action.disabled" },
                     }}
                   >
                     {paymentUpdating ? (
@@ -610,9 +632,7 @@ export const OrderInfo = ({
                         bgcolor: "rgba(244, 67, 54, 0.10)",
                         transform: "translateY(-1px)",
                       },
-                      "&.Mui-disabled": {
-                        borderColor: "action.disabled",
-                      },
+                      "&.Mui-disabled": { borderColor: "action.disabled" },
                     }}
                   >
                     {paymentUpdating ? (

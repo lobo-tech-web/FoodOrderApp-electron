@@ -37,7 +37,6 @@ import { formatCurrency } from "@/utils/orderCalculations.js";
 
 // ---- Shared ----
 import { StatsCard } from "./shared/StatsCard.jsx";
-import { PendingDateGroup } from "./shared/PendingDateGroup.jsx";
 // ----------------
 
 export const PendingRiderClosuresPanel = ({

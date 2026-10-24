@@ -1,111 +1,93 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export const useAutoRefresh = (
   refreshFunction,
-  interval = 30000, // 30 segundos por defecto para el refresh
-  options = {}
+  interval = 30000,
+  options = {},
 ) => {
-  const {
-    enabled = true,
-    pauseOnHidden = true, // Pausar cuando la pestaña no está visible
-    onRefresh = null, // Callback cuando se ejecuta el refresh
-  } = options;
+  const { enabled = true, pauseOnHidden = true, onRefresh = null } = options;
 
-  const refreshFunctionRef = useRef(refreshFunction);
-  const onRefreshRef = useRef(onRefresh);
-  const isEnabledRef = useRef(enabled);
-  const [countdown, setCountdown] = useState(interval / 1000);
-  const countdownIntervalRef = useRef(null);
+  const latest = useRef();
+  latest.current = { refreshFunction, enabled, pauseOnHidden, onRefresh };
 
-  // Actualizar referencias
-  useEffect(() => {
-    refreshFunctionRef.current = refreshFunction;
-    onRefreshRef.current = onRefresh;
-    isEnabledRef.current = enabled;
-  }, [refreshFunction, onRefresh, enabled]);
+  const timer = useRef(null);
+  const inFlight = useRef(false);
+  const mounted = useRef(false);
+  const deadline = useRef(0);
 
-  const stopCountdown = useCallback(() => {
-    if (countdownIntervalRef.current) {
-      clearInterval(countdownIntervalRef.current);
-      countdownIntervalRef.current = null;
-    }
-  }, []);
-
-  const startCountdown = useCallback(() => {
-    if (countdownIntervalRef.current) return;
-
-    countdownIntervalRef.current = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          (async () => {
-            if (!isEnabledRef.current) return;
-            if (pauseOnHidden && document.hidden) return;
-
-            try {
-              await refreshFunctionRef.current();
-              onRefreshRef.current?.();
-            } catch (error) {
-              console.error('Error en auto-refresh', error);
-            }
-          })();
-          return interval / 1000; // Reset countdown
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }, [interval, pauseOnHidden]);
-
-  const startPolling = useCallback(() => {
-    stopCountdown(); // Asegúrate de no duplicar timers
-    if (enabled) {
-      startCountdown();
-    }
-  }, [enabled, startCountdown, stopCountdown]);
+  const [countdown, setCountdown] = useState(Math.ceil(interval / 1000));
+  const [isRunning, setIsRunning] = useState(false);
 
   const stopPolling = useCallback(() => {
-    stopCountdown();
-  }, [stopCountdown]);
+    clearInterval(timer.current);
+    timer.current = null;
+    if (mounted.current) setIsRunning(false);
+  }, []);
 
-  const restartPolling = useCallback(() => {
+  const startPolling = useCallback(() => {
     stopPolling();
-    if (enabled) {
-      startPolling();
-    }
-  }, [enabled, startPolling, stopPolling]);
+    const current = latest.current;
+    if (!current.enabled || (current.pauseOnHidden && document.hidden)) return;
 
-  // Manejar visibilidad de la página
-  useEffect(() => {
-    if (!pauseOnHidden) return;
+    deadline.current = Date.now() + interval;
+    setCountdown(Math.ceil(interval / 1000));
+    setIsRunning(true);
 
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        stopPolling();
-      } else if (enabled) {
-        startPolling();
+    timer.current = setInterval(async () => {
+      if (inFlight.current) return;
+
+      const remaining = Math.max(
+        0,
+        Math.ceil((deadline.current - Date.now()) / 1000),
+      );
+      setCountdown(remaining);
+
+      if (
+        remaining > 0 ||
+        !latest.current.enabled ||
+        (latest.current.pauseOnHidden && document.hidden)
+      ) {
+        return;
       }
+
+      inFlight.current = true;
+      try {
+        const refreshed = await latest.current.refreshFunction();
+        if (mounted.current && latest.current.enabled && refreshed !== false) {
+          latest.current.onRefresh?.();
+        }
+      } catch (error) {
+        console.error("Error en auto-refresh", error);
+      } finally {
+        inFlight.current = false;
+        deadline.current = Date.now() + interval;
+        if (mounted.current) setCountdown(Math.ceil(interval / 1000));
+      }
+    }, 1000);
+  }, [interval, stopPolling]);
+
+  useEffect(() => {
+    mounted.current = true;
+    startPolling();
+
+    const onVisibility = () => {
+      if (pauseOnHidden) document.hidden ? stopPolling() : startPolling();
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () =>
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [enabled, pauseOnHidden, startPolling, stopPolling]);
+    document.addEventListener("visibilitychange", onVisibility);
 
-  // Iniciar/detener polling basado en enabled
-  useEffect(() => {
-    if (enabled) {
-      startPolling();
-    } else {
+    return () => {
+      mounted.current = false;
       stopPolling();
-    }
-
-    return stopPolling;
-  }, [enabled, startPolling, stopPolling]);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [enabled, pauseOnHidden, startPolling, stopPolling]);
 
   return {
     startPolling,
     stopPolling,
-    restartPolling,
-    isRunning: countdownIntervalRef.current !== null,
+    restartPolling: startPolling,
+    isRunning,
     countdown,
   };
 };
