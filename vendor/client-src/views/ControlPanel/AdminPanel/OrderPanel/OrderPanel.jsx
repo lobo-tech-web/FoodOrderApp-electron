@@ -744,8 +744,9 @@ export const OrderPanel = ({
                   </TableCell>
                   <TableCell sx={tableHeadStyle}>N° PEDIDO</TableCell>
                   <TableCell sx={tableHeadStyle}>CLIENTE</TableCell>
-                  <TableCell sx={tableHeadStyle}>TOTAL</TableCell>
                   <TableCell sx={tableHeadStyle}>PUNTOS</TableCell>
+                  <TableCell sx={tableHeadStyle}>PAGO</TableCell>
+                  <TableCell sx={tableHeadStyle}>TOTAL</TableCell>
                   <TableCell sx={tableHeadStyle}>FECHA/HORA</TableCell>
                   <TableCell sx={tableHeadStyle}>ENTREGA</TableCell>
                   <TableCell sx={tableHeadStyle}>ESTADO</TableCell>

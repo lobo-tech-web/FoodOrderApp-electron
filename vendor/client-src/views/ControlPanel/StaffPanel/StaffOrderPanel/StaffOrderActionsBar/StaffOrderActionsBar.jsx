@@ -2,7 +2,6 @@ import { useState } from "react";
 
 // ---- Material UI ----
 import { Alert, Box, Button, Paper, Stack, Typography } from "@mui/material";
-
 // Icons
 import {
   Add as AddIcon,
@@ -24,7 +23,7 @@ import { hasOrderPermission } from "@/utils/orderEditRules.js";
 const buttonStyle = {
   bgcolor: "primary.main",
   color: "text.terciary",
-  fontFamily: "fontFamily.terciary",
+  fontFamily: "fontFamily.primary",
   borderRadius: "8px",
   px: 3,
   py: 1,

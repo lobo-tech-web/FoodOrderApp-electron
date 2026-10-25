@@ -3,7 +3,9 @@ import { useState, useMemo } from "react";
 // ---- MATERIAL UI ----
 import {
   Box,
+  Avatar,
   Button,
+  Chip,
   Typography,
   Table,
   TableBody,
@@ -17,14 +19,13 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
-// <-------------------
+import FastfoodIcon from "@mui/icons-material/Fastfood";
+// -------------------
 
 // ---- COMPONENTS ----
-// import { ProductCard } from './ProductCard/ProductCard.jsx';
+import { AdminProductNavbar } from "./AdminProductNavbar/AdminProductNavbar.jsx";
 import { ModalEditProduct } from "@/components/PanelComponents/ModalEditProduct/ModalEditProduct.jsx";
 import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
-import { PanelNavBar } from "@/components/PanelComponents/PanelNavBar/PanelNavBar.jsx";
 import { QuickEditPopover } from "./QuickEditPopover/QuickEditPopover.jsx";
 import { CatalogModal } from "./CreateCatalog/CatalogModal.jsx";
 import { generateProductCatalogPDF } from "./CreateCatalog/CreateCatalog.jsx";
@@ -49,6 +50,21 @@ const tableCellStyle = {
   color: "text.primary",
   textAlign: "center",
   fontFamily: "fontFamily.secondary",
+  verticalAlign: "middle",
+};
+
+const quickEditValueStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  position: "relative",
+  whiteSpace: "nowrap",
+  "& .quick-edit-icon": {
+    position: "absolute",
+    left: "calc(100% + 6px)",
+    top: "50%",
+    transform: "translateY(-50%)",
+    pointerEvents: "none",
+  },
 };
 // ----------------
 
@@ -61,14 +77,40 @@ export const ProductPanel = ({ user }) => {
   const { productState, getAllProducts, updateProduct } = useProducts();
 
   const allProducts = useMemo(
-    () => productState.products || [],
-    [productState.products],
+    () => productState.allProducts || [],
+    [productState.allProducts],
   );
 
-  const countAllProducts = useMemo(
-    () => productState.products.length || 0,
-    [productState.products],
-  );
+  const [filters, setFilters] = useState({
+    searchInput: "",
+    search: "",
+    category: "all",
+    status: "all",
+  });
+
+  const handleFiltersChange = (changes) => {
+    setFilters((current) => ({ ...current, ...changes }));
+  };
+
+  const filteredProducts = useMemo(() => {
+    const normalize = (value) =>
+      String(value ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+
+    const search = normalize(filters.search);
+
+    return allProducts.filter(
+      (product) =>
+        normalize(product.name).includes(search) &&
+        (filters.category === "all" ||
+          String(product.categoryId ?? product.category?.id) ===
+            filters.category) &&
+        (filters.status === "all" ||
+          product.status === (filters.status === "true")),
+    );
+  }, [allProducts, filters.search, filters.category, filters.status]);
 
   const [openEditProduct, setOpenEditProduct] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -127,7 +169,6 @@ export const ProductPanel = ({ user }) => {
   };
 
   const handleCloseEditProduct = () => setOpenEditProduct(false);
-
   const [catalogModalOpen, setCatalogModalOpen] = useState(false);
 
   const handleOpenCatalogModal = () => {
@@ -181,53 +222,33 @@ export const ProductPanel = ({ user }) => {
         pb: isElectronApp ? 3 : 0,
       }}
     >
-      <Box sx={{ maxWidth: "auto", width: "100%" }}>
-        {/* PANELNAVBAR DE LOS PRODUCTOS */}
-        <PanelNavBar
-          isProductPanel={true}
+      <Box sx={{ minWidth: 0, width: "100%" }}>
+        <AdminProductNavbar
           handleRefresh={fetchProducts}
-          countAllProducts={countAllProducts}
+          countAllProducts={allProducts.length}
+          countFilteredProducts={filteredProducts.length}
+          categories={productState.categorys || []}
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          onOpenCatalog={handleOpenCatalogModal}
           showAlert={showAlert}
         />
-        {/* BOTON PARA CREAR CATALOGO */}
-        {allProducts.length > 0 && (
-          <Box
-            sx={{ display: "flex", justifyContent: "flex-end", mb: 2, px: 2 }}
-          >
-            <Button
-              variant="contained"
-              startIcon={<PictureAsPdfIcon />}
-              onClick={handleOpenCatalogModal}
-              sx={{
-                bgcolor: "error.main",
-                color: "white",
-                fontFamily: "fontFamily.primary",
-                "&:hover": {
-                  bgcolor: "error.dark",
-                },
-              }}
-            >
-              GENERAR CATÁLOGO PDF
-            </Button>
-          </Box>
-        )}
-        {/* ---------- */}
-        {/* <Box sx={{ p: { xs: 1.5, sm: 2.5 } }}>
-          <Stack spacing={2}>
-            {allProducts.length > 0 &&
-              allProducts.map((p) => (
-                <Box key={p.id}>
-                  <ProductCard product={p} onEditProduct={() => {}} />
-                </Box>
-              ))}
-          </Stack>
-        </Box> */}
 
-        {allProducts.length > 0 ? (
-          <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
+        {filteredProducts.length > 0 ? (
+          <TableContainer
+            component={Paper}
+            sx={{
+              overflowX: "auto",
+              border: "1px solid",
+              borderColor: "background.main",
+            }}
+          >
             <Table sx={{ minWidth: 1180 }}>
               <TableHead sx={{ bgcolor: "background.paper" }}>
                 <TableRow sx={{ textAlign: "center" }}>
+                  <TableCell sx={{ ...tableHeadStyle, width: 64 + 32 }}>
+                    IMAGEN
+                  </TableCell>
                   <TableCell sx={tableHeadStyle}>NOMBRE</TableCell>
                   <TableCell sx={tableHeadStyle}>DESCRIPCIÓN</TableCell>
                   <TableCell sx={tableHeadStyle}>CATEGORIA</TableCell>
@@ -239,29 +260,51 @@ export const ProductPanel = ({ user }) => {
                   <TableCell sx={tableHeadStyle}>MODIFICAR</TableCell>
                 </TableRow>
               </TableHead>
+
               <TableBody sx={{ bgcolor: "background.default" }}>
-                {allProducts.map((product) => (
+                {filteredProducts.map((product) => (
                   <TableRow
                     key={product.id}
                     sx={{
                       transition: "all 0.2s ease",
                       cursor: "pointer",
                       "&:hover": {
-                        bgcolor: "action.hover", // color del fondo
-                        transform: "scale(1.002)", // efecto suave
+                        bgcolor: "action.hover",
+                        transform: "scale(1.002)",
                         boxShadow: 2,
                       },
                     }}
                   >
+                    <TableCell sx={{ ...tableCellStyle, px: 1.5, py: 1 }}>
+                      <Avatar
+                        variant="rounded"
+                        src={product.image || undefined}
+                        alt={product.name || "Producto"}
+                        sx={{
+                          width: 64,
+                          height: 64,
+                          mx: "auto",
+                          bgcolor: "action.hover",
+                          color: "text.secondary",
+                          "& .MuiAvatar-img": { objectFit: "cover" },
+                        }}
+                      >
+                        <FastfoodIcon />
+                      </Avatar>
+                    </TableCell>
+
                     <TableCell component="th" scope="row" sx={tableCellStyle}>
                       {product.name}
                     </TableCell>
+
                     <TableCell sx={tableCellStyle}>
                       {product.description}
                     </TableCell>
+
                     <TableCell sx={tableCellStyle}>
                       {product?.category?.name}
                     </TableCell>
+
                     <TableCell
                       sx={{
                         ...tableCellStyle,
@@ -279,20 +322,14 @@ export const ProductPanel = ({ user }) => {
                         handleQuickEditOpen(event, product, "price")
                       }
                     >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 1,
-                        }}
-                      >
+                      <Box sx={quickEditValueStyle}>
                         <Typography
                           variant="body2"
                           sx={{ fontFamily: "fontFamily.secondary" }}
                         >
                           ${product.price}
                         </Typography>
+
                         <EditIcon
                           className="quick-edit-icon"
                           sx={{
@@ -304,6 +341,7 @@ export const ProductPanel = ({ user }) => {
                         />
                       </Box>
                     </TableCell>
+
                     <TableCell
                       sx={{
                         ...tableCellStyle,
@@ -320,20 +358,14 @@ export const ProductPanel = ({ user }) => {
                         handleQuickEditOpen(event, product, "discount")
                       }
                     >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 1,
-                        }}
-                      >
+                      <Box sx={quickEditValueStyle}>
                         <Typography
                           variant="body2"
                           sx={{ fontFamily: "fontFamily.secondary" }}
                         >
                           {product.discount}%
                         </Typography>
+
                         <EditIcon
                           className="quick-edit-icon"
                           sx={{
@@ -345,6 +377,7 @@ export const ProductPanel = ({ user }) => {
                         />
                       </Box>
                     </TableCell>
+
                     <TableCell
                       sx={{
                         ...tableCellStyle,
@@ -361,14 +394,7 @@ export const ProductPanel = ({ user }) => {
                         handleQuickEditOpen(event, product, "rewardPoints")
                       }
                     >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 1,
-                        }}
-                      >
+                      <Box sx={quickEditValueStyle}>
                         <Typography
                           variant="body2"
                           sx={{ fontFamily: "fontFamily.secondary" }}
@@ -386,6 +412,7 @@ export const ProductPanel = ({ user }) => {
                         />
                       </Box>
                     </TableCell>
+
                     <TableCell
                       sx={{
                         ...tableCellStyle,
@@ -402,20 +429,14 @@ export const ProductPanel = ({ user }) => {
                         handleQuickEditOpen(event, product, "redeemPoints")
                       }
                     >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 1,
-                        }}
-                      >
+                      <Box sx={quickEditValueStyle}>
                         <Typography
                           variant="body2"
                           sx={{ fontFamily: "fontFamily.secondary" }}
                         >
                           {product.redeemPoints}
                         </Typography>
+
                         <EditIcon
                           className="quick-edit-icon"
                           sx={{
@@ -427,39 +448,31 @@ export const ProductPanel = ({ user }) => {
                         />
                       </Box>
                     </TableCell>
-                    <TableCell align="center">
+
+                    <TableCell sx={tableCellStyle}>
                       {product.status ? (
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            fontFamily: "fontFamily.terciary",
-                            color: "success.main",
-                          }}
-                        >
-                          ACTIVO
-                          <CheckIcon sx={{ color: "success.main" }} />
-                        </Typography>
+                        <Chip
+                          icon={<CheckIcon />}
+                          size="medium"
+                          label="Activo"
+                          color="success"
+                        />
                       ) : (
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            fontFamily: "fontFamily.terciary",
-                            color: "error.main",
-                          }}
-                        >
-                          DESACTIVADO
-                          <ClearIcon sx={{ color: "error.main" }} />
-                        </Typography>
+                        <Chip
+                          icon={<ClearIcon />}
+                          size="medium"
+                          label="Desactivado"
+                          color="error"
+                        />
                       )}
                     </TableCell>
-                    <TableCell align="center">
+
+                    <TableCell sx={tableCellStyle}>
                       <Button onClick={() => handleOpenEditProduct(product)}>
                         <EditIcon
                           sx={{
                             color: "text.primary",
-                            "&:hover": {
-                              color: "primary.main",
-                            },
+                            "&:hover": { color: "primary.main" },
                           }}
                         />
                       </Button>
@@ -480,9 +493,12 @@ export const ProductPanel = ({ user }) => {
               fontFamily: "fontFamily.primary",
             }}
           >
-            NO HAY PRODUCTOS DISPONIBLES.
+            {allProducts.length > 0
+              ? "NO SE ENCONTRARON PRODUCTOS CON ESTOS FILTROS."
+              : "NO HAY PRODUCTOS DISPONIBLES."}
           </Typography>
         )}
+
         {/* Modal para editar el producto */}
         <ModalEditProduct
           show={openEditProduct}
@@ -491,6 +507,7 @@ export const ProductPanel = ({ user }) => {
           showProduct={selectedProduct}
           isEditing={true}
         />
+
         {/* Popover para edición rápida */}
         <QuickEditPopover
           open={Boolean(quickEditState.anchorEl)}
@@ -505,12 +522,14 @@ export const ProductPanel = ({ user }) => {
           }
         />
       </Box>
+
       <CatalogModal
         open={catalogModalOpen}
         onClose={() => setCatalogModalOpen(false)}
         onGenerate={handleGenerateCatalog}
         defaultName={user?.businessName || "MI RESTAURANTE"}
       />
+
       {AlertComponent}
     </Box>
   );

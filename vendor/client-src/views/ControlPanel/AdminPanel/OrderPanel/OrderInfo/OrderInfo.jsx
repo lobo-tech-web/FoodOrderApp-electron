@@ -225,6 +225,7 @@ export const OrderInfo = ({
           </Typography>
         </Box>
       </TableCell>
+
       <TableCell sx={tableBodyStyle}>
         <Box
           sx={{
@@ -283,19 +284,44 @@ export const OrderInfo = ({
             alignItems: "center",
             justifyContent: "center",
             flexWrap: "wrap",
+            gap: 0.5,
+          }}
+        >
+          {order.totalRewardPoints > 0 && (
+            <Chip
+              size="small"
+              variant="outlined"
+              color="success"
+              label={`+${order.totalRewardPoints} pts`}
+              sx={{ fontFamily: "fontFamily.secondary" }}
+            />
+          )}
+
+          {order.totalRedeemPoints > 0 && (
+            <Chip
+              size="small"
+              variant="outlined"
+              color="error"
+              label={`-${order.totalRedeemPoints} pts`}
+              sx={{ fontFamily: "fontFamily.secondary" }}
+            />
+          )}
+
+          {!order.totalRewardPoints && !order.totalRedeemPoints && "-"}
+        </Box>
+      </TableCell>
+
+      <TableCell sx={tableBodyStyle}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            flexWrap: "wrap",
             gap: 0.25,
           }}
         >
-          <Typography
-            variant="caption"
-            sx={{
-              fontSize: "0.85rem",
-              color: "text.primary",
-            }}
-          >
-            {formatCurrency(order.totalAmount)}
-          </Typography>
-
           <Typography
             variant="caption"
             sx={{
@@ -303,12 +329,12 @@ export const OrderInfo = ({
               fontSize: {
                 xs: "0.60rem",
                 sm: "0.65rem",
-                md: "0.70rem",
+                md: "0.80rem",
               },
               color:
                 order.paymentMethod === "SIN ESPECIFICAR"
                   ? "primary.main"
-                  : "text.secondary",
+                  : "text.primary",
             }}
           >
             {order.paymentMethod}
@@ -347,44 +373,15 @@ export const OrderInfo = ({
       </TableCell>
 
       <TableCell sx={tableBodyStyle}>
-        <Box
+        <Typography
+          variant="caption"
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            flexWrap: "wrap",
-            gap: 0.5,
+            fontSize: "0.85rem",
+            color: "text.primary",
           }}
         >
-          {order.totalRewardPoints > 0 && (
-            <Chip
-              label={`+${order.totalRewardPoints} pts`}
-              size="small"
-              variant="contained"
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                color: "text.primary",
-                bgcolor: "success.main",
-              }}
-            />
-          )}
-
-          {order.totalRedeemPoints > 0 && (
-            <Chip
-              label={`-${order.totalRedeemPoints} pts`}
-              size="small"
-              variant="contained"
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                color: "text.primary",
-                bgcolor: "error.main",
-              }}
-            />
-          )}
-
-          {!order.totalRewardPoints && !order.totalRedeemPoints && "-"}
-        </Box>
+          {formatCurrency(order.totalAmount)}
+        </Typography>
       </TableCell>
 
       <TableCell sx={tableBodyStyle}>

@@ -35,7 +35,7 @@ import {
 //------------------
 
 // ---- LOGO ----
-import lobotechLogo from "@/assets/main/logo-lobotech-oj.png";
+import lobotechLogo from "@/assets/main/lobotech-drawer.png";
 // --------------
 
 // ---- COMPONENTS ----
@@ -112,6 +112,8 @@ export const StaffDrawer = ({
           />
         </Box>
       </Box>
+
+      <Divider />
 
       {/* INFORMACIÓN DEL EMPLEADO */}
       <Box

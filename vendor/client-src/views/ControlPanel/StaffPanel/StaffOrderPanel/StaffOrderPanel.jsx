@@ -92,10 +92,10 @@ const ORDER_STATUS = {
 // ---- Styles ----
 const tableHeadStyle = {
   fontFamily: "fontFamily.primary",
+  bgcolor: "background.paper",
   color: "primary.main",
   textAlign: "center",
-  fontWeight: "bold",
-  py: 2,
+  py: 0.5,
 };
 // ----------------
 
@@ -108,6 +108,12 @@ export const StaffOrderPanel = ({
 }) => {
   const isElectronApp =
     typeof window !== "undefined" && Boolean(window.electronAPI);
+
+  const [navbarHeight, setNavbarHeight] = useState(0);
+  const [navbarModals, setNavbarModals] = useState({
+    createOrder: false,
+    editArrayOrders: false,
+  });
 
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
@@ -626,12 +632,34 @@ export const StaffOrderPanel = ({
           </Tabs>
         </Paper>
 
-        <TableContainer>
+        <TableContainer
+          sx={{
+            maxHeight: isElectronApp
+              ? "none"
+              : { xs: "calc(100vh - 360px)", md: "calc(100vh - 390px)" },
+            minHeight: isElectronApp ? "auto" : 260,
+            overflow: isElectronApp ? "visible" : "auto",
+            border: "1px solid",
+            borderColor: "background.main",
+          }}
+        >
           {filteredOrders.length > 0 ? (
-            <Table>
+            <Table
+              stickyHeader
+              aria-label="collapsible table"
+              sx={{
+                minWidth: 1040,
+                "& .MuiTableCell-stickyHeader": {
+                  top: isElectronApp ? navbarHeight : 0,
+                },
+              }}
+            >
               <TableHead sx={{ bgcolor: "background.paper" }}>
                 <TableRow>
-                  <TableCell padding="checkbox">
+                  <TableCell
+                    padding="checkbox"
+                    sx={{ bgcolor: "background.paper" }}
+                  >
                     <Checkbox
                       disabled={!isCashOpen || !canUpdateStatus}
                       indeterminate={
@@ -654,9 +682,9 @@ export const StaffOrderPanel = ({
                   </TableCell>
                   <TableCell sx={tableHeadStyle}>N° PEDIDO</TableCell>
                   <TableCell sx={tableHeadStyle}>CLIENTE</TableCell>
-                  <TableCell sx={tableHeadStyle}>DIRECCIÓN</TableCell>
-                  <TableCell sx={tableHeadStyle}>TOTAL</TableCell>
                   <TableCell sx={tableHeadStyle}>PUNTOS</TableCell>
+                  <TableCell sx={tableHeadStyle}>PAGO</TableCell>
+                  <TableCell sx={tableHeadStyle}>TOTAL</TableCell>
                   <TableCell sx={tableHeadStyle}>FECHA/HORA</TableCell>
                   <TableCell sx={tableHeadStyle}>ENTREGA</TableCell>
                   <TableCell sx={tableHeadStyle}>ESTADO</TableCell>
@@ -664,7 +692,7 @@ export const StaffOrderPanel = ({
                 </TableRow>
               </TableHead>
 
-              <TableBody>
+              <TableBody sx={{ bgcolor: "background.default" }}>
                 {filteredOrders
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((order) => {
@@ -694,12 +722,7 @@ export const StaffOrderPanel = ({
               </TableBody>
             </Table>
           ) : (
-            <Box
-              sx={{
-                p: 5,
-                textAlign: "center",
-              }}
-            >
+            <Box sx={{ p: 5, textAlign: "center" }}>
               <Typography sx={{ fontFamily: "fontFamily.primary" }}>
                 NO HAY PEDIDOS CON ESTADO:
               </Typography>

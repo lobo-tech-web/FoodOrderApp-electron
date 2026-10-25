@@ -5,17 +5,18 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
+  CircularProgress,
+  Divider,
   Paper,
   Stack,
   Typography,
-  Chip,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
   IconButton,
   Tooltip,
-  CircularProgress,
 } from "@mui/material";
 // Icons
 import {
@@ -467,6 +468,24 @@ export const CashRegisterGate = ({
                 </Typography>
               </Stack>
               {cashRegisterSelect}
+
+              <Divider sx={{ border: "1px solid" }} />
+
+              <Stack>
+                {selectedIsOpen && (
+                  <Typography
+                    sx={{
+                      display: { xs: "none", md: "block" },
+                      fontFamily: "fontFamily.secondary",
+                      fontSize: 14,
+                      color: "text.primary",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Monto inicial: {formatMoney(cashSession?.openingAmount)}
+                  </Typography>
+                )}
+              </Stack>
             </Stack>
 
             {/* DERECHA */}
@@ -477,32 +496,16 @@ export const CashRegisterGate = ({
               justifyContent={{ xs: "space-between", sm: "flex-end" }}
               sx={{ flexShrink: 0 }}
             >
-              <Box sx={{ display: "flex", flexDirection: "column" }}>
-                <Chip
-                  size="small"
-                  color={selectedIsOpen ? "success" : "error"}
-                  variant={selectedIsOpen ? "filled" : "outlined"}
-                  label={selectedIsOpen ? "ABIERTA" : "CERRADA"}
-                  sx={{
-                    fontFamily: "fontFamily.primary",
-                    fontSize: 12,
-                  }}
-                />
-
-                {selectedIsOpen && (
-                  <Typography
-                    sx={{
-                      display: { xs: "none", md: "block" },
-                      fontFamily: "fontFamily.secondary",
-                      fontSize: 11,
-                      color: "text.primary",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    Inicial: {formatMoney(cashSession?.openingAmount)}
-                  </Typography>
-                )}
-              </Box>
+              <Chip
+                size="small"
+                color={selectedIsOpen ? "success" : "error"}
+                variant={selectedIsOpen ? "filled" : "outlined"}
+                label={selectedIsOpen ? "ABIERTA" : "CERRADA"}
+                sx={{
+                  fontFamily: "fontFamily.primary",
+                  fontSize: 12,
+                }}
+              />
 
               {!selectedIsOpen && canOpenCash && (
                 <Button
@@ -527,12 +530,8 @@ export const CashRegisterGate = ({
                   size="small"
                   disabled={loading || saving || Boolean(sessionToClose)}
                   onClick={loadCashWorkspace}
-                  sx={{
-                    border: "1px solid",
-                    borderColor: "primary.main",
-                  }}
                 >
-                  <RefreshIcon color="inherit" fontSize="small" />
+                  <RefreshIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
             </Stack>
