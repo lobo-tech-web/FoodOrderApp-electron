@@ -3,7 +3,6 @@ import { useState, useMemo, useCallback } from "react";
 // ---- MATERIAL UI ----
 import {
   Box,
-  Button,
   Typography,
   Table,
   TableBody,
@@ -12,9 +11,7 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Chip,
   IconButton,
-  Stack,
   useTheme,
   useMediaQuery,
 } from "@mui/material";
@@ -23,6 +20,7 @@ import EditIcon from "@mui/icons-material/Edit";
 
 // ------- COMPONENT ----------
 import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
+import { AdminCategoryNavbar } from "./AdminCategoryNavbar/AdminCategoryNavbar.jsx";
 import { PanelNavBar } from "@/components/PanelComponents/PanelNavBar/PanelNavBar.jsx";
 import { ModalEditCategory } from "@/components/PanelComponents/ModalEditCategory/ModalEditCategory.jsx";
 // ----------------------------
@@ -120,11 +118,11 @@ export const CategoryPanel = ({ user }) => {
       }}
     >
       {/* PANELNAVBAR DE LAS CATEGORIAS */}
-      <PanelNavBar
-        isCategoryPanel={true}
+      <AdminCategoryNavbar
         handleRefresh={fetchCategorys}
         showAlert={showAlert}
       />
+
       {/*  */}
       {allCategorys.length > 0 ? (
         <TableContainer
@@ -133,12 +131,12 @@ export const CategoryPanel = ({ user }) => {
           sx={{
             borderRadius: isMobile ? 0 : 3,
             border: "1px solid",
-            borderColor: "divider",
+            borderColor: "background.main",
             overflowX: "auto",
           }}
         >
           <Table size={isMobile ? "small" : "medium"}>
-            <TableHead sx={{ bgcolor: "background.paper" }}>
+            <TableHead sx={{ bgcolor: "background.main" }}>
               <TableRow sx={{ textAlign: "center" }}>
                 <TableCell sx={tableHeadStyle}>N° DE POSICIÓN</TableCell>
                 <TableCell sx={tableHeadStyle}>
@@ -148,7 +146,8 @@ export const CategoryPanel = ({ user }) => {
                 <TableCell sx={tableHeadStyle}>ACCIONES</TableCell>
               </TableRow>
             </TableHead>
-            <TableBody sx={{ bgcolor: "background.default" }}>
+
+            <TableBody sx={{ bgcolor: "background.paper" }}>
               {allCategorys.map((category) => (
                 <TableRow key={category.id} sx={{ textAlign: "center" }}>
                   <TableCell sx={tableCellStyle}>{category.position}</TableCell>

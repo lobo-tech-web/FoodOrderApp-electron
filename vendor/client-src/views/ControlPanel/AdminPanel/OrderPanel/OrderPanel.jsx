@@ -23,7 +23,6 @@ import { AdminOrderNavbar } from "./AdminOrderNavbar/AdminOrderNavbar.jsx";
 import { ModalEditOrder } from "@/components/PanelComponents/ModalEditOrder/ModalEditOrder.jsx";
 import { OrderInfo } from "./OrderInfo/OrderInfo.jsx";
 import { OrderTableFilters } from "./OrderTableFilters/OrderTableFilters.jsx";
-import { AutoRefreshIndicator } from "./AutoRefreshIndicator/AutoRefreshIndicator.jsx";
 import { OrderStatusIndicator } from "./OrderStatusIndicator/OrderStatusIndicator.jsx";
 import { OrderSummaryIndicator } from "./OrderSummaryIndicator/OrderSummaryIndicator.jsx";
 import { RiderCountIndicator } from "./RiderCountIndicator/RiderCountIndicator.jsx";
@@ -38,7 +37,7 @@ import { useOrders } from "@/context/Orders.jsx";
 
 // ---- HOOKS ----
 import { useAlert } from "@/hooks/Alert.jsx";
-import { useAutoRefresh } from "@/hooks/AutoRefreshOrders.jsx";
+import { useOrderRealtime } from "@/hooks/useOrderRealtime.js";
 // ---------------
 
 // ---- UTILS ----
@@ -80,14 +79,24 @@ export const OrderPanel = ({
     filters.view === externalView
       ? filters
       : createOrderPanelFilters(externalView);
+
   const [navbarHeight, setNavbarHeight] = useState(0);
   const [navbarModals, setNavbarModals] = useState({
     createOrder: false,
     editArrayOrders: false,
   });
 
-  // REFRESH AUTOMÁTICO
-  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+  const { connection, hasUpdates, notificationVersion, acknowledgeUpdates } =
+    useOrderRealtime({
+      restaurantId: user?.id,
+    });
+
+  const [selectedOrderIds, setSelectedOrderIds] = useState([]);
+  const [editingPanelInput, setEditingPanelInput] = useState(false);
+  const hasPanelInteraction =
+    selectedOrderIds.length > 0 ||
+    editingPanelInput ||
+    currentFilters.searchInput !== currentFilters.searchTerm;
 
   // PAGINADO
   const [page, setPage] = useState(0);
@@ -165,11 +174,17 @@ export const OrderPanel = ({
     query,
     loadOrders,
     loadRiders: getRidersByRestaurantServices,
-    autoRefreshEnabled,
+    onSnapshot: acknowledgeUpdates,
+    autoRefreshEnabled: !hasPanelInteraction,
     onError: onLoadError,
   });
 
   const fetchOrders = useCallback(() => refresh(), [refresh]);
+
+  useEffect(() => {
+    if (notificationVersion > 0) refresh({ automatic: true });
+  }, [notificationVersion, refresh]);
+
   const changeNavbarModal = useCallback(
     (modal, open) => {
       setInteractionBlocked(modal, open);
@@ -182,7 +197,12 @@ export const OrderPanel = ({
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedOrderIndex, setSelectedOrderIndex] = useState(null);
 
-  const [selectedOrderIds, setSelectedOrderIds] = useState([]);
+  const handleOrdersUpdated = useCallback((updatedIds) => {
+    setSelectedOrderIds((previous) =>
+      previous.filter((id) => !updatedIds.includes(id)),
+    );
+  }, []);
+
   const selectedOrdersCheckbox = useMemo(
     () => allOrders.filter((order) => selectedOrderIds.includes(order.id)),
     [allOrders, selectedOrderIds],
@@ -349,6 +369,7 @@ export const OrderPanel = ({
 
   const statusFilter = currentFilters.status;
   const orderTypeFilter = currentFilters.orderType;
+
   const handleStatusChange = (status) => changeFilters({ status });
   const handleOrderTypeChange = (orderType) => changeFilters({ orderType });
   const handleClearTableFilters = () =>
@@ -499,25 +520,13 @@ export const OrderPanel = ({
     setInteractionBlocked,
   ]);
 
-  const { countdown } = useAutoRefresh(
-    () => refresh({ automatic: true }),
-    30000,
-    {
-      enabled:
-        autoRefreshEnabled &&
-        !isProtected &&
-        currentFilters.mode !== "search" &&
-        currentFilters.period === "day",
-      pauseOnHidden: true,
-    },
-  );
-  const handleToggleAutoRefresh = () =>
-    setAutoRefreshEnabled((previous) => !previous);
   const handleManualRefresh = useCallback(() => refresh(), [refresh]);
+
   const displayedPage = Math.min(
     page,
     Math.max(0, Math.ceil(filteredOrders.length / rowsPerPage) - 1),
   );
+
   useEffect(() => {
     setPage((previous) =>
       Math.min(
@@ -532,6 +541,28 @@ export const OrderPanel = ({
   return (
     <Box
       data-order-panel
+      onFocusCapture={(event) => {
+        if (
+          event.currentTarget.contains(event.target) &&
+          event.target.matches(
+            "input:not([type='checkbox']):not([type='radio']), textarea, [role='combobox'], [contenteditable='true']",
+          )
+        ) {
+          setEditingPanelInput(true);
+        }
+      }}
+      onBlurCapture={(event) => {
+        const next = event.relatedTarget;
+        setEditingPanelInput(
+          Boolean(
+            next &&
+            event.currentTarget.contains(next) &&
+            next.matches(
+              "input:not([type='checkbox']):not([type='radio']), textarea, [role='combobox'], [contenteditable='true']",
+            ),
+          ),
+        );
+      }}
       sx={{
         width: "100%",
         height: isElectronApp ? "calc(100vh - 112px)" : "auto",
@@ -545,6 +576,7 @@ export const OrderPanel = ({
       <AdminOrderNavbar
         handleRefresh={handleManualRefresh}
         selectedOrdersCheckbox={selectedOrdersCheckbox}
+        onOrdersUpdated={handleOrdersUpdated}
         filters={currentFilters}
         onSearchInputChange={(searchInput) =>
           setFilters((previous) => ({ ...previous, searchInput }))
@@ -576,6 +608,10 @@ export const OrderPanel = ({
         cashSession={cashSession}
         cashRegisterId={cashRegisterId}
         showAlert={showAlert}
+        connection={connection}
+        hasUpdates={hasUpdates}
+        isProtected={isProtected || hasPanelInteraction}
+        lastRefresh={lastRefresh}
       />
 
       <LinearProgress
@@ -601,7 +637,7 @@ export const OrderPanel = ({
           </Box>
         )}
 
-      {/* INDICADORES DE REFRESH/STATUS/TOTALAMOUNT */}
+      {/* INDICADORES DE REFRESH/STATUS/TOTAL-AMOUNT */}
       <Box
         sx={{
           display: "flex",
@@ -613,30 +649,19 @@ export const OrderPanel = ({
           minHeight: 72,
         }}
       >
-        {/* Indicador de Auto-refresh */}
-        <Box sx={{ display: "flex", alignItems: "center", minWidth: 200 }}>
-          {currentFilters.mode !== "search" &&
-            currentFilters.period === "day" && (
-              <AutoRefreshIndicator
-                isEnabled={autoRefreshEnabled}
-                onToggle={handleToggleAutoRefresh}
-                lastRefresh={lastRefresh}
-                isRefreshing={isRefreshing}
-                countdown={countdown}
-                pauseReason={isProtected ? "Formulario abierto" : undefined}
-              />
-            )}
-        </Box>
-
         <Box
           sx={{
             display: "flex",
-            alignItems: "center",
+            alignItems: "stretch",
             gap: 2,
-            ml: "auto",
+            width: "100%",
+            flexWrap: "wrap",
           }}
         >
-          <OrderStatusIndicator totalOrders={allOrders} />
+          <OrderStatusIndicator
+            totalOrders={allOrders}
+            sx={{ flex: "1 1 300px", minWidth: 0 }}
+          />
           {currentFilters.mode !== "search" &&
             currentFilters.period === "day" &&
             availableRiders?.length > 0 && (
@@ -660,7 +685,6 @@ export const OrderPanel = ({
       </Box>
 
       {/* PEDIDOS */}
-
       <Paper
         sx={{
           bgcolor: "background.paper",
@@ -736,9 +760,7 @@ export const OrderPanel = ({
                       onChange={handleSelectAll}
                       sx={{
                         color: "primary.main",
-                        "&.Mui-checked": {
-                          color: "primary.main",
-                        },
+                        "&.Mui-checked": { color: "primary.main" },
                       }}
                     />
                   </TableCell>
@@ -798,6 +820,7 @@ export const OrderPanel = ({
                   ? "Cargando pedidos..."
                   : "No hay pedidos para los filtros seleccionados"}
               </Typography>
+
               <Typography
                 sx={{
                   fontFamily: "fontFamily.secondary",
@@ -877,6 +900,7 @@ export const OrderPanel = ({
         cashRegisterId={cashRegisterId}
         onOrderUpdated={fetchOrders}
       />
+
       {AlertComponent}
     </Box>
   );

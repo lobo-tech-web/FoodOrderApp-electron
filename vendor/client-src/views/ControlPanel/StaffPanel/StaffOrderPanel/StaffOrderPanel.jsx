@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 
 // ---- Material UI ----
 import {
@@ -7,6 +7,7 @@ import {
   Checkbox,
   Chip,
   Paper,
+  LinearProgress,
   Table,
   TableBody,
   TableCell,
@@ -34,27 +35,26 @@ import { useOrders } from "@/context/Orders.jsx";
 // -----------------
 
 // ---- HOOKS ----
-import { useAutoRefresh } from "@/hooks/AutoRefreshOrders.jsx";
+import { useOrderRealtime } from "@/hooks/useOrderRealtime.js";
+import { useOrderPanelData } from "@/hooks/useOrderPanelData.js";
+import { getRidersByRestaurantServices } from "@/services/riders.js";
 // ---------------
 
 // ---- Components ----
-import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
 import { StaffOrderActionsBar } from "./StaffOrderActionsBar/StaffOrderActionsBar.jsx";
 import { OrderInfo } from "../../AdminPanel/OrderPanel/OrderInfo/OrderInfo.jsx";
-import { AutoRefreshIndicator } from "../../AdminPanel/OrderPanel/AutoRefreshIndicator/AutoRefreshIndicator.jsx";
 import { RiderCountIndicator } from "../../AdminPanel/OrderPanel/RiderCountIndicator/RiderCountIndicator.jsx";
 import { ModalEditOrder } from "@/components/PanelComponents/ModalEditOrder/ModalEditOrder.jsx";
 import { ModalConfirmOrderPaid } from "@/components/PanelComponents/ModalConfirmOrderPaid/ModalConfirmOrderPaid.jsx";
 // --------------------
 
 // ---- Utils ----
-import { getDateNowDayjs, getTimeNowDayjs } from "@/utils/clientWorking.js";
+import { getDateNowDayjs } from "@/utils/clientWorking.js";
+import { getConfiguredPaymentMethods } from "@/utils/components/PaymentUtils.jsx";
 import {
   isTerminalOrderStatus,
   hasOrderPermission,
 } from "@/utils/orderEditRules.js";
-import { getConfiguredPaymentMethods } from "@/utils/components/PaymentUtils.jsx";
-// import { statusOptions } from "@/utils/components/StatusUtils.jsx";
 // ---------------
 
 const ORDER_STATUS = {
@@ -115,12 +115,8 @@ export const StaffOrderPanel = ({
     editArrayOrders: false,
   });
 
-  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(50);
-
-  const ordersRequestInFlightRef = useRef("");
-  const initialFetchKeyRef = useRef("");
 
   const activeTab = useMemo(() => {
     if (externalView === 1) return 0;
@@ -128,19 +124,98 @@ export const StaffOrderPanel = ({
     return 2;
   }, [externalView]);
 
-  const {
-    orderState,
-    getAllOrders,
-    filterOrderByDate,
-    getRidersByRestaurant,
-    updateOrder,
-  } = useOrders();
+  const { filterOrderByDate, updateOrder } = useOrders();
+  const restaurantId = user?.role === "staff" ? user.restaurantId : user?.id;
+  const canReadOrders = hasOrderPermission(user, "read");
+  const canUpdateStatus = hasOrderPermission(user, "updateStatus");
+  const canMarkPaid = hasOrderPermission(user, "markPaid");
 
-  const allOrders = useMemo(() => orderState.orders || [], [orderState.orders]);
-  const availableRiders = useMemo(
-    () => orderState?.riders || [],
-    [orderState?.riders],
+  const { connection, hasUpdates, notificationVersion, acknowledgeUpdates } =
+    useOrderRealtime({
+      restaurantId: canReadOrders ? restaurantId : null,
+    });
+
+  const query = useMemo(() => {
+    const { day, month, year } = getDateNowDayjs();
+    return {
+      restaurantId: canReadOrders ? restaurantId : null,
+      mode: "date",
+      period: activeTab === 0 ? "day" : "month",
+      date: year + "-" + month + "-" + day,
+    };
+  }, [restaurantId, canReadOrders, activeTab]);
+
+  const loadOrders = useCallback(
+    (requested) => {
+      const [year, month, day] = requested.date.split("-");
+      return filterOrderByDate(
+        requested.period === "day" ? day : "",
+        month,
+        year,
+        requested.restaurantId,
+        { updateState: false },
+      );
+    },
+    [filterOrderByDate],
   );
+
+  const onLoadError = useCallback(
+    (error) => showAlert?.(error?.message || String(error), "error"),
+    [showAlert],
+  );
+
+  const [selectedOrderIds, setSelectedOrderIds] = useState([]);
+
+  const {
+    orders: allOrders,
+    riders: availableRiders,
+    isRefreshing,
+    lastRefresh,
+    isProtected,
+    refresh,
+    setInteractionBlocked,
+  } = useOrderPanelData({
+    query,
+    loadOrders,
+    loadRiders: getRidersByRestaurantServices,
+    autoRefreshEnabled: selectedOrderIds.length === 0,
+    onError: onLoadError,
+    onSnapshot: acknowledgeUpdates,
+  });
+
+  const selectedOrdersCheckbox = useMemo(
+    () => allOrders.filter((order) => selectedOrderIds.includes(order.id)),
+    [allOrders, selectedOrderIds],
+  );
+
+  const setSelectedOrdersCheckbox = useCallback(
+    (value) => {
+      setSelectedOrderIds((previous) => {
+        const previousOrders = allOrders.filter((order) =>
+          previous.includes(order.id),
+        );
+        const next =
+          typeof value === "function" ? value(previousOrders) : value;
+        return next.map((order) => order.id);
+      });
+    },
+    [allOrders],
+  );
+  const fetchOrders = useCallback(() => refresh(), [refresh]);
+
+  const changeNavbarModal = useCallback(
+    (modal, open) => {
+      setInteractionBlocked(modal, open);
+      setNavbarModals((current) => ({ ...current, [modal]: open }));
+    },
+    [setInteractionBlocked],
+  );
+
+  const handleOrdersUpdated = useCallback((ids) => {
+    setSelectedOrderIds((previous) =>
+      previous.filter((id) => !ids.includes(id)),
+    );
+  }, []);
 
   const [statusFilter, setStatusFilter] = useState("TODOS");
 
@@ -155,24 +230,19 @@ export const StaffOrderPanel = ({
     return allOrders.filter((order) => order.status === statusFilter);
   }, [allOrders, statusFilter]);
 
+  const displayedPage = Math.min(
+    page,
+    Math.max(0, Math.ceil(filteredOrders.length / rowsPerPage) - 1),
+  );
+
   const statusCounts = useMemo(() => {
     const counts = { TODOS: allOrders.length };
 
     allOrders.forEach((order) => {
       counts[order.status] = (counts[order.status] || 0) + 1;
     });
-
     return counts;
   }, [allOrders]);
-
-  const restaurantId = useMemo(() => {
-    if (user?.role === "staff") return user.restaurantId;
-    return user?.id;
-  }, [user?.id, user?.restaurantId, user?.role]);
-
-  const canReadOrders = hasOrderPermission(user, "read");
-  const canUpdateStatus = hasOrderPermission(user, "updateStatus");
-  const canMarkPaid = hasOrderPermission(user, "markPaid");
 
   const isCashOpen = Boolean(
     cashRegisterId &&
@@ -183,31 +253,33 @@ export const StaffOrderPanel = ({
 
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedOrderIndex, setSelectedOrderIndex] = useState(null);
-  const [selectedOrdersCheckbox, setSelectedOrdersCheckbox] = useState([]);
 
   const [openOrderModal, setOpenOrderModal] = useState(false);
 
-  const handleOpenOrderModal = useCallback((order, index) => {
-    setAutoRefreshEnabled(false);
-    setSelectedOrder(order);
-    setSelectedOrderIndex(index);
-    setOpenOrderModal(true);
-  }, []);
+  const handleOpenOrderModal = useCallback(
+    (order, index) => {
+      setInteractionBlocked("editOrder", true);
+      setSelectedOrder(order);
+      setSelectedOrderIndex(index);
+      setOpenOrderModal(true);
+    },
+    [setInteractionBlocked],
+  );
 
   const handleCloseOrderModal = useCallback(() => {
     setSelectedOrder(null);
     setSelectedOrderIndex(null);
-    setAutoRefreshEnabled(true);
+    setInteractionBlocked("editOrder", false);
     setOpenOrderModal(false);
-  }, []);
+  }, [setInteractionBlocked]);
+
+  const [payingOrderId, setPayingOrderId] = useState(null);
 
   const [paymentConfirm, setPaymentConfirm] = useState({
     open: false,
     order: null,
     displayID: null,
   });
-
-  const [payingOrderId, setPayingOrderId] = useState(null);
 
   const handleOpenPaymentConfirm = useCallback(
     (order, displayID) => {
@@ -239,13 +311,14 @@ export const StaffOrderPanel = ({
         return;
       }
 
+      setInteractionBlocked("payment", true);
       setPaymentConfirm({
         open: true,
         order,
         displayID,
       });
     },
-    [canMarkPaid, isCashOpen, showAlert],
+    [canMarkPaid, isCashOpen, showAlert, setInteractionBlocked],
   );
 
   const handleClosePaymentConfirm = useCallback(() => {
@@ -256,7 +329,8 @@ export const StaffOrderPanel = ({
       order: null,
       displayID: null,
     });
-  }, [payingOrderId]);
+    setInteractionBlocked("payment", false);
+  }, [payingOrderId, setInteractionBlocked]);
 
   const selectableOrders = useMemo(() => {
     if (!isCashOpen || !canUpdateStatus) return [];
@@ -279,67 +353,6 @@ export const StaffOrderPanel = ({
       );
     }
   };
-
-  const fetchOrders = useCallback(
-    async (isAutoRefresh = false) => {
-      if (!restaurantId || !canReadOrders) return;
-
-      const requestKey = `${activeTab}:${restaurantId}`;
-      if (ordersRequestInFlightRef.current === requestKey) return;
-      ordersRequestInFlightRef.current = requestKey;
-
-      if (isAutoRefresh) {
-        setIsRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-
-      try {
-        const today = getDateNowDayjs();
-
-        if (activeTab === 0) {
-          await filterOrderByDate(
-            today.day,
-            today.month,
-            today.year,
-            restaurantId,
-          );
-          await getRidersByRestaurant(restaurantId);
-        }
-        if (activeTab === 1) {
-          await filterOrderByDate("", today.month, today.year, restaurantId);
-        }
-
-        if (!isAutoRefresh) {
-          setSelectedOrdersCheckbox([]);
-          setPage(0);
-        }
-        const time = getTimeNowDayjs();
-        setLastRefresh(time);
-      } catch (error) {
-        const errorMessage =
-          typeof error === "string"
-            ? error
-            : error?.message || "Error desconocido";
-        showAlert?.(errorMessage, "error");
-      } finally {
-        if (isAutoRefresh) {
-          setIsRefreshing(false);
-        } else {
-          setLoading(false);
-        }
-        ordersRequestInFlightRef.current = "";
-      }
-    },
-    [
-      activeTab,
-      restaurantId,
-      canReadOrders,
-      filterOrderByDate,
-      getRidersByRestaurant,
-      showAlert,
-    ],
-  );
 
   const handleConfirmMarkPaid = useCallback(
     async (payments) => {
@@ -382,7 +395,8 @@ export const StaffOrderPanel = ({
           displayID: null,
         });
 
-        await fetchOrders(true);
+        await fetchOrders();
+        setInteractionBlocked("payment", false);
       } catch (error) {
         const errorMessage =
           typeof error === "string"
@@ -402,6 +416,7 @@ export const StaffOrderPanel = ({
       updateOrder,
       showAlert,
       fetchOrders,
+      setInteractionBlocked,
     ],
   );
 
@@ -417,49 +432,28 @@ export const StaffOrderPanel = ({
   };
 
   useEffect(() => {
-    const fetchKey = `${activeTab}:${restaurantId || ""}`;
-    if (
-      !restaurantId ||
-      !canReadOrders ||
-      initialFetchKeyRef.current === fetchKey
-    ) {
-      return;
-    }
-
-    initialFetchKeyRef.current = fetchKey;
-    fetchOrders(false);
-  }, [activeTab, restaurantId, canReadOrders, fetchOrders]);
-
-  // Auto-refresh hook
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastRefresh, setLastRefresh] = useState(null);
-  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
-
-  const fetchTodayOrdersOnly = useCallback(async () => {
-    if (activeTab !== 0) return;
-    await fetchOrders(true);
-  }, [activeTab, fetchOrders]);
-
-  const { startPolling, stopPolling, restartPolling, countdown } =
-    useAutoRefresh(
-      fetchTodayOrdersOnly,
-      30000, // 30 segundos
-      {
-        enabled: canReadOrders && autoRefreshEnabled && activeTab === 0,
-        pauseOnHidden: true,
-        onRefresh: () => {
-          showAlert("Se actualizaron los pedidos automáticamente", "success");
-        },
-      },
+    setPage((previous) =>
+      Math.min(
+        previous,
+        Math.max(0, Math.ceil(filteredOrders.length / rowsPerPage) - 1),
+      ),
     );
+  }, [filteredOrders.length, rowsPerPage]);
 
-  const handleToggleAutoRefresh = () => {
-    setAutoRefreshEnabled((prev) => !prev);
-  };
+  useEffect(() => {
+    if (notificationVersion > 0) refresh({ automatic: true });
+  }, [notificationVersion, refresh]);
 
-  const handleManualRefresh = async () => {
-    await fetchOrders(false);
-  };
+  useEffect(() => {
+    setSelectedOrderIds((previous) =>
+      previous.filter((id) => allOrders.some((order) => order.id === id)),
+    );
+  }, [allOrders]);
+
+  useEffect(() => {
+    setSelectedOrderIds([]);
+    setPage(0);
+  }, [activeTab, restaurantId]);
 
   if (!canReadOrders) {
     return (
@@ -469,12 +463,9 @@ export const StaffOrderPanel = ({
     );
   }
 
-  if (loading && !allOrders.length) {
-    return <LoadingComponent message="Cargando pedidos..." />;
-  }
-
   return (
     <Box
+      data-staff-order-panel
       sx={{
         width: "100%",
         height: isElectronApp ? "calc(100vh - 112px)" : "auto",
@@ -489,10 +480,26 @@ export const StaffOrderPanel = ({
         cashSession={cashSession}
         cashRegisterId={cashRegisterId}
         selectedOrders={selectedOrdersCheckbox}
-        loading={loading}
-        onRefresh={handleManualRefresh}
-        setAutoRefreshEnabled={setAutoRefreshEnabled}
+        loading={isRefreshing}
+        onRefresh={fetchOrders}
+        modalState={navbarModals}
+        onModalChange={changeNavbarModal}
+        onOrdersUpdated={handleOrdersUpdated}
+        onHeightChange={setNavbarHeight}
+        realtime={{
+          connection,
+          hasUpdates,
+          isProtected: isProtected || selectedOrderIds.length > 0,
+          isRefreshing,
+          lastRefresh,
+          onRefresh: fetchOrders,
+        }}
         showAlert={showAlert}
+      />
+
+      <LinearProgress
+        aria-label="Actualizando pedidos"
+        sx={{ visibility: isRefreshing ? "visible" : "hidden", mb: 1 }}
       />
 
       {/* RIDERS */}
@@ -504,18 +511,6 @@ export const StaffOrderPanel = ({
           />
         </Box>
       )}
-
-      <Box sx={{ display: "flex", alignItems: "center", minWidth: 200 }}>
-        {activeTab === 0 && (
-          <AutoRefreshIndicator
-            isEnabled={autoRefreshEnabled}
-            onToggle={handleToggleAutoRefresh}
-            lastRefresh={lastRefresh}
-            isRefreshing={isRefreshing}
-            countdown={countdown}
-          />
-        )}
-      </Box>
 
       <Paper
         elevation={0}
@@ -623,9 +618,7 @@ export const StaffOrderPanel = ({
                 sx={{
                   minHeight: 60,
                   textTransform: "none",
-                  "&.Mui-selected": {
-                    color: ORDER_STATUS[status].color,
-                  },
+                  "&.Mui-selected": { color: ORDER_STATUS[status].color },
                 }}
               />
             ))}
@@ -694,7 +687,10 @@ export const StaffOrderPanel = ({
 
               <TableBody sx={{ bgcolor: "background.default" }}>
                 {filteredOrders
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .slice(
+                    displayedPage * rowsPerPage,
+                    displayedPage * rowsPerPage + rowsPerPage,
+                  )
                   .map((order) => {
                     const globalIndex = allOrders.findIndex(
                       (o) => o.id === order.id,
@@ -724,17 +720,21 @@ export const StaffOrderPanel = ({
           ) : (
             <Box sx={{ p: 5, textAlign: "center" }}>
               <Typography sx={{ fontFamily: "fontFamily.primary" }}>
-                NO HAY PEDIDOS CON ESTADO:
+                {isRefreshing
+                  ? "CARGANDO PEDIDOS..."
+                  : "NO HAY PEDIDOS CON ESTADO:"}
               </Typography>
 
-              <Typography
-                sx={{
-                  fontFamily: "fontFamily.secondary",
-                  color: ORDER_STATUS[statusFilter]?.color,
-                }}
-              >
-                {statusFilter}
-              </Typography>
+              {!isRefreshing && (
+                <Typography
+                  sx={{
+                    fontFamily: "fontFamily.secondary",
+                    color: ORDER_STATUS[statusFilter]?.color,
+                  }}
+                >
+                  {statusFilter}
+                </Typography>
+              )}
             </Box>
           )}
         </TableContainer>
@@ -745,7 +745,7 @@ export const StaffOrderPanel = ({
             component="div"
             count={filteredOrders.length}
             rowsPerPage={rowsPerPage}
-            page={page}
+            page={displayedPage}
             onPageChange={(_, newPage) => setPage(newPage)}
             onRowsPerPageChange={(event) => {
               setRowsPerPage(Number.parseInt(event.target.value, 10));
@@ -777,7 +777,7 @@ export const StaffOrderPanel = ({
         showOrderIndex={selectedOrderIndex}
         cashSession={cashSession}
         cashRegisterId={cashRegisterId}
-        onOrderUpdated={() => fetchOrders(true)}
+        onOrderUpdated={fetchOrders}
       />
     </Box>
   );

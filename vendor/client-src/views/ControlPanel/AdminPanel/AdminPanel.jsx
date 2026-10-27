@@ -72,7 +72,10 @@ export const AdminPanel = () => {
   const { getAllProducts, getAllCategorys } = useProducts();
   const { getRidersByRestaurant } = useOrders();
   const { userState, userLogOut } = useUser();
+
   const user = useMemo(() => userState.user || {}, [userState.user]);
+  const userId = user.id;
+  const userRole = user.role;
 
   const logoutUser = () => {
     userLogOut();
@@ -80,16 +83,16 @@ export const AdminPanel = () => {
   };
 
   useEffect(() => {
-    if (!user || !user.id || user.role !== "admin") {
+    if (!userId || userRole !== "admin") {
       navigate("/");
       return;
     }
     const fetchData = async () => {
       setLoading(true);
       try {
-        await getAllProducts(user.id);
-        await getAllCategorys(user.id);
-        await getRidersByRestaurant(user.id);
+        await getAllProducts(userId);
+        await getAllCategorys(userId);
+        await getRidersByRestaurant(userId);
       } catch (error) {
         console.error("Error al obtener productos y categorías:", error);
       } finally {
@@ -98,7 +101,14 @@ export const AdminPanel = () => {
     };
 
     fetchData();
-  }, [user, navigate, getAllProducts, getAllCategorys, getRidersByRestaurant]);
+  }, [
+    userId,
+    userRole,
+    navigate,
+    getAllProducts,
+    getAllCategorys,
+    getRidersByRestaurant,
+  ]);
 
   if (loading) return <LoadingComponent />;
 

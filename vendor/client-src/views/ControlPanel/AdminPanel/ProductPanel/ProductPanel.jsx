@@ -244,7 +244,7 @@ export const ProductPanel = ({ user }) => {
             }}
           >
             <Table sx={{ minWidth: 1180 }}>
-              <TableHead sx={{ bgcolor: "background.paper" }}>
+              <TableHead sx={{ bgcolor: "background.main" }}>
                 <TableRow sx={{ textAlign: "center" }}>
                   <TableCell sx={{ ...tableHeadStyle, width: 64 + 32 }}>
                     IMAGEN
@@ -261,7 +261,7 @@ export const ProductPanel = ({ user }) => {
                 </TableRow>
               </TableHead>
 
-              <TableBody sx={{ bgcolor: "background.default" }}>
+              <TableBody sx={{ bgcolor: "background.paper" }}>
                 {filteredProducts.map((product) => (
                   <TableRow
                     key={product.id}

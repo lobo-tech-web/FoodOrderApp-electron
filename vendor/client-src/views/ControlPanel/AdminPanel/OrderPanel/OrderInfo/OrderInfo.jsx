@@ -24,6 +24,7 @@ import {
 
 // ---- UTILS ----
 import { formatCurrency } from "@/utils/orderCalculations.js";
+import { getStatusOption } from "@/utils/components/StatusUtils.jsx";
 // ---------------
 
 // ---- STYLES ----
@@ -53,6 +54,8 @@ export const OrderInfo = ({
   disableMarkPaid = false,
   paymentUpdating = false,
 }) => {
+  const status = getStatusOption(order.status);
+
   const handleColor = (status) => {
     if (status === "FINALIZADO") return "#4caf50";
     if (status === "CANCELADO") return "#f44336";
@@ -547,18 +550,21 @@ export const OrderInfo = ({
         )}
       </TableCell>
 
-      <TableCell align="center">
-        <Chip
-          size="small"
-          label={order.status}
-          sx={{
-            fontFamily: "fontFamily.primary",
-            fontSize: "0.85rem",
-            color: "text.primary",
-            bgcolor: handleColor(order.status),
-          }}
-        />
-      </TableCell>
+      {status && (
+        <TableCell align="center">
+          <Chip
+            icon={status?.icon || undefined}
+            size="small"
+            label={status?.value || "SIN ESTADO"}
+            sx={{
+              fontFamily: "fontFamily.primary",
+              fontSize: "0.85rem",
+              color: "text.primary",
+              bgcolor: handleColor(order.status),
+            }}
+          />
+        </TableCell>
+      )}
 
       <TableCell align="center">
         <Box

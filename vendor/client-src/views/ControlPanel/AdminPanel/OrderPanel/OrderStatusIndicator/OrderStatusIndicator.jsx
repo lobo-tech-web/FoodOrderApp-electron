@@ -1,5 +1,5 @@
 // ---- MATERIAL UI ----
-import { Box, Typography, Chip } from '@mui/material';
+import { Box, Typography, Chip } from "@mui/material";
 // ICONS
 import {
   Pending as PendingIcon,
@@ -7,40 +7,40 @@ import {
   DeliveryDining as DeliveryDiningIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 // -----------------------
 
-export const OrderStatusIndicator = ({ totalOrders = [] }) => {
+export const OrderStatusIndicator = ({ totalOrders = [], sx = {} }) => {
   const getStatusConfig = (status) => {
     switch (status) {
-      case 'FINALIZADO':
+      case "FINALIZADO":
         return {
-          label: 'FINALIZADO',
-          color: '#4caf50',
+          label: "FINALIZADO",
+          color: "#4caf50",
           icon: <CheckCircleIcon />,
         };
-      case 'CANCELADO':
+      case "CANCELADO":
         return {
-          label: 'CANCELADO',
-          color: '#f44336',
+          label: "CANCELADO",
+          color: "#f44336",
           icon: <CancelIcon />,
         };
-      case 'EN PREPARACIÓN':
+      case "EN PREPARACIÓN":
         return {
-          label: 'EN PREPARACIÓN',
-          color: '#2196f3',
+          label: "EN PREPARACIÓN",
+          color: "#2196f3",
           icon: <FactCheckIcon />,
         };
-      case 'EN ENVIO':
+      case "EN ENVIO":
         return {
-          label: 'EN ENVÍO',
-          color: '#9c27b0',
+          label: "EN ENVÍO",
+          color: "#9c27b0",
           icon: <DeliveryDiningIcon />,
         };
       default:
         return {
           label: status,
-          color: '#ff9800',
+          color: "#ff9800",
           icon: <PendingIcon />,
         };
     }
@@ -57,37 +57,38 @@ export const OrderStatusIndicator = ({ totalOrders = [] }) => {
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
         p: 2,
         borderRadius: 3,
-        bgcolor: 'background.paper',
-        border: '1px solid',
-        borderColor: '#4caf50',
+        bgcolor: "background.paper",
+        border: "1px solid",
+        borderColor: "#4caf50",
         boxShadow: 2,
         minHeight: 70,
         minWidth: 300,
+        ...sx,
       }}
     >
       <Typography
         variant="subtitle1"
         sx={{
-          fontFamily: 'fontFamily.primary',
-          color: 'primary.main',
-          textAlign: 'center',
-          width: '100%',
+          fontFamily: "fontFamily.primary",
+          color: "primary.main",
+          textAlign: "center",
+          width: "100%",
         }}
       >
         ESTADOS DE PEDIDOS
       </Typography>
       <Box
         sx={{
-          display: 'flex',
-          flexWrap: 'wrap',
+          display: "flex",
+          flexWrap: "wrap",
           gap: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
+          alignItems: "center",
+          justifyContent: "center",
           minHeight: 32,
         }}
       >
@@ -102,11 +103,11 @@ export const OrderStatusIndicator = ({ totalOrders = [] }) => {
                 size="medium"
                 variant="outlined"
                 sx={{
-                  fontFamily: 'fontFamily.primary',
+                  fontFamily: "fontFamily.primary",
                   mt: 1,
-                  color: config.color || 'primary',
-                  borderColor: config.color || 'primary',
-                  '& .MuiChip-icon': {
+                  color: config.color || "primary",
+                  borderColor: config.color || "primary",
+                  "& .MuiChip-icon": {
                     color: config.color,
                   },
                 }}
@@ -116,7 +117,7 @@ export const OrderStatusIndicator = ({ totalOrders = [] }) => {
         ) : (
           <Typography
             variant="caption"
-            sx={{ color: 'text.primary', fontFamily: 'fontFamily.secondary' }}
+            sx={{ color: "text.primary", fontFamily: "fontFamily.secondary" }}
           >
             Sin pedidos
           </Typography>

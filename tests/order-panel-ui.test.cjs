@@ -167,7 +167,7 @@ test("admin date picker and independent name search preserve filters and open fo
 
   await panel.getByRole("textbox", { name: "Nombre o teléfono" }).fill("Ana");
   await panel.getByRole("button", { name: "Buscar pedidos", exact: true }).click();
-  await panel.getByText("Búsqueda por nombre o teléfono en todo el historial, sin filtro de fecha.").waitFor();
+  await panel.getByText("BÚSQUEDA EN TODO EL HISTORIAL: Ana", { exact: true }).waitFor();
   await page.waitForFunction(() => !document.querySelector('button[aria-label="Actualizar pedidos"]').disabled);
   assert.equal(requests.at(-1).searchParams.get("clientName"), "Ana");
   await panel.getByRole("textbox", { name: "Nombre o teléfono" }).fill("11223344");
@@ -202,7 +202,6 @@ test("admin date picker and independent name search preserve filters and open fo
   assert.equal(requests.at(-1).searchParams.has("day"), false);
   await page.getByRole("button", { name: "Hoy", exact: true }).click();
   await page.waitForFunction(() => !document.querySelector('button[aria-label="Actualizar pedidos"]').disabled);
-  await panel.getByRole("button", { name: "Pausar auto-actualización", exact: true }).click();
   await panel.getByRole("checkbox").nth(1).check();
 
   holdNext = true;
@@ -228,9 +227,8 @@ test("admin date picker and independent name search preserve filters and open fo
   await page.getByRole("button", { name: "Descartar cambios", exact: true }).click();
   await dialog.waitFor({ state: "hidden" });
   await page.waitForFunction(() => !document.querySelector('button[aria-label="Actualizar pedidos"]').disabled);
-  assert.equal(await panel.getByRole("button", { name: "Activar auto-actualización", exact: true }).count(), 1);
   assert.equal(await panel.getByRole("checkbox").nth(1).isChecked(), true);
-  // A failed payment keeps its dialog protected and does not resume a manual pause.
+  // A failed payment keeps its dialog protected until the administrator closes it.
   failUpdates = true;
   await panel.locator('[aria-label="Marcar pedido como pagado"] button').click();
   const paymentDialog = page.getByRole("dialog");
@@ -239,6 +237,5 @@ test("admin date picker and independent name search preserve filters and open fo
   assert.equal(await paymentDialog.isVisible(), true);
   await paymentDialog.getByRole("button", { name: "Cancelar", exact: true }).click();
   await paymentDialog.waitFor({ state: "hidden" });
-  assert.equal(await panel.getByRole("button", { name: "Activar auto-actualización", exact: true }).count(), 1);
   assert.deepEqual(errors, []);
 });

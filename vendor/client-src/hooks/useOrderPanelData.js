@@ -6,7 +6,7 @@ import { getTimeNowDayjs } from "@/utils/clientWorking.js";
 
 // Only this hook publishes list snapshots. Context queries used by forms cannot
 // overwrite the visible list, and responses from an older query are discarded.
-export const useOrderPanelData = ({ query, loadOrders, loadRiders, autoRefreshEnabled, onError }) => {
+export const useOrderPanelData = ({ query, loadOrders, loadRiders, autoRefreshEnabled = true, onError, onSnapshot }) => {
   const [orders, setOrders] = useState([]);
   const [riders, setRiders] = useState([]);
 
@@ -25,7 +25,7 @@ export const useOrderPanelData = ({ query, loadOrders, loadRiders, autoRefreshEn
 
   const queryKey = JSON.stringify(query);
   const latest = useRef();
-  latest.current = { query, loadOrders, loadRiders, autoRefreshEnabled, onError };
+  latest.current = { query, loadOrders, loadRiders, autoRefreshEnabled, onError, onSnapshot };
 
   const enqueue = useCallback((automatic) => {
     pending.current = { automatic: (pending.current?.automatic ?? true) && automatic };
@@ -48,7 +48,7 @@ export const useOrderPanelData = ({ query, loadOrders, loadRiders, autoRefreshEn
 
     if (blocked && !wasLocked) {
       generation.current++;
-      enqueue(flight.current?.automatic ?? true);
+      if (flight.current) enqueue(flight.current.automatic);
     }
 
     setIsProtected(locks.current.size > 0);
@@ -78,7 +78,7 @@ export const useOrderPanelData = ({ query, loadOrders, loadRiders, autoRefreshEn
     if (!query.restaurantId || locks.current.size || flight.current || !pending.current) return;
     if (pending.current.automatic && !autoRefreshEnabled) return;
 
-    const request = { generation: generation.current, automatic: pending.current.automatic };
+    const request = { generation: generation.current, automatic: pending.current.automatic, startedAt: Date.now() };
     const { query: requestedQuery, loadOrders: getOrders, loadRiders: getRiders } = latest.current;
 
     pending.current = null;
@@ -96,6 +96,11 @@ export const useOrderPanelData = ({ query, loadOrders, loadRiders, autoRefreshEn
         ]);
 
         if (!mounted.current || generation.current !== request.generation || locks.current.size) return;
+
+        if (request.automatic && !latest.current.autoRefreshEnabled) {
+          enqueue(true);
+          return;
+        }
         if (orderResult.status === "rejected") throw orderResult.reason;
 
         setOrders(Array.isArray(orderResult.value) ? orderResult.value : []);
@@ -103,6 +108,7 @@ export const useOrderPanelData = ({ query, loadOrders, loadRiders, autoRefreshEn
         if (riderResult.status === "fulfilled") setRiders(riderResult.value || []);
 
         setLastRefresh(getTimeNowDayjs());
+        latest.current.onSnapshot?.(request.startedAt);
       } catch (error) {
         if (mounted.current && generation.current === request.generation && !locks.current.size) {
           latest.current.onError(error);

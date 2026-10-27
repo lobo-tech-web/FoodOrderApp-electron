@@ -5,7 +5,6 @@ import { AppBar, Toolbar, Box } from "@mui/material";
 // <--------------------
 
 // ---- ACTIONS ----
-import { CategoryActions } from "./PanelNavBarActions/CategoryActions.jsx";
 import { UserPointsActions } from "./PanelNavBarActions/UserPointsActions.jsx";
 import { StatsActions } from "./PanelNavBarActions/StatsActions.jsx";
 import { RiderActions } from "./PanelNavBarActions/RiderActions.jsx";
@@ -14,7 +13,6 @@ import { RiderActions } from "./PanelNavBarActions/RiderActions.jsx";
 export const PanelNavBar = ({
   handleRefresh,
   showAlert,
-  isCategoryPanel,
   isUserPointsPanel,
   countAllUserPoints,
   isStatsPanel,
@@ -24,8 +22,6 @@ export const PanelNavBar = ({
   const [modalState, setModalState] = useState({
     createProduct: false,
     modifyProductsPrice: false,
-    createCategory: false,
-    orderCategory: false,
     createOrder: false,
     editArrayOrders: false,
     addUserPoints: false,
@@ -70,16 +66,6 @@ export const PanelNavBar = ({
             overflow: "auto",
           }}
         >
-          {/* CATEGORIAS */}
-          {isCategoryPanel && (
-            <CategoryActions
-              refreshCategorys={handleRefresh}
-              modalState={modalState}
-              toggleModal={toggleModal}
-              showAlert={showAlert}
-            />
-          )}
-
           {/* USERPOINTS */}
           {isUserPointsPanel && (
             <UserPointsActions

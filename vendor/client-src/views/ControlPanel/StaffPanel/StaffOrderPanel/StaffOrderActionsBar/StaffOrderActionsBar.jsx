@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 
 // ---- Material UI ----
 import { Alert, Box, Button, Paper, Stack, Typography } from "@mui/material";
@@ -13,6 +13,7 @@ import {
 // ---- Components ----
 import { ModalCreateOrder } from "@/components/PanelComponents/ModalCreateOrder/ModalCreateOrder.jsx";
 import { ModalEditArrayOrders } from "@/components/PanelComponents/ModalEditArrayOrders/ModalEditArrayOrders.jsx";
+import { OrderRealtimeIndicator } from "../../../AdminPanel/OrderPanel/OrderRealtimeIndicator/OrderRealtimeIndicator.jsx";
 // --------------------
 
 // ---- Utils ----
@@ -43,17 +44,14 @@ export const StaffOrderActionsBar = ({
   selectedOrders,
   loading,
   onRefresh,
-  setAutoRefreshEnabled,
+  modalState,
+  onModalChange,
+  onOrdersUpdated,
+  onHeightChange,
+  realtime,
   showAlert,
 }) => {
-  const [modalState, setModalState] = useState({
-    createOrder: false,
-    editArrayOrders: false,
-  });
-
-  const toggleModal = (modal, value) => {
-    setModalState((prevState) => ({ ...prevState, [modal]: value }));
-  };
+  const navbarRef = useRef(null);
 
   const isCashOpen = Boolean(
     cashRegisterId &&
@@ -64,12 +62,31 @@ export const StaffOrderActionsBar = ({
   const canCreate = hasOrderPermission(user, "create");
   const canUpdateStatus = hasOrderPermission(user, "updateStatus");
 
+  useEffect(() => {
+    const element = navbarRef.current;
+    if (!element) return;
+    let active = true;
+    const measure = () => {
+      if (active) onHeightChange(element.getBoundingClientRect().height);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => {
+      active = false;
+      observer.disconnect();
+    };
+  }, [onHeightChange]);
+
   return (
     <>
       <Paper
+        ref={navbarRef}
         elevation={0}
         sx={{
-          p: 1.5,
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
           mb: 2,
           borderRadius: 2,
           border: "1px solid",
@@ -82,6 +99,7 @@ export const StaffOrderActionsBar = ({
           justifyContent="space-between"
           alignItems={{ xs: "stretch", md: "center" }}
           spacing={1.5}
+          sx={{ p: 1.5 }}
         >
           <Box sx={{ display: "flex", gap: 2 }}>
             <Button
@@ -93,6 +111,7 @@ export const StaffOrderActionsBar = ({
             >
               Actualizar
             </Button>
+
             <Box>
               <Typography
                 sx={{
@@ -122,10 +141,7 @@ export const StaffOrderActionsBar = ({
               variant="contained"
               startIcon={<AddIcon />}
               disabled={!isCashOpen || !canCreate}
-              onClick={() => {
-                toggleModal("createOrder", true);
-                setAutoRefreshEnabled(false);
-              }}
+              onClick={() => onModalChange("createOrder", true)}
               sx={{ ...buttonStyle, bgcolor: "success.main" }}
             >
               Nuevo pedido
@@ -137,10 +153,7 @@ export const StaffOrderActionsBar = ({
               disabled={
                 !isCashOpen || !canUpdateStatus || !selectedOrders.length
               }
-              onClick={() => {
-                toggleModal("editArrayOrders", true);
-                setAutoRefreshEnabled(false);
-              }}
+              onClick={() => onModalChange("editArrayOrders", true)}
               sx={buttonStyle}
             >
               Modificar seleccionados
@@ -149,11 +162,13 @@ export const StaffOrderActionsBar = ({
         </Stack>
 
         {!isCashOpen && (
-          <Alert severity="warning" sx={{ mt: 1.5 }}>
+          <Alert severity="warning" sx={{ m: 1.5, mt: 0 }}>
             La caja está cerrada. Podés consultar pedidos, pero no crear ni
             modificar pedidos hasta que se abra una caja.
           </Alert>
         )}
+
+        <OrderRealtimeIndicator {...realtime} />
       </Paper>
 
       {/* CREAR PEDIDO */}
@@ -161,8 +176,7 @@ export const StaffOrderActionsBar = ({
         <ModalCreateOrder
           show={modalState.createOrder}
           onClose={() => {
-            toggleModal("createOrder", false);
-            setAutoRefreshEnabled(true);
+            onModalChange("createOrder", false);
           }}
           showAlert={showAlert}
           refreshOrders={onRefresh}
@@ -175,11 +189,11 @@ export const StaffOrderActionsBar = ({
         <ModalEditArrayOrders
           show={modalState.editArrayOrders}
           handleClose={() => {
-            toggleModal("editArrayOrders", false);
-            setAutoRefreshEnabled(true);
+            onModalChange("editArrayOrders", false);
           }}
           showAlert={showAlert}
           showOrders={selectedOrders}
+          onOrdersUpdated={onOrdersUpdated}
           refreshOrders={onRefresh}
           cashSession={cashSession}
           cashRegisterId={cashRegisterId}

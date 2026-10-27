@@ -6,6 +6,20 @@ const RESTAURANT_CACHE_PREFIX = `${OFFLINE_PREFIX}:restaurant`;
 const ORDERS_KEY = `${OFFLINE_PREFIX}:orders`;
 
 export const OFFLINE_STATUS_EVENT = "lobotech-offline-status-change";
+export const OFFLINE_ORDERS_EVENT = "lobotech-offline-orders-change";
+
+export const subscribeOfflineOrders = (listener) => {
+  if (!isBrowser()) return () => { };
+  const onStorage = (event) => {
+    if (event.key === ORDERS_KEY || event.key === null) listener();
+  };
+  window.addEventListener(OFFLINE_ORDERS_EVENT, listener);
+  window.addEventListener("storage", onStorage);
+  return () => {
+    window.removeEventListener(OFFLINE_ORDERS_EVENT, listener);
+    window.removeEventListener("storage", onStorage);
+  };
+};
 
 const isBrowser = () => typeof window !== "undefined";
 
@@ -180,6 +194,7 @@ export const getOfflineOrders = (restaurantId = null) => {
 
 const saveOfflineOrders = (orders) => {
   safeWriteJson(ORDERS_KEY, orders);
+  if (isBrowser()) window.dispatchEvent(new CustomEvent(OFFLINE_ORDERS_EVENT));
   dispatchOfflineStatusChange();
 };
 
@@ -201,13 +216,17 @@ export const createOfflineOrder = (orderData = {}) => {
   const orderDate = orderData.orderDate?.day
     ? orderData.orderDate
     : getCurrentOrderDate();
+
   const dateKey = getOrderDateKey(orderDate);
   const restaurantId = orderData.restaurantId || orderData.userId || "local";
+
   const offlineId = `offline-${Date.now()}-${Math.random()
     .toString(36)
     .slice(2, 8)}`;
+
   const orderIndex = getNextLocalOrderIndex(restaurantId, dateKey);
   const now = new Date().toISOString();
+
   const offlineOrder = {
     ...orderData,
     id: offlineId,

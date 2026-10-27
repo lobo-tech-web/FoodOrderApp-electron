@@ -11,6 +11,7 @@ import {
   TextField,
   Tooltip,
 } from "@mui/material";
+// Icons
 import { Edit, Add, Refresh, Search, Close } from "@mui/icons-material";
 // ---------------------
 
@@ -18,11 +19,13 @@ import { Edit, Add, Refresh, Search, Close } from "@mui/icons-material";
 import { ModalCreateOrder } from "@/components/PanelComponents/ModalCreateOrder/ModalCreateOrder.jsx";
 import { ModalEditArrayOrders } from "@/components/PanelComponents/ModalEditArrayOrders/ModalEditArrayOrders.jsx";
 import { FilterByDateOrders } from "@/components/PanelComponents/Filters/FilterByDateOrders/FilterByDateOrders.jsx";
+import { OrderRealtimeIndicator } from "../OrderRealtimeIndicator/OrderRealtimeIndicator.jsx";
 // --------------------
 
 export const AdminOrderNavbar = ({
   handleRefresh,
   selectedOrdersCheckbox,
+  onOrdersUpdated,
   filters,
   onSearchInputChange,
   onSearch,
@@ -36,6 +39,10 @@ export const AdminOrderNavbar = ({
   cashSession = null,
   cashRegisterId = null,
   showAlert,
+  connection,
+  hasUpdates,
+  isProtected,
+  lastRefresh,
 }) => {
   const navbarRef = useRef(null);
 
@@ -54,21 +61,25 @@ export const AdminOrderNavbar = ({
     <AppBar
       ref={navbarRef}
       position="sticky"
-      elevation={1}
+      elevation={0}
       sx={{
         width: "100%",
         top: 0,
         zIndex: 10,
         borderRadius: 1,
         mb: 2,
-        bgcolor: "background.main",
+        bgcolor: "background.paper",
+        backgroundImage: "none",
+        color: "text.primary",
+        border: "1px solid",
+        borderColor: "divider",
       }}
     >
       <Toolbar
         sx={{
           display: "flex",
           flexWrap: "wrap",
-          alignItems: "flex-start",
+          alignItems: "center",
           gap: 1.5,
           px: { xs: 1, sm: 2 },
           py: 1.5,
@@ -176,6 +187,15 @@ export const AdminOrderNavbar = ({
         )}
       </Toolbar>
 
+      <OrderRealtimeIndicator
+        connection={connection}
+        hasUpdates={hasUpdates}
+        isProtected={isProtected}
+        isRefreshing={refreshing}
+        lastRefresh={lastRefresh}
+        onRefresh={handleRefresh}
+      />
+
       {modalState.createOrder && (
         <ModalCreateOrder
           show
@@ -192,6 +212,7 @@ export const AdminOrderNavbar = ({
           handleClose={() => onModalChange("editArrayOrders", false)}
           showAlert={showAlert}
           showOrders={selectedOrdersCheckbox}
+          onOrdersUpdated={onOrdersUpdated}
           refreshOrders={handleRefresh}
           cashSession={cashSession}
           cashRegisterId={cashRegisterId}

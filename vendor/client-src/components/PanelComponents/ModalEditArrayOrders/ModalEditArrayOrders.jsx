@@ -145,6 +145,7 @@ export const ModalEditArrayOrders = ({
   showAlert,
   showOrders = [],
   refreshOrders,
+  onOrdersUpdated,
   cashSession = null,
   cashRegisterId = null,
 }) => {
@@ -282,6 +283,7 @@ export const ModalEditArrayOrders = ({
       };
 
       await updateArrayOrderServices(ordersData);
+      onOrdersUpdated?.(ordersData.orderList.map((order) => order.id));
       showAlert("Pedido/s actualizado/s Correctamente!", "success");
 
       await refreshOrders?.();
@@ -310,6 +312,7 @@ export const ModalEditArrayOrders = ({
     cancelReason,
     cashRegisterId,
     refreshOrders,
+    onOrdersUpdated,
     showOrders,
     showAlert,
     handleClose,
@@ -344,12 +347,14 @@ export const ModalEditArrayOrders = ({
         sx: {
           borderRadius: 2,
           boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+          border: "1px solid",
+          borderColor: "background.paper",
         },
       }}
     >
       <DialogTitle
         sx={{
-          fontFamily: "fontFamily.terciary",
+          fontFamily: "fontFamily.primary",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -360,24 +365,30 @@ export const ModalEditArrayOrders = ({
           borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
         }}
       >
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <EditIcon color="primary" />
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <EditIcon color="primary" fontSize="small" />
+
           <Typography
-            variant="h5"
-            component="span"
-            sx={{ display: "flex", justifyContent: "flex-start" }}
+            sx={{
+              display: "flex",
+              justifyContent: "flex-start",
+              fontFamily: "fontFamily.primary",
+              fontSize: "1.2rem",
+            }}
           >
             EDITAR PEDIDOS
           </Typography>
+
           <Chip
             label={`${showOrders.length} ${
               showOrders.length === 1 ? "PEDIDO" : "PEDIDOS"
             }`}
             color="primary"
-            size="medium"
+            size="small"
             sx={{ ml: 1 }}
           />
         </Box>
+
         <Tooltip title="Cerrar">
           <IconButton onClick={handleClose}>
             <CloseIcon color="primary" />
@@ -394,18 +405,19 @@ export const ModalEditArrayOrders = ({
         }}
       >
         <Box component="form" noValidate sx={{ mt: 1 }}>
-          <>
+          <Box>
             <Typography
-              variant="h6"
               sx={{
-                fontFamily: "fontFamily.terciary",
+                fontFamily: "fontFamily.primary",
+                fontSize: "1.2rem",
                 textAlign: "center",
-                mb: 2,
                 color: "text.primary",
+                mb: 2,
               }}
             >
               PEDIDOS SELECCIONADOS
             </Typography>
+
             <Paper
               elevation={0}
               sx={{
@@ -428,7 +440,7 @@ export const ModalEditArrayOrders = ({
                   label={`PEDIDO-ID ${order.id}`}
                   variant="outlined"
                   sx={{
-                    fontFamily: "fontFamily.terciary",
+                    fontFamily: "fontFamily.primary",
                     color: "primary.main",
                     borderColor: "text.primary",
                     fontSize: "1rem",
@@ -445,7 +457,7 @@ export const ModalEditArrayOrders = ({
             <Typography
               variant="subtitle1"
               sx={{
-                fontFamily: "fontFamily.terciary",
+                fontFamily: "fontFamily.primary",
                 mb: 2,
                 color: "text.primary",
                 fontWeight: "bold",
@@ -604,16 +616,18 @@ export const ModalEditArrayOrders = ({
                 </Box>
               </Box>
             )}
-          </>
+          </Box>
         </Box>
       </DialogContent>
 
       <DialogActions
         sx={{
+          bgcolor: "background.main",
           justifyContent: "flex-end",
           px: { xs: 1.5, sm: 3 },
           py: { xs: 1.5, sm: 2 },
-          borderTop: "1px solid rgba(0, 0, 0, 0.12)",
+          borderTop: "1px solid",
+          borderColor: "background.default",
           gap: 1,
           flexDirection: { xs: "column-reverse", sm: "row" },
           alignItems: { xs: "stretch", sm: "center" },
@@ -623,21 +637,22 @@ export const ModalEditArrayOrders = ({
           size="medium"
           variant="contained"
           color="error"
-          onClick={handleClose}
           disabled={loading}
+          onClick={handleClose}
           sx={{ fontFamily: "fontFamily.primary", minHeight: 44 }}
         >
           Cancelar
         </Button>
+
         <Button
           size="medium"
           variant="contained"
           color="primary"
           startIcon={<SaveIcon />}
-          onClick={handleSaveChanges}
           disabled={
             showOrders.length === 0 || loading || !canUpdateStatus || !status
           }
+          onClick={handleSaveChanges}
           sx={{
             fontFamily: "fontFamily.primary",
             minHeight: 44,
