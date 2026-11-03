@@ -8,6 +8,7 @@ import {
   Button,
   IconButton,
   InputAdornment,
+  MenuItem,
   TextField,
   Tooltip,
 } from "@mui/material";
@@ -31,6 +32,7 @@ export const AdminOrderNavbar = ({
   onSearch,
   onClearSearch,
   onDateChange,
+  onPeriodChange,
   disabled,
   refreshing,
   modalState,
@@ -175,16 +177,45 @@ export const AdminOrderNavbar = ({
           Modificar Pedidos
         </Button>
 
-        {filters.period !== "all" && (
-          <Box sx={{ ml: "auto", display: "flex", justifyContent: "flex-end" }}>
+        <Box
+          sx={{
+            ml: "auto",
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 1.5,
+          }}
+        >
+          <TextField
+            select
+            label="Período"
+            size="small"
+            value={filters.period}
+            onChange={(event) => onPeriodChange(event.target.value)}
+            disabled={disabled}
+            sx={{ fontFamily: "fontFamily.secondary", minWidth: 135 }}
+          >
+            <MenuItem value="day" sx={{ fontFamily: "fontFamily.secondary" }}>
+              Hoy
+            </MenuItem>
+            <MenuItem value="month" sx={{ fontFamily: "fontFamily.secondary" }}>
+              Este mes
+            </MenuItem>
+            <MenuItem value="all" sx={{ fontFamily: "fontFamily.secondary" }}>
+              Historial
+            </MenuItem>
+          </TextField>
+
+          {filters.period !== "all" && (
             <FilterByDateOrders
               period={filters.period}
               date={filters.date}
               onChange={onDateChange}
               disabled={disabled}
             />
-          </Box>
-        )}
+          )}
+        </Box>
       </Toolbar>
 
       <OrderRealtimeIndicator

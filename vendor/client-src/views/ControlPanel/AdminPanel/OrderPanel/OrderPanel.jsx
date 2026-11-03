@@ -26,7 +26,6 @@ import { OrderTableFilters } from "./OrderTableFilters/OrderTableFilters.jsx";
 import { OrderStatusIndicator } from "./OrderStatusIndicator/OrderStatusIndicator.jsx";
 import { OrderSummaryIndicator } from "./OrderSummaryIndicator/OrderSummaryIndicator.jsx";
 import { RiderCountIndicator } from "./RiderCountIndicator/RiderCountIndicator.jsx";
-import { RiderSummaryIndicator } from "./RiderSummaryIndicator/RiderSummaryIndicator.jsx";
 import { ModalConfirmOrderPaid } from "@/components/PanelComponents/ModalConfirmOrderPaid/ModalConfirmOrderPaid.jsx";
 import { ModalConfirmCancelOrderPayment } from "@/components/PanelComponents/ModalConfirmCancelOrderPayment/ModalConfirmCancelOrderPayment.jsx";
 // ---------------------
@@ -63,7 +62,6 @@ const tableHeadStyle = {
 
 export const OrderPanel = ({
   user,
-  externalView,
   cashSession = null,
   cashRegisterId = null,
 }) => {
@@ -71,14 +69,7 @@ export const OrderPanel = ({
     typeof window !== "undefined" && Boolean(window.electronAPI);
   const { AlertComponent, showAlert } = useAlert();
 
-  const [filters, setFilters] = useState(() =>
-    createOrderPanelFilters(externalView),
-  );
-
-  const currentFilters =
-    filters.view === externalView
-      ? filters
-      : createOrderPanelFilters(externalView);
+  const [currentFilters, setFilters] = useState(createOrderPanelFilters);
 
   const [navbarHeight, setNavbarHeight] = useState(0);
   const [navbarModals, setNavbarModals] = useState({
@@ -219,24 +210,19 @@ export const OrderPanel = ({
   }, []);
 
   useEffect(() => {
-    setFilters(createOrderPanelFilters(externalView));
+    setFilters(createOrderPanelFilters());
     setSelectedOrderIds([]);
     setPage(0);
-  }, [externalView, user?.id]);
+  }, [user?.id]);
 
-  const changeFilters = useCallback(
-    (patch) => {
-      setFilters((previous) => ({
-        ...(previous.view === externalView
-          ? previous
-          : createOrderPanelFilters(externalView)),
-        ...patch,
-      }));
-      setSelectedOrderIds([]);
-      setPage(0);
-    },
-    [externalView],
-  );
+  const changeFilters = useCallback((patch) => {
+    setFilters((previous) => ({
+      ...previous,
+      ...patch,
+    }));
+    setSelectedOrderIds([]);
+    setPage(0);
+  }, []);
 
   const handleSelectOrders = (event, order) => {
     if (event.target.checked) {
@@ -578,6 +564,9 @@ export const OrderPanel = ({
         selectedOrdersCheckbox={selectedOrdersCheckbox}
         onOrdersUpdated={handleOrdersUpdated}
         filters={currentFilters}
+        onPeriodChange={(period) =>
+          changeFilters(createOrderPanelFilters(period))
+        }
         onSearchInputChange={(searchInput) =>
           setFilters((previous) => ({ ...previous, searchInput }))
         }
@@ -625,63 +614,39 @@ export const OrderPanel = ({
         </Alert>
       )}
 
-      {/* RIDERS */}
-      {availableRiders.length > 0 &&
-        currentFilters.mode !== "search" &&
-        currentFilters.period === "day" && (
-          <Box sx={{ width: "100%", mb: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "stretch",
+          flexWrap: "wrap",
+          gap: 2,
+          mb: 2,
+        }}
+      >
+        <OrderStatusIndicator
+          totalOrders={allOrders}
+          sx={{ flex: "1 1 300px", minWidth: 0 }}
+        />
+
+        {currentFilters.mode !== "search" &&
+          currentFilters.period === "day" && (
             <RiderCountIndicator
               totalOrders={allOrders}
               availableRiders={availableRiders}
             />
-          </Box>
-        )}
+          )}
 
-      {/* INDICADORES DE REFRESH/STATUS/TOTAL-AMOUNT */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 2,
-          mb: 2,
-          minHeight: 72,
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "stretch",
-            gap: 2,
-            width: "100%",
-            flexWrap: "wrap",
-          }}
-        >
-          <OrderStatusIndicator
-            totalOrders={allOrders}
-            sx={{ flex: "1 1 300px", minWidth: 0 }}
-          />
-          {currentFilters.mode !== "search" &&
-            currentFilters.period === "day" &&
-            availableRiders?.length > 0 && (
-              <RiderSummaryIndicator
-                totalOrders={allOrders}
-                availableRiders={availableRiders}
-              />
-            )}
-          {currentFilters.mode !== "search" &&
-            currentFilters.period !== "all" && (
-              <OrderSummaryIndicator
-                totalOrders={allOrders}
-                title={
-                  currentFilters.period === "day"
-                    ? "SUBTOTAL DEL DÍA SELECCIONADO"
-                    : "SUBTOTAL DEL MES SELECCIONADO"
-                }
-              />
-            )}
-        </Box>
+        {currentFilters.mode !== "search" &&
+          currentFilters.period !== "all" && (
+            <OrderSummaryIndicator
+              totalOrders={allOrders}
+              title={
+                currentFilters.period === "day"
+                  ? "SUBTOTAL DEL DÍA SELECCIONADO"
+                  : "SUBTOTAL DEL MES SELECCIONADO"
+              }
+            />
+          )}
       </Box>
 
       {/* PEDIDOS */}
@@ -775,6 +740,7 @@ export const OrderPanel = ({
                   <TableCell sx={tableHeadStyle}>MOD.</TableCell>
                 </TableRow>
               </TableHead>
+
               <TableBody sx={{ bgcolor: "background.default" }}>
                 {filteredOrders
                   .slice(

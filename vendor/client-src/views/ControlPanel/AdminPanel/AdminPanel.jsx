@@ -64,7 +64,6 @@ export const AdminPanel = () => {
   // ---- CAJA OPERATIVA ----
   const [selectedCashRegisterId, setSelectedCashRegisterId] = useState(null);
   const [cashSession, setCashSession] = useState(null);
-  const isOrdersTab = [1, 11, 12].includes(activeTab);
   // ------------------------
 
   // CONTEXT
@@ -144,9 +143,7 @@ export const AdminPanel = () => {
               sx={{ fontFamily: "fontFamily.primary", color: "text.primary" }}
             >
               {activeTab === 0 && "GESTIÓN DE MI NEGOCIO"}
-              {activeTab === 1 && "PEDIDOS DE HOY"}
-              {activeTab === 11 && "PEDIDOS DEL MES"}
-              {activeTab === 12 && "HISTORIAL DE PEDIDOS"}
+              {activeTab === 1 && "PEDIDOS"}
               {activeTab === 13 && "AUDITORIA DE PEDIDOS"}
               {activeTab === 2 && "GESTIÓN DE CATEGORÍAS"}
               {activeTab === 21 && "CATÁLOGO DE PRODUCTOS"}
@@ -225,7 +222,7 @@ export const AdminPanel = () => {
         >
           <Toolbar /> {/* Espaciador */}
           {activeTab === 0 && <LocalSettingsPanel user={user} />}
-          {isOrdersTab && (
+          {activeTab === 1 && (
             <>
               <CashRegisterGate
                 user={user}
@@ -239,7 +236,6 @@ export const AdminPanel = () => {
 
               <OrderPanel
                 user={user}
-                externalView={activeTab}
                 cashSession={cashSession}
                 cashRegisterId={selectedCashRegisterId}
               />

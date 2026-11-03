@@ -131,6 +131,7 @@ export const OptionItemButton = ({
       fullWidth
       disabled={disabled}
       onClick={onSelect}
+      aria-pressed={selected}
       variant={selected ? "contained" : "outlined"}
       color="primary"
       sx={{

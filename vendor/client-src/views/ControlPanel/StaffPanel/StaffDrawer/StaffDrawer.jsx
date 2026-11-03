@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 
 // ---- MATERIAL UI ----
 import {
   Box,
   Typography,
-  Chip,
   List,
   ListItemButton,
   ListItemIcon,
@@ -15,7 +14,6 @@ import {
 } from "@mui/material";
 // ---- ICONS ----
 import {
-  Storefront as StorefrontIcon,
   Person as PersonIcon,
   Fastfood as FastfoodIcon,
   LunchDining as LunchDiningIcon,
@@ -29,8 +27,6 @@ import {
   Logout as LogoutIcon,
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
-  Today as TodayIcon,
-  CalendarMonth as CalendarMonthIcon,
 } from "@mui/icons-material";
 //------------------
 
@@ -54,7 +50,11 @@ export const StaffDrawer = ({
   onCloseCash,
   onViewCashHistory,
 }) => {
-  const handleAction = (tabIndex) => {
+  const productsMenuId = useId();
+  const [openProducts, setOpenProducts] = useState(false);
+
+  const handleAction = (tabIndex, keepProductsOpen = false) => {
+    if (!keepProductsOpen) setOpenProducts(false);
     setActiveTab(tabIndex);
     if (onCloseMobile) onCloseMobile();
   };
@@ -70,9 +70,6 @@ export const StaffDrawer = ({
     if (role === "cashier") return <AttachMoneyIcon />;
     return <LocalDiningIcon />;
   };
-
-  const [openProducts, setOpenProducts] = useState(false);
-  const [openOrders, setOpenOrders] = useState(false);
 
   return (
     <Box
@@ -113,39 +110,45 @@ export const StaffDrawer = ({
         </Box>
       </Box>
 
-      <Divider />
-
       {/* INFORMACIÓN DEL EMPLEADO */}
+      <Divider>
+        <Typography
+          variant="subtitle2"
+          sx={{
+            fontFamily: "fontFamily.primary",
+            color: "text.secondary",
+            textAlign: "center",
+          }}
+        >
+          {(
+            user?.restaurant?.businessName ||
+            user?.restaurant?.name ||
+            user?.businessName ||
+            "Mi Negocio"
+          ).toUpperCase()}
+        </Typography>
+      </Divider>
+
       <Box
         sx={{
           display: "flex",
-          flexDirection: "column",
+          flexDirection: "row",
           justifyContent: "center",
           gap: 1,
-          mb: 1,
+          mt: 2,
+          mb: 2,
         }}
       >
-        <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
-          <StorefrontIcon color="primary" />
-          <Typography
-            variant="subtitle1"
-            sx={{
-              fontFamily: "fontFamily.primary",
-              color: "text.primary",
-              textAlign: "center",
-            }}
-          >
-            {(
-              user?.restaurant?.businessName ||
-              user?.restaurant?.name ||
-              user?.businessName ||
-              "Mi Negocio"
-            ).toUpperCase()}
-          </Typography>
-        </Box>
-
-        <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "center",
+            gap: 1,
+          }}
+        >
           <PersonIcon color="primary" />
+
           <Typography
             variant="subtitle2"
             sx={{
@@ -159,13 +162,28 @@ export const StaffDrawer = ({
           </Typography>
         </Box>
 
-        <Chip
-          icon={getEmployeeIcon(user.staffRole)}
-          label={getEmployeeRole(user.staffRole)}
-          color="primary"
-          variant="outlined"
-          sx={{ fontFamily: "fontFamily.secondary" }}
-        />
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "center",
+            gap: 1,
+          }}
+        >
+          {getEmployeeIcon(user.staffRole)}
+
+          <Typography
+            variant="body2"
+            sx={{
+              fontFamily: "fontFamily.primary",
+              color: "text.primary",
+              textAlign: "center",
+              textTransform: "uppercase",
+            }}
+          >
+            {getEmployeeRole(user.staffRole)}
+          </Typography>
+        </Box>
       </Box>
 
       <Divider>
@@ -184,8 +202,8 @@ export const StaffDrawer = ({
       <List sx={{ px: 1 }}>
         {/* PEDIDOS */}
         <ListItemButton
-          selected={activeTab === 1 || activeTab === 11 || activeTab === 12}
-          onClick={() => setOpenOrders(!openOrders)}
+          selected={activeTab === 1}
+          onClick={() => handleAction(1)}
           sx={{
             fontFamily: "fontFamily.secondary",
             borderRadius: 2,
@@ -204,156 +222,115 @@ export const StaffDrawer = ({
             primary="Pedidos"
             primaryTypographyProps={{ fontSize: "0.9rem" }}
           />
-          {openOrders ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </ListItemButton>
-
-        {/* COLLAPSE PEDIDOS */}
-        <Collapse in={openOrders} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            <ListItemButton
-              selected={activeTab === 1}
-              onClick={() => handleAction(1)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <TodayIcon
-                  fontSize="small"
-                  color={activeTab === 1 ? "primary" : "inherit"}
-                />
-              </ListItemIcon>
-              <ListItemText
-                primary="Hoy"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
-
-            <ListItemButton
-              selected={activeTab === 11}
-              onClick={() => handleAction(11)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <CalendarMonthIcon
-                  fontSize="small"
-                  color={activeTab === 11 ? "primary" : "inherit"}
-                />
-              </ListItemIcon>
-              <ListItemText
-                primary="Este Mes"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
-          </List>
-        </Collapse>
 
         {/* PRODUCTOS */}
-        <ListItemButton
-          selected={activeTab === 2 || activeTab === 21 || activeTab === 22}
-          onClick={() => setOpenProducts(!openProducts)}
-          sx={{
-            fontFamily: "fontFamily.secondary",
-            borderRadius: 2,
-            mb: 0.5,
-            "&.Mui-selected": {
-              bgcolor: "primary.main",
-              color: "text.terciary",
-              "& .MuiListItemIcon-root": { color: "text.terciary" },
-            },
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            <FastfoodIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary="Carta Digital"
-            primaryTypographyProps={{ fontSize: "0.9rem" }}
-          />
-          {openProducts ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-        </ListItemButton>
+        <Box component="li">
+          <ListItemButton
+            selected={activeTab === 2 || activeTab === 21 || activeTab === 22}
+            onClick={() => setOpenProducts((open) => !open)}
+            aria-expanded={openProducts}
+            aria-controls={openProducts ? productsMenuId : undefined}
+            sx={{
+              fontFamily: "fontFamily.secondary",
+              borderRadius: 2,
+              mb: 0.5,
+              "&.Mui-selected": {
+                bgcolor: "primary.main",
+                color: "text.terciary",
+                "& .MuiListItemIcon-root": { color: "text.terciary" },
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <FastfoodIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary="Carta Digital"
+              primaryTypographyProps={{ fontSize: "0.9rem" }}
+            />
+            {openProducts ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </ListItemButton>
 
-        {/* COLLAPSE PRODUCTOS */}
-        <Collapse in={openProducts} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            {/* CATEGORIAS */}
-            <ListItemButton
-              selected={activeTab === 2}
-              onClick={() => handleAction(2)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <CategoryIcon
-                  fontSize="small"
-                  color={activeTab === 2 ? "primary" : "inherit"}
+          {/* COLLAPSE PRODUCTOS */}
+          <Collapse
+            id={productsMenuId}
+            in={openProducts}
+            timeout="auto"
+            unmountOnExit
+          >
+            <List component="div" disablePadding>
+              {/* CATEGORIAS */}
+              <ListItemButton
+                selected={activeTab === 2}
+                onClick={() => handleAction(2, true)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <CategoryIcon
+                    fontSize="small"
+                    color={activeTab === 2 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Categorías"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
-              <ListItemText
-                primary="Categorías"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
+              </ListItemButton>
 
-            {/* PRODUCTOS */}
-            <ListItemButton
-              selected={activeTab === 21}
-              onClick={() => handleAction(21)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <LunchDiningIcon
-                  fontSize="small"
-                  color={activeTab === 21 ? "primary" : "inherit"}
+              {/* PRODUCTOS */}
+              <ListItemButton
+                selected={activeTab === 21}
+                onClick={() => handleAction(21, true)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <LunchDiningIcon
+                    fontSize="small"
+                    color={activeTab === 21 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Productos"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
-              <ListItemText
-                primary="Productos"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
+              </ListItemButton>
 
-            {/* PERSONALIZACIÓNES */}
-            <ListItemButton
-              selected={activeTab === 22}
-              onClick={() => handleAction(22)}
-              sx={{
-                fontFamily: "fontFamily.secondary",
-                pl: 4,
-                borderRadius: 2,
-                mb: 0.5,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <LocalDiningIcon
-                  fontSize="small"
-                  color={activeTab === 22 ? "primary" : "inherit"}
+              {/* PERSONALIZACIÓNES */}
+              <ListItemButton
+                selected={activeTab === 22}
+                onClick={() => handleAction(22, true)}
+                sx={{
+                  fontFamily: "fontFamily.secondary",
+                  pl: 4,
+                  borderRadius: 2,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <LocalDiningIcon
+                    fontSize="small"
+                    color={activeTab === 22 ? "primary" : "inherit"}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Personalizaciónes"
+                  primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
-              </ListItemIcon>
-              <ListItemText
-                primary="Personalizaciónes"
-                primaryTypographyProps={{ fontSize: "0.85rem" }}
-              />
-            </ListItemButton>
-          </List>
-        </Collapse>
+              </ListItemButton>
+            </List>
+          </Collapse>
+        </Box>
 
         {/* PUNTOS DE USUARIOS */}
         <ListItemButton
@@ -416,7 +393,10 @@ export const StaffDrawer = ({
           onMovement={onCashMovement}
           onCloseCash={onCloseCash}
           onGoToOrders={() => handleAction(1)}
-          onViewHistory={onViewCashHistory}
+          onViewHistory={() => {
+            setOpenProducts(false);
+            onViewCashHistory?.();
+          }}
         />
       </Box>
 

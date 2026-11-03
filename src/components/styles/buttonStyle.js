@@ -1,5 +1,5 @@
 export const buttonStyle1 = {
-    fontFamily: 'fontFamily.terciary',
+    fontFamily: 'fontFamily.primary',
     fontSize: { xs: '0.80rem', md: '0.9rem' },
     py: 1.5,
     px: 4,

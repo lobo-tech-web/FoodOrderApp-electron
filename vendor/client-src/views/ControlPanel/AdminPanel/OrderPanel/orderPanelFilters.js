@@ -2,11 +2,11 @@
 import { getDateNowDayjs } from "@/utils/clientWorking.js";
 // ---------------
 
-export const createOrderPanelFilters = (view) => {
+export const createOrderPanelFilters = (period = "day") => {
   const { day, month, year } = getDateNowDayjs();
 
   return {
-    view, period: view === 1 ? "day" : view === 11 ? "month" : "all",
+    period,
     date: `${year}-${month}-${day}`, mode: "date", searchInput: "", searchTerm: "",
     status: "TODOS", orderType: "TODOS",
   };

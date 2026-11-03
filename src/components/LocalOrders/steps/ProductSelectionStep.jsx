@@ -16,11 +16,13 @@ import {
 // Icons
 import {
   Add as AddIcon,
+  Remove as RemoveIcon,
+  Edit as EditIcon,
+  Fastfood as FastfoodIcon,
   CardGiftcard as CardGiftcardIcon,
   CleaningServices as ClearIcon,
   DeleteOutline as DeleteIcon,
   LocalOffer as DiscountIcon,
-  Remove as RemoveIcon,
   Search as SearchIcon,
   ShoppingCart as CartIcon,
 } from "@mui/icons-material";
@@ -56,6 +58,7 @@ export const ProductSelectionStep = ({
   onOpenDiscount,
   onClearCart,
   onRemoveItem,
+  onEditItem,
   onUpdateQuantity,
   onContinue,
 }) => (
@@ -100,6 +103,7 @@ export const ProductSelectionStep = ({
       >
         CATEGORIAS
       </Typography>
+
       <Stack spacing={0.75}>
         {categories.map((category) => {
           const isAllCategory = category === "TODOS";
@@ -210,6 +214,7 @@ export const ProductSelectionStep = ({
                 objectFit: "contain",
               }}
             />
+
             <Box sx={{ p: { xs: 0.85, sm: 1 } }}>
               <Typography
                 sx={{
@@ -224,6 +229,7 @@ export const ProductSelectionStep = ({
               >
                 {product.name.toUpperCase()}
               </Typography>
+
               {Number(product.price) > 0 && (
                 <Typography
                   sx={{
@@ -237,6 +243,7 @@ export const ProductSelectionStep = ({
                   {formatCurrency(getProductPrice(product))}
                 </Typography>
               )}
+
               <Box sx={{ mt: 0.75 }}>
                 {Number(product.redeemPoints || 0) > 0 && (
                   <Chip
@@ -281,23 +288,27 @@ export const ProductSelectionStep = ({
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <CartIcon color="primary" />
+
           <Typography
             sx={{ fontFamily: "fontFamily.primary", fontSize: "1.2rem" }}
           >
             TU PEDIDO
           </Typography>
         </Box>
+
         <Chip
           label={`${cartItems.length} items`}
           sx={{ fontFamily: "fontFamily.secondary" }}
         />
       </Box>
+
       <Divider />
 
       <Stack sx={{ p: 1.5, flex: 1, overflowY: "auto" }} spacing={1}>
         {cartItems.length === 0 ? (
           <Box sx={{ textAlign: "center", color: "text.primary", py: 5 }}>
             <CartIcon sx={{ fontSize: 48, opacity: 0.45 }} />
+
             <Typography
               variant="subtitle2"
               sx={{ fontFamily: "fontFamily.secondary" }}
@@ -326,17 +337,56 @@ export const ProductSelectionStep = ({
                 }}
               >
                 <Box sx={{ minWidth: 0 }}>
-                  <Typography sx={{ fontFamily: "fontFamily.secondary" }}>
-                    {item.name}
-                  </Typography>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
+                    <FastfoodIcon color="primary" fontSize="medium" />
+
+                    <Typography
+                      sx={{
+                        fontFamily: "fontFamily.secondary",
+                        color: "primary.main",
+                      }}
+                    >
+                      {item.name}
+                    </Typography>
+
+                    <Stack direction="row" alignItems="center">
+                      <Tooltip title="Modificar producto">
+                        <IconButton
+                          aria-label={`Editar ${item.name}`}
+                          color="primary"
+                          onClick={() => onEditItem(item, index)}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip title="Quitar producto">
+                        <IconButton
+                          aria-label={`Quitar ${item.name}`}
+                          color="error"
+                          onClick={() => onRemoveItem(index)}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
+                  </Stack>
+
                   {(item.customOptions || []).map((option, optionIndex) => (
                     <Typography
                       key={`${option.itemId || option.name}-${optionIndex}`}
-                      variant="caption"
+                      variant="body2"
                       display="block"
                       sx={{
                         fontFamily: "fontFamily.secondary",
-                        color: "text.secondary",
+                        color: "text.primary",
+                        textTransform: "lowercase",
+                        ml: 1,
                       }}
                     >
                       + {option.name}
@@ -345,25 +395,27 @@ export const ProductSelectionStep = ({
                         : ""}
                     </Typography>
                   ))}
-                  {Number(item.redeemPoints || 0) > 0 && (
-                    <Chip
-                      size="small"
-                      label={`-${Number(item.redeemPoints) * Number(item.quantity || 1)} pts.`}
-                      color="primary"
-                      sx={{ mt: 0.75, fontFamily: "fontFamily.secondary" }}
-                    />
+
+                  {item.productComment?.trim() && (
+                    <Typography
+                      variant="body2"
+                      display="block"
+                      sx={{
+                        mt: 0.75,
+                        pt: 0.75,
+                        borderTop: "1px solid",
+                        borderColor: "primary.main",
+                        color: "text.primary",
+                        fontFamily: "fontFamily.secondary",
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      Comentario: {item.productComment}
+                    </Typography>
                   )}
                 </Box>
-                <Tooltip title="Quitar producto">
-                  <IconButton
-                    aria-label={`Quitar ${item.name}`}
-                    color="error"
-                    onClick={() => onRemoveItem(index)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Tooltip>
               </Box>
+
               <Box
                 sx={{
                   display: "flex",
@@ -382,8 +434,9 @@ export const ProductSelectionStep = ({
                       borderColor: "primary.main",
                     }}
                   >
-                    <RemoveIcon />
+                    <RemoveIcon fontSize="small" />
                   </IconButton>
+
                   <Typography
                     sx={{
                       fontFamily: "fontFamily.primary",
@@ -393,6 +446,7 @@ export const ProductSelectionStep = ({
                   >
                     {item.quantity}
                   </Typography>
+
                   <IconButton
                     aria-label="Sumar uno"
                     onClick={() => onUpdateQuantity(index, 1)}
@@ -402,12 +456,25 @@ export const ProductSelectionStep = ({
                       borderColor: "primary.main",
                     }}
                   >
-                    <AddIcon />
+                    <AddIcon fontSize="small" />
                   </IconButton>
                 </Box>
-                <Typography sx={{ fontFamily: "fontFamily.primary" }}>
-                  {formatCurrency(item.price * item.quantity)}
-                </Typography>
+
+                {Number(item.redeemPoints || 0) > 0 && (
+                  <Chip
+                    size="small"
+                    icon={<CardGiftcardIcon />}
+                    label={`-${Number(item.redeemPoints) * Number(item.quantity || 1)} pts.`}
+                    color="primary"
+                    sx={{ mt: 0.75, fontFamily: "fontFamily.secondary" }}
+                  />
+                )}
+
+                {Number(item.price * item.quantity) > 0 && (
+                  <Typography sx={{ fontFamily: "fontFamily.primary" }}>
+                    {formatCurrency(item.price * item.quantity)}
+                  </Typography>
+                )}
               </Box>
             </Paper>
           ))
@@ -440,6 +507,7 @@ export const ProductSelectionStep = ({
           >
             Descuentos
           </Button>
+
           <Button
             fullWidth
             variant="outlined"
@@ -470,11 +538,11 @@ export const ProductSelectionStep = ({
           >
             {Number(discountAmount || 0) > 0 ? "SUBTOTAL" : "TOTAL"}
           </Typography>
+
           <Typography
             sx={{
               fontFamily: "fontFamily.primary",
-              fontSize:
-                Number(discountAmount || 0) > 0 ? "1.2rem" : "1.6rem",
+              fontSize: Number(discountAmount || 0) > 0 ? "1.2rem" : "1.6rem",
               color: "primary.main",
               fontWeight: 900,
             }}
@@ -482,6 +550,7 @@ export const ProductSelectionStep = ({
             {formatCurrency(totals.subtotalProducts)}
           </Typography>
         </Box>
+
         {Number(discountAmount || 0) > 0 && (
           <>
             <Box
@@ -497,6 +566,7 @@ export const ProductSelectionStep = ({
               >
                 Descuento
               </Typography>
+
               <Typography
                 sx={{
                   fontFamily: "fontFamily.primary",
@@ -507,6 +577,7 @@ export const ProductSelectionStep = ({
                 - {formatCurrency(discountAmount)}
               </Typography>
             </Box>
+
             <Box
               sx={{
                 display: "flex",
@@ -520,6 +591,7 @@ export const ProductSelectionStep = ({
               >
                 TOTAL
               </Typography>
+
               <Typography
                 sx={{
                   fontFamily: "fontFamily.primary",
@@ -533,6 +605,7 @@ export const ProductSelectionStep = ({
             </Box>
           </>
         )}
+
         {Number(totals.totalRedeemPoints || 0) > 0 && (
           <Box
             sx={{
@@ -545,6 +618,7 @@ export const ProductSelectionStep = ({
             <Typography sx={{ fontFamily: "fontFamily.secondary" }}>
               Puntos a canjear
             </Typography>
+
             <Chip
               label={`-${totals.totalRedeemPoints} pts.`}
               color="error"
@@ -552,6 +626,7 @@ export const ProductSelectionStep = ({
             />
           </Box>
         )}
+
         <Button
           fullWidth
           size="large"

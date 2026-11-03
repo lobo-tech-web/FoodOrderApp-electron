@@ -2,7 +2,6 @@ import _ from "lodash";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 // ---- MATERIAL UI ----
-import { Add as AddIcon, Close as CloseIcon } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -18,6 +17,8 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
+// Icons
+import { Add as AddIcon, Close as CloseIcon } from "@mui/icons-material";
 // ---------------------
 
 // ---- COMPONENTS ----
@@ -620,6 +621,7 @@ export const FoodDetailModal = ({
           </Box>
         </Fade>
       </Modal>
+
       <ConfirmDialogClose
         showConfirmClose={showConfirmClose}
         setShowConfirmClose={setShowConfirmClose}

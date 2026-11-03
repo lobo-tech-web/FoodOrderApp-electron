@@ -3,13 +3,13 @@ const getRelationData = (option) => {
 };
 
 export const getProductOptionsForUI = (product) => {
-    if (
-        Array.isArray(product?.productCustomOptions) &&
-        product.productCustomOptions.length > 0
-    ) {
+    if (Array.isArray(product?.customizationOptions)) {
+        return product.customizationOptions;
+    }
+
+    if (Array.isArray(product?.productCustomOptions) && product.productCustomOptions.length > 0) {
         return product.productCustomOptions.map((option) => {
             const relation = getRelationData(option);
-
             const minSelected = Number(relation.minSelected ?? 0);
             const maxSelected = Number(relation.maxSelected ?? 1);
             const required = Boolean(relation.required ?? false);
@@ -155,7 +155,7 @@ export const getCustomizationsFromSelectedItems = (
                      * el item por ID o nombre.
                      */
                     const hasOptionIdentity =
-                        selected.optionId !== undefined ||
+                        (selected.optionId !== undefined && selected.optionId !== null) ||
                         Boolean(selected.optionName);
 
                     const matchesOption =

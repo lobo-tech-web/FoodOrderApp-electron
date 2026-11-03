@@ -1,7 +1,16 @@
 import { useEffect, useRef } from "react";
 
 // ---- Material UI ----
-import { Alert, Box, Button, Paper, Stack, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  MenuItem,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 // Icons
 import {
   Add as AddIcon,
@@ -43,6 +52,9 @@ export const StaffOrderActionsBar = ({
   cashRegisterId,
   selectedOrders,
   loading,
+  period,
+  onPeriodChange,
+  periodDisabled,
   onRefresh,
   modalState,
   onModalChange,
@@ -59,16 +71,20 @@ export const StaffOrderActionsBar = ({
     cashSession.status === "OPEN" &&
     String(cashSession.cashRegisterId) === String(cashRegisterId),
   );
+
   const canCreate = hasOrderPermission(user, "create");
   const canUpdateStatus = hasOrderPermission(user, "updateStatus");
 
   useEffect(() => {
     const element = navbarRef.current;
     if (!element) return;
+
     let active = true;
+
     const measure = () => {
       if (active) onHeightChange(element.getBoundingClientRect().height);
     };
+
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(element);
@@ -95,9 +111,9 @@ export const StaffOrderActionsBar = ({
         }}
       >
         <Stack
-          direction={{ xs: "column", md: "row" }}
+          direction={{ xs: "column", lg: "row" }}
           justifyContent="space-between"
-          alignItems={{ xs: "stretch", md: "center" }}
+          alignItems={{ xs: "stretch", lg: "center" }}
           spacing={1.5}
           sx={{ p: 1.5 }}
         >
@@ -158,6 +174,31 @@ export const StaffOrderActionsBar = ({
             >
               Modificar seleccionados
             </Button>
+
+            <TextField
+              select
+              label="Período"
+              size="small"
+              value={period}
+              onChange={(event) => onPeriodChange(event.target.value)}
+              disabled={periodDisabled}
+              sx={{
+                fontFamily: "fontFamily.secondary",
+                minWidth: 135,
+                alignSelf: { sm: "center" },
+              }}
+            >
+              <MenuItem value="day" sx={{ fontFamily: "fontFamily.secondary" }}>
+                Hoy
+              </MenuItem>
+
+              <MenuItem
+                value="month"
+                sx={{ fontFamily: "fontFamily.secondary" }}
+              >
+                Este mes
+              </MenuItem>
+            </TextField>
           </Stack>
         </Stack>
 

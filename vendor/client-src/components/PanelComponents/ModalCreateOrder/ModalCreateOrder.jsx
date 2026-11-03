@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import _ from "lodash";
 
+// ---- Logo ----
+import mainLogo from "@/assets/main/logo-white.png";
+// --------------
+
 // ---- MATERIAL UI ----
 import {
   Typography,
@@ -40,11 +44,17 @@ import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent
 import { ConfirmDialogClose } from "@/components/ConfirmDialogClose/ConfirmDialogClose.jsx";
 import { useThermalPrinter } from "../ModalEditOrder/PrinterConfig/useThermalPrinter.js";
 import { ModalSelectProducts } from "../ModalEditOrder/ModalSelectProducts/ModalSelectProducts.jsx";
+import { ModalProductCustomization } from "@/components/PanelComponents/ModalProductCustomization/ModalProductCustomization.jsx";
 import { OrderSummary } from "./OrderSummary/OrderSummary.jsx";
 import { ClientSearchModal } from "./ClientSearchModal/ClientSearchModal.jsx";
 import { ClientInfoTab } from "./ClientInfoTab/ClientInfoTab.jsx";
 import { ModalConfirmOrderPaid } from "../ModalConfirmOrderPaid/ModalConfirmOrderPaid.jsx";
 import { ModalConfirmCreateOrderPaid } from "../ModalConfirmCreateOrderPaid/ModalConfirmCreateOrderPaid.jsx";
+import {
+  buildCartProductForEditing,
+  findCartProduct,
+  replaceCustomizedCartItem,
+} from "@/utils/cartProductEditing.js";
 // --------------------
 
 // ---- TABS ----
@@ -536,48 +546,29 @@ export const ModalCreateOrder = ({
     showAlert("Producto agregado al pedido", "success");
   };
 
-  const handleProductModified = (modifiedProduct) => {
-    if (editingProductIndex !== null) {
-      const updatedCartItems = [...order.cartItems];
-
-      const finalPrice = calculateFinalProductPrice(modifiedProduct);
-
-      const newItemModified = {
-        ...modifiedProduct,
-        productId: modifiedProduct.productId || modifiedProduct.id,
-        price: finalPrice,
-        quantity:
-          modifiedProduct.quantity ||
-          updatedCartItems[editingProductIndex].quantity,
-      };
-
-      updatedCartItems[editingProductIndex] = {
-        ...updatedCartItems[editingProductIndex],
-        ...newItemModified,
-      };
-
-      setOrder((prev) => ({
-        ...prev,
-        cartItems: updatedCartItems,
-      }));
-
-      // Reset editing states
-      setEditingProductIndex(null);
-      setEditingProduct(null);
-      setShowProductSelector(false);
-
-      showAlert("Producto modificado en el pedido", "success");
-    }
+  const closeProductEditor = () => {
+    setEditingProductIndex(null);
+    setEditingProduct(null);
   };
 
-  // ✅ EDITAR PRODUCTO DEL PEDIDO
+  const handleProductModified = (modifiedProduct) => {
+    if (editingProductIndex === null) return;
+
+    setOrder((prev) => ({
+      ...prev,
+      cartItems: replaceCustomizedCartItem(
+        prev.cartItems,
+        editingProductIndex,
+        modifiedProduct,
+      ),
+    }));
+
+    closeProductEditor();
+    showAlert("Producto modificado en el pedido", "success");
+  };
+
   const handleEditProduct = (item, index) => {
-    const originalProduct = availableProducts.find(
-      (product) =>
-        product.id === item.productId ||
-        product.id === item.id ||
-        product.name === item.name,
-    );
+    const originalProduct = findCartProduct(availableProducts, item);
 
     if (!originalProduct) {
       showAlert(
@@ -587,24 +578,19 @@ export const ModalCreateOrder = ({
       return;
     }
 
-    const productOptions = getProductOptionsForUI(originalProduct);
-
-    if (productOptions.length === 0 && !originalProduct.allowComment) {
-      showAlert("Este producto no se puede modificar", "info");
+    if (
+      !getProductOptionsForUI(originalProduct).length &&
+      !originalProduct.allowComment
+    ) {
+      showAlert(
+        "Este producto no tiene opciones ni comentarios habilitados",
+        "info",
+      );
       return;
     }
 
     setEditingProductIndex(index);
-    setEditingProduct({
-      ...originalProduct,
-      id: originalProduct.id,
-      productId: originalProduct.id,
-      customOptions: _.cloneDeep(item.customOptions || []),
-      productComment: item.productComment || "",
-      quantity: Number(item.quantity) || 1,
-    });
-    setProductSelectorFirstStep(false);
-    setShowProductSelector(true);
+    setEditingProduct(buildCartProductForEditing(originalProduct, item));
   };
 
   // ✅ MODIFICAR CANTIDAD DE PRODUCTO
@@ -1320,16 +1306,25 @@ export const ModalCreateOrder = ({
         <ModalSelectProducts
           open={showProductSelector}
           onClose={handleCloseProductSelector}
-          onSelectProduct={
-            editingProduct ? handleProductModified : handleAddProduct
-          }
-          products={editingProduct ? [editingProduct] : availableProducts}
-          editingProduct={Boolean(editingProduct)}
-          initialSelectionMode={productSelectorFirstStep && !editingProduct}
+          onSelectProduct={handleAddProduct}
+          products={availableProducts}
+          initialSelectionMode={productSelectorFirstStep}
           cartItems={order.cartItems}
+          onEditProduct={handleEditProduct}
           onUpdateQuantity={handleQuantityChange}
           onRemoveProduct={handleRemoveProduct}
           onContinue={handleContinueProductSelection}
+        />
+      )}
+
+      {editingProduct && (
+        <ModalProductCustomization
+          open
+          product={editingProduct}
+          imageDefault={restaurantLogo || mainLogo}
+          editing
+          onClose={closeProductEditor}
+          onProductCustomized={handleProductModified}
         />
       )}
 

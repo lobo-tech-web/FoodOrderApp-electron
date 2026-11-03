@@ -42,8 +42,7 @@ import { CashRegisterHistoryPanel } from "./CashRegisterHistoryPanel/CashRegiste
 const drawerWidth = 260;
 
 const STAFF_PANEL_TITLES = {
-  1: "PEDIDOS DE HOY",
-  11: "PEDIDOS DEL MES",
+  1: "PEDIDOS",
   2: "CATEGORÍAS",
   21: "PRODUCTOS",
   22: "PERSONALIZACIONES",
@@ -52,10 +51,6 @@ const STAFF_PANEL_TITLES = {
   5: "REGISTRO DE CAJAS",
 };
 // ----------------
-
-const isOrdersTab = (activeTab) => {
-  return activeTab === 1 || activeTab === 11;
-};
 
 const getStoredSessionToken = () => {
   return (
@@ -328,19 +323,18 @@ export const StaffPanel = () => {
               setSelectedCashRegisterId(cashRegisterId || null);
             }}
             onCashSessionChange={handleCashSessionChange}
-            showPrompt={isOrdersTab(activeTab)}
+            showPrompt={activeTab === 1}
             showAlert={showAlert}
             refreshKey={cashRefreshKey}
             variant="compact"
           />
 
-          {(activeTab === 1 || activeTab === 11) && (
+          {activeTab === 1 && (
             <StaffOrderPanel
               user={staffUser}
               showAlert={showAlert}
               cashSession={cashSession}
               cashRegisterId={selectedCashRegisterId}
-              externalView={activeTab}
             />
           )}
 

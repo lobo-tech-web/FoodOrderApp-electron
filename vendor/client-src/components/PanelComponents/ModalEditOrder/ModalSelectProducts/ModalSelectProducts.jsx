@@ -25,6 +25,7 @@ import {
   ShoppingCart as CartIcon,
   Close as CloseIcon,
   DeleteOutline as DeleteIcon,
+  EditOutlined as EditIcon,
   Remove as RemoveIcon,
   Search as SearchIcon,
 } from "@mui/icons-material";
@@ -40,15 +41,10 @@ import { ModalProductCustomization } from "@/components/PanelComponents/ModalPro
 
 // ---- UTILS ----
 import { getProductOptionsForUI } from "@/utils/migrateCustomOptions.js";
-import { formatCurrency } from "@/utils/orderCalculations.js";
+import { formatCurrency, getProductBasePrice } from "@/utils/orderCalculations.js";
 // ---------------
 
-const getProductDisplayPrice = (product) =>
-  product.discount > 0
-    ? Math.round(
-        (product.price - (product.price * product.discount) / 100) / 100,
-      ) * 100
-    : Math.round(product.price || 0);
+const getProductDisplayPrice = getProductBasePrice;
 
 export const ModalSelectProducts = ({
   open,
@@ -60,6 +56,7 @@ export const ModalSelectProducts = ({
   cartItems = [],
   onUpdateQuantity,
   onRemoveProduct,
+  onEditProduct,
   onContinue,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -542,16 +539,38 @@ export const ModalSelectProducts = ({
                               </Typography>
                             ),
                           )}
+                          {item.productComment?.trim() && (
+                            <Typography variant="caption" display="block" sx={{
+                              mt: 0.75, pt: 0.75, borderTop: "1px solid", borderColor: "divider",
+                              color: "text.secondary", fontFamily: "fontFamily.secondary", whiteSpace: "pre-wrap",
+                            }}>
+                              Comentario: {item.productComment}
+                            </Typography>
+                          )}
                         </Box>
-                        <Tooltip title="Quitar producto">
-                          <IconButton
-                            aria-label={`Quitar ${item.name}`}
-                            color="error"
-                            onClick={() => onRemoveProduct?.(index)}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
+                        <Box sx={{ display: "flex", alignItems: "flex-start" }}>
+                          {onEditProduct && (
+                            <Tooltip title="Modificar producto">
+                              <IconButton
+                                size="small"
+                                color="primary"
+                                aria-label={`Editar ${item.name}`}
+                                onClick={() => onEditProduct(item, index)}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          <Tooltip title="Quitar producto">
+                            <IconButton
+                              aria-label={`Quitar ${item.name}`}
+                              color="error"
+                              onClick={() => onRemoveProduct?.(index)}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       </Box>
                       <Box
                         sx={{

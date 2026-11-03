@@ -179,19 +179,14 @@ export const CartItem = ({
             gap: 0.2,
           }}
         >
-          <Tooltip
-            title={
-              hasCustomOptions || item.allowComment
-                ? "Modificar producto"
-                : "Este producto no se puede modificar"
-            }
-          >
+          <Tooltip title="Modificar producto">
             <span>
               <IconButton
                 size="small"
                 color="primary"
                 onClick={() => onEditProduct(item, index)}
-                disabled={!hasCustomOptions && !item.allowComment}
+                aria-label={`Editar ${item.name}`}
+                disabled={!onEditProduct}
               >
                 <EditIcon fontSize="small" />
               </IconButton>

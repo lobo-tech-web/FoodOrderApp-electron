@@ -33,7 +33,6 @@ import {
   Plagiarism as PlagiarismIcon,
   Savings as SavingsIcon,
   Storefront as StorefrontIcon,
-  Today as TodayIcon,
   Badge as BadgeIcon,
   PointOfSale as PointOfSaleIcon,
   Tune as TuneIcon,
@@ -279,12 +278,7 @@ export const AdminDrawer = ({
         {/* PEDIDOS */}
         <Box component="li">
           <ListItemButton
-            selected={
-              activeTab === 1 ||
-              activeTab === 11 ||
-              activeTab === 12 ||
-              activeTab === 13
-            }
+            selected={activeTab === 1 || activeTab === 13}
             onClick={() => toggleMenu("orders")}
             aria-expanded={openOrders}
             aria-controls={`${menuId}-orders`}
@@ -328,57 +322,13 @@ export const AdminDrawer = ({
                 }}
               >
                 <ListItemIcon sx={{ minWidth: 40 }}>
-                  <TodayIcon
+                  <ReceiptLongIcon
                     fontSize="small"
                     color={activeTab === 1 ? "primary" : "inherit"}
                   />
                 </ListItemIcon>
                 <ListItemText
-                  primary="Hoy"
-                  primaryTypographyProps={{ fontSize: "0.85rem" }}
-                />
-              </ListItemButton>
-
-              <ListItemButton
-                selected={activeTab === 11}
-                onClick={() => handleAction(11)}
-                sx={{
-                  fontFamily: "fontFamily.secondary",
-                  pl: 4,
-                  borderRadius: 2,
-                  mb: 0.5,
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 40 }}>
-                  <CalendarMonthIcon
-                    fontSize="small"
-                    color={activeTab === 11 ? "primary" : "inherit"}
-                  />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Este Mes"
-                  primaryTypographyProps={{ fontSize: "0.85rem" }}
-                />
-              </ListItemButton>
-
-              <ListItemButton
-                selected={activeTab === 12}
-                onClick={() => handleAction(12)}
-                sx={{
-                  fontFamily: "fontFamily.secondary",
-                  pl: 4,
-                  borderRadius: 2,
-                  mb: 0.5,
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 40 }}>
-                  <HistoryIcon
-                    fontSize="small"
-                    color={activeTab === 12 ? "primary" : "inherit"}
-                  />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Historial"
+                  primary="Listado de pedidos"
                   primaryTypographyProps={{ fontSize: "0.85rem" }}
                 />
               </ListItemButton>

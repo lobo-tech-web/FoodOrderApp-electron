@@ -62,21 +62,15 @@ export const ModalProductCustomization = ({
   onProductCustomized,
   editing = false,
 }) => {
+  const { AlertComponent, showAlert } = useAlert();
   const { lobotechTheme } = useLobotechThemeContext();
   const theme = useTheme();
-
-  const isTablet = useMediaQuery(theme.breakpoints.down("lg"));
-
-  const { AlertComponent, showAlert } = useAlert();
+  const isTablet = useMediaQuery(theme.breakpoints.down("xl"));
 
   const [isSaving, setIsSaving] = useState(false);
-
   const [initialCustomizations, setInitialCustomizations] = useState({});
-
   const [productComment, setProductComment] = useState("");
-
   const [initialProductComment, setInitialProductComment] = useState("");
-
   const [showConfirmClose, setShowConfirmClose] = useState(false);
 
   const { customizations, setCustomizations, handleCustomizationChange } =
@@ -93,7 +87,6 @@ export const ModalProductCustomization = ({
         .filter((option) => option.status !== false)
         .sort((a, b) => {
           const priorityA = Number(a.priority ?? 10);
-
           const priorityB = Number(b.priority ?? 10);
 
           if (priorityA !== priorityB) {
@@ -116,13 +109,8 @@ export const ModalProductCustomization = ({
     [sortedProductOptions, customizations],
   );
 
-  // --------------------------
-  // INICIALIZAR EDICIÓN
-  // --------------------------
   useEffect(() => {
-    if (!open || !product) {
-      return;
-    }
+    if (!open || !product) return;
 
     const initialState = getCustomizationsFromSelectedItems(
       sortedProductOptions,
@@ -132,11 +120,8 @@ export const ModalProductCustomization = ({
     const initialComment = product.productComment || "";
 
     setCustomizations(_.cloneDeep(initialState));
-
     setInitialCustomizations(_.cloneDeep(initialState));
-
     setProductComment(initialComment);
-
     setInitialProductComment(initialComment);
   }, [open, product, sortedProductOptions, setCustomizations]);
 
@@ -216,15 +201,16 @@ export const ModalProductCustomization = ({
       customizations,
     );
 
-    const { productCustomOptions, ...productWithoutFullOptions } = product;
+    const {
+      productCustomOptions,
+      customizationOptions,
+      ...productWithoutFullOptions
+    } = product;
 
     const customizedProduct = {
       ...productWithoutFullOptions,
-
       customOptions: finalCustomizations,
-
       productComment: product?.allowComment ? productComment.trim() : "",
-
       quantity: Number(product.quantity) || 1,
     };
 
@@ -264,14 +250,8 @@ export const ModalProductCustomization = ({
               xs: "100dvh",
               sm: "94vh",
             },
-            m: {
-              xs: 0,
-              sm: 2,
-            },
-            borderRadius: {
-              xs: 0,
-              sm: 3,
-            },
+            m: { xs: 0, sm: 2 },
+            borderRadius: { xs: 0, sm: 3 },
             bgcolor: "background.default",
             overflow: "hidden",
             border: "1px solid",
@@ -279,7 +259,6 @@ export const ModalProductCustomization = ({
           },
         }}
       >
-        {/* CLOSE */}
         <IconButton
           onClick={handleClose}
           disabled={isSaving}
@@ -304,10 +283,7 @@ export const ModalProductCustomization = ({
 
         <DialogContent
           sx={{
-            p: {
-              xs: 1,
-              sm: 1.5,
-            },
+            p: { xs: 1, sm: 1.5 },
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
@@ -319,23 +295,14 @@ export const ModalProductCustomization = ({
               display: "grid",
               gridTemplateColumns: {
                 xs: "1fr",
-
                 md: "260px minmax(0, 1fr)",
-
                 xl: "300px minmax(0, 1fr) 280px",
               },
               gap: 1.5,
               minHeight: 0,
-              overflow: {
-                xs: "auto",
-                xl: "hidden",
-              },
+              overflow: { xs: "auto", xl: "hidden" },
             }}
           >
-            {/* ============================= */}
-            {/* PRODUCTO */}
-            {/* ============================= */}
-
             <Paper
               elevation={0}
               sx={{
@@ -354,20 +321,12 @@ export const ModalProductCustomization = ({
                 isAdding={isSaving}
               />
 
-              <Box
-                sx={{
-                  mt: 2,
-                  textAlign: "center",
-                }}
-              >
+              <Box sx={{ mt: 2, textAlign: "center" }}>
                 <Typography
                   sx={{
                     fontFamily: "fontFamily.primary",
                     color: "text.primary",
-                    fontSize: {
-                      xs: 20,
-                      md: 24,
-                    },
+                    fontSize: { xs: 20, md: 24 },
                     lineHeight: 1.1,
                   }}
                 >
@@ -397,7 +356,6 @@ export const ModalProductCustomization = ({
                     }}
                   >
                     {product.isVeggie && <CustomLabel isActive isVeggie />}
-
                     {product.isSinTacc && (
                       <CustomLabel isActive isVeggie={false} />
                     )}
@@ -406,10 +364,6 @@ export const ModalProductCustomization = ({
               </Box>
             </Paper>
 
-            {/* ============================= */}
-            {/* CUSTOM OPTIONS */}
-            {/* ============================= */}
-
             <Box
               sx={{
                 minWidth: 0,
@@ -417,9 +371,7 @@ export const ModalProductCustomization = ({
                   xs: "visible",
                   xl: "auto",
                 },
-                pr: {
-                  xl: 0.5,
-                },
+                pr: { xl: 0.5 },
               }}
             >
               <Stack spacing={1.5}>
@@ -468,10 +420,6 @@ export const ModalProductCustomization = ({
                 )}
               </Stack>
             </Box>
-
-            {/* ============================= */}
-            {/* RESUMEN */}
-            {/* ============================= */}
 
             <Paper
               elevation={0}
@@ -641,10 +589,6 @@ export const ModalProductCustomization = ({
               </Box>
             </Paper>
           </Box>
-
-          {/* ============================= */}
-          {/* BOTTOM ACTION */}
-          {/* ============================= */}
 
           <Paper
             elevation={0}

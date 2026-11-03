@@ -36,12 +36,11 @@ test("staff receives live orders and protects creation, selection, payment and b
     import { StaffOrderPanel } from "/vendor/client-src/views/ControlPanel/StaffPanel/StaffOrderPanel/StaffOrderPanel.jsx";
     function App() {
       const user = JSON.parse(localStorage.getItem("user"));
-      const [view, setView] = useState(1);
       const [cashOpen, setCashOpen] = useState(true);
-      window.staffControls = { setView, setCashOpen };
+      window.staffControls = { setCashOpen };
       const { lobotechTheme } = useLobotechThemeContext();
       const { showAlert, AlertComponent } = useAlert();
-      return <ThemeProvider theme={lobotechTheme}><StaffOrderPanel user={user} externalView={view}
+      return <ThemeProvider theme={lobotechTheme}><StaffOrderPanel user={user}
         cashRegisterId="cash-test" cashSession={cashOpen ? {id: "session-test", cashRegisterId: "cash-test", status: "OPEN"} : null}
         showAlert={showAlert} />{AlertComponent}</ThemeProvider>;
     }
@@ -168,7 +167,11 @@ test("staff receives live orders and protects creation, selection, payment and b
     const url = new URL(response.url());
     return url.pathname.includes(server.config.env.VITE_API_ORDERS_MAIN_ROUTER) && url.searchParams.get("day") === "";
   });
-  await page.evaluate(() => window.staffControls.setView(11));
+  const period = panel.getByRole("combobox", { name: "Período" });
+  assert.equal(await period.innerText(), "Hoy");
+  await period.click();
+  assert.equal(await page.getByRole("option", { name: "Historial" }).count(), 0);
+  await page.getByRole("option", { name: "Este mes" }).click();
   await monthResponse;
   await panel.getByText("PEDIDOS DEL MES", {exact:true}).waitFor();
   assert.equal(queries.at(-1).searchParams.get("day"), "");

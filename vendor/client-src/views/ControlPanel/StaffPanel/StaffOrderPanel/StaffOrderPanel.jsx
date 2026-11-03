@@ -5,7 +5,6 @@ import {
   Alert,
   Box,
   Checkbox,
-  Chip,
   Paper,
   LinearProgress,
   Table,
@@ -15,19 +14,8 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  Tabs,
-  Tab,
   Typography,
 } from "@mui/material";
-// Icons
-import {
-  MoreHoriz as MoreHorizIcon,
-  Pending as PendingIcon,
-  FactCheck as FactCheckIcon,
-  DeliveryDining as DeliveryDiningIcon,
-  CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon,
-} from "@mui/icons-material";
 // -------------------
 
 // ---- CONTEXT ----
@@ -43,6 +31,8 @@ import { getRidersByRestaurantServices } from "@/services/riders.js";
 // ---- Components ----
 import { StaffOrderActionsBar } from "./StaffOrderActionsBar/StaffOrderActionsBar.jsx";
 import { OrderInfo } from "../../AdminPanel/OrderPanel/OrderInfo/OrderInfo.jsx";
+import { OrderTableFilters } from "../../AdminPanel/OrderPanel/OrderTableFilters/OrderTableFilters.jsx";
+import { OrderStatusIndicator } from "../../AdminPanel/OrderPanel/OrderStatusIndicator/OrderStatusIndicator.jsx";
 import { RiderCountIndicator } from "../../AdminPanel/OrderPanel/RiderCountIndicator/RiderCountIndicator.jsx";
 import { ModalEditOrder } from "@/components/PanelComponents/ModalEditOrder/ModalEditOrder.jsx";
 import { ModalConfirmOrderPaid } from "@/components/PanelComponents/ModalConfirmOrderPaid/ModalConfirmOrderPaid.jsx";
@@ -57,38 +47,6 @@ import {
 } from "@/utils/orderEditRules.js";
 // ---------------
 
-const ORDER_STATUS = {
-  TODOS: {
-    color: "#f59e0b",
-    icon: <MoreHorizIcon fontSize="small" />,
-  },
-
-  "PENDIENTE A CONFIRMAR": {
-    color: "#ff9800",
-    icon: <PendingIcon fontSize="small" />,
-  },
-
-  "EN PREPARACIÓN": {
-    color: "#2196f3",
-    icon: <FactCheckIcon fontSize="small" />,
-  },
-
-  "EN ENVIO": {
-    color: "#9c27b0",
-    icon: <DeliveryDiningIcon fontSize="small" />,
-  },
-
-  FINALIZADO: {
-    color: "#4caf50",
-    icon: <CheckCircleIcon fontSize="small" />,
-  },
-
-  CANCELADO: {
-    color: "#f44336",
-    icon: <CancelIcon fontSize="small" />,
-  },
-};
-
 // ---- Styles ----
 const tableHeadStyle = {
   fontFamily: "fontFamily.primary",
@@ -101,7 +59,6 @@ const tableHeadStyle = {
 
 export const StaffOrderPanel = ({
   user,
-  externalView,
   cashSession,
   cashRegisterId,
   showAlert,
@@ -118,12 +75,7 @@ export const StaffOrderPanel = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(50);
 
-  const activeTab = useMemo(() => {
-    if (externalView === 1) return 0;
-    if (externalView === 11) return 1;
-    return 2;
-  }, [externalView]);
-
+  const [period, setPeriod] = useState("day");
   const { filterOrderByDate, updateOrder } = useOrders();
   const restaurantId = user?.role === "staff" ? user.restaurantId : user?.id;
   const canReadOrders = hasOrderPermission(user, "read");
@@ -140,10 +92,10 @@ export const StaffOrderPanel = ({
     return {
       restaurantId: canReadOrders ? restaurantId : null,
       mode: "date",
-      period: activeTab === 0 ? "day" : "month",
+      period,
       date: year + "-" + month + "-" + day,
     };
-  }, [restaurantId, canReadOrders, activeTab]);
+  }, [restaurantId, canReadOrders, period]);
 
   const loadOrders = useCallback(
     (requested) => {
@@ -218,17 +170,44 @@ export const StaffOrderPanel = ({
   }, []);
 
   const [statusFilter, setStatusFilter] = useState("TODOS");
+  const [orderTypeFilter, setOrderTypeFilter] = useState("TODOS");
 
-  const handleStatusChange = (event, newValue) => {
-    setStatusFilter(newValue);
+  const resetFilterSelection = () => {
     setPage(0);
-    setSelectedOrdersCheckbox([]);
+    setSelectedOrderIds([]);
   };
 
-  const filteredOrders = useMemo(() => {
-    if (statusFilter === "TODOS") return allOrders;
-    return allOrders.filter((order) => order.status === statusFilter);
-  }, [allOrders, statusFilter]);
+  const handleStatusChange = (value) => {
+    setStatusFilter(value);
+    resetFilterSelection();
+  };
+
+  const handleOrderTypeChange = (value) => {
+    setOrderTypeFilter(value);
+    resetFilterSelection();
+  };
+
+  const handleClearFilters = () => {
+    setStatusFilter("TODOS");
+    setOrderTypeFilter("TODOS");
+    resetFilterSelection();
+  };
+
+  const ordersFilteredByType = useMemo(
+    () =>
+      orderTypeFilter === "TODOS"
+        ? allOrders
+        : allOrders.filter((order) => order.orderType === orderTypeFilter),
+    [allOrders, orderTypeFilter],
+  );
+
+  const filteredOrders = useMemo(
+    () =>
+      statusFilter === "TODOS"
+        ? ordersFilteredByType
+        : ordersFilteredByType.filter((order) => order.status === statusFilter),
+    [ordersFilteredByType, statusFilter],
+  );
 
   const displayedPage = Math.min(
     page,
@@ -236,13 +215,24 @@ export const StaffOrderPanel = ({
   );
 
   const statusCounts = useMemo(() => {
-    const counts = { TODOS: allOrders.length };
-
-    allOrders.forEach((order) => {
+    const counts = { TODOS: ordersFilteredByType.length };
+    ordersFilteredByType.forEach((order) => {
       counts[order.status] = (counts[order.status] || 0) + 1;
     });
     return counts;
-  }, [allOrders]);
+  }, [ordersFilteredByType]);
+
+  const orderTypeCounts = useMemo(() => {
+    const base =
+      statusFilter === "TODOS"
+        ? allOrders
+        : allOrders.filter((order) => order.status === statusFilter);
+    const counts = { TODOS: base.length };
+    base.forEach((order) => {
+      counts[order.orderType] = (counts[order.orderType] || 0) + 1;
+    });
+    return counts;
+  }, [allOrders, statusFilter]);
 
   const isCashOpen = Boolean(
     cashRegisterId &&
@@ -253,7 +243,6 @@ export const StaffOrderPanel = ({
 
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedOrderIndex, setSelectedOrderIndex] = useState(null);
-
   const [openOrderModal, setOpenOrderModal] = useState(false);
 
   const handleOpenOrderModal = useCallback(
@@ -453,7 +442,7 @@ export const StaffOrderPanel = ({
   useEffect(() => {
     setSelectedOrderIds([]);
     setPage(0);
-  }, [activeTab, restaurantId]);
+  }, [restaurantId]);
 
   if (!canReadOrders) {
     return (
@@ -481,6 +470,12 @@ export const StaffOrderPanel = ({
         cashRegisterId={cashRegisterId}
         selectedOrders={selectedOrdersCheckbox}
         loading={isRefreshing}
+        period={period}
+        onPeriodChange={(nextPeriod) => {
+          setPeriod(nextPeriod);
+          handleClearFilters();
+        }}
+        periodDisabled={isProtected}
         onRefresh={fetchOrders}
         modalState={navbarModals}
         onModalChange={changeNavbarModal}
@@ -502,15 +497,27 @@ export const StaffOrderPanel = ({
         sx={{ visibility: isRefreshing ? "visible" : "hidden", mb: 1 }}
       />
 
-      {/* RIDERS */}
-      {availableRiders.length > 0 && activeTab === 0 && (
-        <Box sx={{ width: "100%", mb: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "stretch",
+          flexWrap: "wrap",
+          gap: 2,
+          mb: 2,
+        }}
+      >
+        <OrderStatusIndicator
+          totalOrders={allOrders}
+          sx={{ flex: "1 1 300px", minWidth: 0 }}
+        />
+
+        {availableRiders.length > 0 && period === "day" && (
           <RiderCountIndicator
             totalOrders={allOrders}
             availableRiders={availableRiders}
           />
-        </Box>
-      )}
+        )}
+      </Box>
 
       <Paper
         elevation={0}
@@ -532,98 +539,19 @@ export const StaffOrderPanel = ({
             m: 2,
           }}
         >
-          {activeTab === 0 ? "PEDIDOS DE HOY" : "PEDIDOS DEL MES"}
+          {period === "day" ? "PEDIDOS DE HOY" : "PEDIDOS DEL MES"}
         </Typography>
 
-        <Paper
-          elevation={0}
-          sx={{
-            mb: 2,
-            bgcolor: "background.paper",
-            borderRadius: 2,
-            border: "1px solid",
-            borderColor: "divider",
-          }}
-        >
-          <Tabs
-            value={statusFilter}
-            onChange={handleStatusChange}
-            variant="scrollable"
-            scrollButtons="auto"
-            sx={{
-              px: 1,
-              "& .MuiTabs-indicator": {
-                height: 3,
-                borderRadius: "3px 3px 0 0",
-                bgcolor: ORDER_STATUS[statusFilter]?.color || "primary.main",
-              },
-            }}
-          >
-            {Object.keys(ORDER_STATUS).map((status) => (
-              <Tab
-                key={status}
-                value={status}
-                label={
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        color:
-                          statusFilter === status
-                            ? ORDER_STATUS[status].color
-                            : "text.disabled",
-                      }}
-                    >
-                      {ORDER_STATUS[status].icon}
-                    </Box>
-
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontFamily: "fontFamily.secondary",
-                        fontSize: "0.75rem",
-                      }}
-                    >
-                      {status}
-                    </Typography>
-
-                    {statusCounts[status] > 0 && (
-                      <Chip
-                        label={statusCounts[status]}
-                        size="small"
-                        variant="outlined"
-                        sx={{
-                          fontSize: "0.60rem",
-
-                          color:
-                            statusFilter === status
-                              ? ORDER_STATUS[status].color
-                              : "text.primary",
-
-                          borderColor:
-                            statusFilter === status
-                              ? ORDER_STATUS[status].color
-                              : "text.secondary",
-                        }}
-                      />
-                    )}
-                  </Box>
-                }
-                sx={{
-                  minHeight: 60,
-                  textTransform: "none",
-                  "&.Mui-selected": { color: ORDER_STATUS[status].color },
-                }}
-              />
-            ))}
-          </Tabs>
-        </Paper>
+        <OrderTableFilters
+          statusFilter={statusFilter}
+          orderTypeFilter={orderTypeFilter}
+          statusCounts={statusCounts}
+          orderTypeCounts={orderTypeCounts}
+          totalFilteredOrders={filteredOrders.length}
+          onStatusChange={handleStatusChange}
+          onOrderTypeChange={handleOrderTypeChange}
+          onClearFilters={handleClearFilters}
+        />
 
         <TableContainer
           sx={{
@@ -722,17 +650,17 @@ export const StaffOrderPanel = ({
               <Typography sx={{ fontFamily: "fontFamily.primary" }}>
                 {isRefreshing
                   ? "CARGANDO PEDIDOS..."
-                  : "NO HAY PEDIDOS CON ESTADO:"}
+                  : "NO HAY PEDIDOS CON LOS FILTROS SELECCIONADOS"}
               </Typography>
 
               {!isRefreshing && (
                 <Typography
                   sx={{
                     fontFamily: "fontFamily.secondary",
-                    color: ORDER_STATUS[statusFilter]?.color,
+                    color: "primary.main",
                   }}
                 >
-                  {statusFilter}
+                  Estado: {statusFilter} · Entrega: {orderTypeFilter}
                 </Typography>
               )}
             </Box>

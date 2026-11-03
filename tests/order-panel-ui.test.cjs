@@ -119,6 +119,7 @@ test("admin date picker and independent name search preserve filters and open fo
     id: 123, dailyOrderNumber: 1, clientName: "Ana de prueba", clientEmail: "ana@example.com", contactPhone: "11223344",
     restaurantId: "admin-test", orderType: "ESPERA EN LOCAL", status: "EN PREPARACIÓN", totalAmount: 1000,
     totalRewardPoints: 0, totalRedeemPoints: 0, paymentMethod: "EFECTIVO", isPaid: false,
+    riderId: "rider-test", deliverycost: 250,
     cartItems: [], orderDate: { day: "20", month: "10", year: "2026", hour: "12", minute: "00" },
   };
   await page.route("**/*", async (route) => {
@@ -126,6 +127,9 @@ test("admin date picker and independent name search preserve filters and open fo
     const url = new URL(route.request().url());
     let body = [];
     let status = 200;
+    if (url.pathname.endsWith("/get-riders-restaurant")) {
+      body = [{ id: "rider-test", name: "Cadete de prueba" }];
+    }
     if (url.pathname.includes("main-route-orders")) {
       requests.push(url);
       if (holdNext) { holdNext = false; await new Promise((resolve) => { held = resolve; }); }
@@ -154,6 +158,17 @@ test("admin date picker and independent name search preserve filters and open fo
     console.log({ errors, requests: requests.map(String), body: (await page.locator("body").innerText()).slice(-2500) });
     throw error;
   }
+  await panel.getByText("Deliverys activos (1)", { exact: true }).waitFor();
+  await panel.getByText(/Subtotal de deliverys.*250,00/).waitFor();
+  await panel.getByRole("button", { name: "Ver repartidores y pedidos" }).click();
+  const riderDetails = page.getByRole("dialog", { name: "Detalle de repartidores activos" });
+  await riderDetails.getByText("Cadete de prueba", { exact: true }).waitFor();
+  await riderDetails.getByText(/1 pedido asignado · .*250,00/).waitFor();
+  await page.keyboard.press("Escape");
+  await riderDetails.waitFor({ state: "hidden" });
+  const period = panel.getByRole("combobox", { name: "Período" });
+  assert.equal(await period.innerText(), "Hoy");
+  const initialMonth = requests.at(-1).searchParams.get("month");
   const date = panel.getByRole("textbox", { name: "Fecha de pedidos" });
   await date.fill("31-02-2026");
   assert.equal(await panel.getByRole("button", { name: "Filtrar fecha", exact: true }).isDisabled(), true);
@@ -183,7 +198,6 @@ test("admin date picker and independent name search preserve filters and open fo
   await page.waitForFunction(() => !document.querySelector('button[aria-label="Actualizar pedidos"]').disabled);
   assert.equal(requests.at(-1).searchParams.get("day"), "20");
 
-  assert.equal(await panel.getByRole("combobox", { name: "Período" }).count(), 0);
   assert.equal(await panel.getByRole("button", { name: "Buscar pedidos", exact: true }).innerText(), "");
   assert.equal(await panel.getByRole("button", { name: "Filtrar fecha", exact: true }).innerText(), "");
   assert.equal(await panel.locator(".MuiInputAdornment-positionEnd").getByRole("button", { name: "Buscar pedidos", exact: true }).count(), 1);
@@ -191,16 +205,21 @@ test("admin date picker and independent name search preserve filters and open fo
   const toolbarBounds = await panel.locator(".MuiToolbar-root").first().boundingBox();
   assert.ok(Math.abs(filterBounds.x + filterBounds.width - toolbarBounds.x - toolbarBounds.width + 16) < 2);
   await page.getByRole("button", { name: "Pedidos", exact: true }).click();
-  await page.getByRole("button", { name: "Este Mes", exact: true }).click();
+  await page.getByRole("button", { name: "Listado de pedidos", exact: true }).waitFor();
+  assert.equal(await page.getByRole("button", { name: /^(Hoy|Este Mes|Historial)$/i }).count(), 0);
+  await period.click();
+  await page.getByRole("option", { name: "Este mes", exact: true }).click();
   await page.waitForFunction(() => !document.querySelector('button[aria-label="Actualizar pedidos"]').disabled);
   assert.equal(requests.at(-1).searchParams.get("day"), "");
-  assert.equal(requests.at(-1).searchParams.get("month"), "10");
+  assert.equal(requests.at(-1).searchParams.get("month"), initialMonth);
   await panel.getByRole("textbox", { name: "Mes de pedidos" }).waitFor();
-  await page.getByRole("button", { name: "Historial", exact: true }).click();
+  await period.click();
+  await page.getByRole("option", { name: "Historial", exact: true }).click();
   await page.waitForFunction(() => !document.querySelector('button[aria-label="Actualizar pedidos"]').disabled);
   assert.equal(await panel.getByRole("button", { name: "Filtrar fecha", exact: true }).count(), 0);
   assert.equal(requests.at(-1).searchParams.has("day"), false);
-  await page.getByRole("button", { name: "Hoy", exact: true }).click();
+  await period.click();
+  await page.getByRole("option", { name: "Hoy", exact: true }).click();
   await page.waitForFunction(() => !document.querySelector('button[aria-label="Actualizar pedidos"]').disabled);
   await panel.getByRole("checkbox").nth(1).check();
 

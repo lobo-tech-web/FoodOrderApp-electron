@@ -24,15 +24,11 @@ import logo from "@/assets/main/logo-lobotech-oj.png";
 import mainLogo from "@/assets/main/logo-white.png";
 // ---------------
 
-// ---- Theme ----
-import { lobotechAppFoodDetailTheme } from "@/theme/main-theme.js";
-// ---------------
-
 // ---- Components ----
-import { FoodDetailModal } from "@/components/FoodDetailModal/FoodDetailModal.jsx";
 import { useThermalPrinter } from "@/components/PanelComponents/ModalEditOrder/PrinterConfig/useThermalPrinter.js";
-import { DiscountModal } from "./DiscountModal.jsx";
 import { CashRegisterGate } from "@/views/ControlPanel/StaffPanel/CashRegisterGate/CashRegisterGate.jsx";
+import { ModalProductCustomization } from "@/components/PanelComponents/ModalProductCustomization/ModalProductCustomization.jsx";
+import { DiscountModal } from "./DiscountModal.jsx";
 import { ModalConfirmCreateOrderPaid } from "@/components/PanelComponents/ModalConfirmCreateOrderPaid/ModalConfirmCreateOrderPaid.jsx";
 import { ModalConfirmOrderPaid } from "@/components/PanelComponents/ModalConfirmOrderPaid/ModalConfirmOrderPaid.jsx";
 // --------------------
@@ -54,6 +50,11 @@ import {
   calculateProductTotals,
   cleanMoneyValue,
 } from "@/utils/orderCalculations.js";
+import {
+  buildCartProductForEditing,
+  findCartProduct,
+  replaceCustomizedCartItem,
+} from "@/utils/cartProductEditing.js";
 import { getProductOptionsForUI } from "@/utils/migrateCustomOptions.js";
 import { getDateNowDayjs } from "@/utils/clientWorking.js";
 import { buildOrderKitchenPrinterHtml } from "@/utils/printTemplates/orderKitchenTemplate.js";
@@ -110,6 +111,7 @@ export const LocalOrders = () => {
   const [search, setSearch] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [editingProductIndex, setEditingProductIndex] = useState(null);
   const [checkout, setCheckout] = useState(INITIAL_CHECKOUT);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -264,6 +266,7 @@ export const LocalOrders = () => {
     setSearch("");
     setSelectedCategories([]);
     setSelectedProduct(null);
+    setEditingProductIndex(null);
 
     setCheckout({
       ...INITIAL_CHECKOUT,
@@ -288,10 +291,53 @@ export const LocalOrders = () => {
       },
     ]);
     setSelectedProduct(null);
+    setEditingProductIndex(null);
+  };
+
+  const closeProductModal = () => {
+    setSelectedProduct(null);
+    setEditingProductIndex(null);
+  };
+
+  const handleProductCustomized = (product) => {
+    if (editingProductIndex === null) {
+      addProductToCart(product);
+      return;
+    }
+    setCartItems((current) =>
+      replaceCustomizedCartItem(current, editingProductIndex, product),
+    );
+
+    closeProductModal();
+  };
+
+  const handleEditProduct = (item, index) => {
+    const original = findCartProduct(availableProducts, item);
+
+    if (!original) {
+      showAlert(
+        "No se encontró el producto original para modificar",
+        "warning",
+      );
+      return;
+    }
+
+    if (!getProductOptionsForUI(original).length && !original.allowComment) {
+      showAlert(
+        "Este producto no tiene opciones ni comentarios habilitados",
+        "info",
+      );
+      return;
+    }
+
+    setEditingProductIndex(index);
+    setSelectedProduct(buildCartProductForEditing(original, item));
   };
 
   const handleProductClick = (product) => {
+    setEditingProductIndex(null);
     const preparedProduct = { ...product, price: getProductPrice(product) };
+
     if (
       getProductOptionsForUI(preparedProduct).length > 0 ||
       preparedProduct.allowComment
@@ -299,6 +345,7 @@ export const LocalOrders = () => {
       setSelectedProduct(preparedProduct);
       return;
     }
+
     addProductToCart({ ...preparedProduct, customOptions: [] });
   };
 
@@ -333,6 +380,7 @@ export const LocalOrders = () => {
     setCartItems([]);
     resetDiscount();
     setSelectedProduct(null);
+    setEditingProductIndex(null);
   };
 
   const handleDiscountTypeChange = (type) => {
@@ -444,13 +492,6 @@ export const LocalOrders = () => {
       return;
     }
 
-    if (!checkout.clientName.trim()) {
-      const message = "Ingresá el nombre del cliente";
-      setSubmitError(message);
-      showAlert(message, "warning", lobotechTheme);
-      return;
-    }
-
     if (cartItems.length === 0) {
       const message = "El pedido debe contener al menos un producto";
       setSubmitError(message);
@@ -556,7 +597,10 @@ export const LocalOrders = () => {
         paymentMethod: checkout.paymentMethod,
         clientEmail:
           customer?.email || restaurantData.email || "lobotech.bb@gmail.com",
-        clientName: checkout.clientName.trim(),
+        clientName:
+          checkout.clientName.trim() !== ""
+            ? checkout.clientName
+            : "SIN ESPECIFICAR",
         deliveryAddress: customer?.address || "SIN ESPECIFICAR",
         contactPhone: customer?.phone || "SIN ESPECIFICAR",
         orderType,
@@ -644,6 +688,7 @@ export const LocalOrders = () => {
   return (
     <ThemeProvider theme={lobotechTheme}>
       <CssBaseline />
+
       <Box
         sx={{
           height: "100vh",
@@ -664,11 +709,13 @@ export const LocalOrders = () => {
             >
               <BackIcon />
             </IconButton>
+
             <Avatar
               src={logo}
               variant="square"
               sx={{ width: 70, height: 38, objectFit: "contain" }}
             />
+
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography
                 sx={{
@@ -679,6 +726,7 @@ export const LocalOrders = () => {
               >
                 PEDIDOS LOCAL
               </Typography>
+
               {orderType && step !== "type" && (
                 <Typography
                   variant="caption"
@@ -693,6 +741,7 @@ export const LocalOrders = () => {
                 </Typography>
               )}
             </Box>
+
             {step !== "type" && step !== "success" && (
               <Button
                 color="error"
@@ -755,6 +804,7 @@ export const LocalOrders = () => {
             }}
           />
         )}
+
         {step === "products" && (
           <ProductSelectionStep
             search={search}
@@ -773,10 +823,12 @@ export const LocalOrders = () => {
             onOpenDiscount={() => setShowDiscountModal(true)}
             onClearCart={clearCart}
             onRemoveItem={removeItem}
+            onEditItem={handleEditProduct}
             onUpdateQuantity={updateQuantity}
             onContinue={() => setStep("checkout")}
           />
         )}
+
         {step === "checkout" && (
           <CheckoutStep
             checkout={checkout}
@@ -801,13 +853,13 @@ export const LocalOrders = () => {
         )}
 
         {selectedProduct && (
-          <FoodDetailModal
+          <ModalProductCustomization
             open
-            onClose={() => setSelectedProduct(null)}
+            onClose={closeProductModal}
             product={selectedProduct}
             imageDefault={mainLogo}
-            onProductCustomized={addProductToCart}
-            customTheme={lobotechAppFoodDetailTheme}
+            onProductCustomized={handleProductCustomized}
+            editing={editingProductIndex !== null}
           />
         )}
 

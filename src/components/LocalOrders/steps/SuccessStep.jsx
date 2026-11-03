@@ -1,5 +1,5 @@
 // ---- Material UI ----
-import { Alert, Box, Button, Paper, Typography } from "@mui/material";
+import { Alert, Box, Button, Stack, Paper, Typography } from "@mui/material";
 // Icons
 import {
   CheckCircle as SuccessIcon,
@@ -32,6 +32,7 @@ export const SuccessStep = ({ createdOrder, printStatus, onCreateNext }) => (
       }}
     >
       <SuccessIcon sx={{ color: "success.main", fontSize: 76 }} />
+
       <Typography
         component="h1"
         sx={{
@@ -42,6 +43,7 @@ export const SuccessStep = ({ createdOrder, printStatus, onCreateNext }) => (
       >
         PEDIDO CREADO EXITOSAMENTE !
       </Typography>
+
       <Typography
         sx={{
           fontFamily: "fontFamily.secondary",
@@ -51,17 +53,33 @@ export const SuccessStep = ({ createdOrder, printStatus, onCreateNext }) => (
       >
         Numero de pedido
       </Typography>
-      <Typography
-        sx={{
-          fontFamily: "fontFamily.primary",
-          color: "primary.main",
-          fontSize: { xs: "2.5rem", md: "3.5rem" },
-          lineHeight: 1.1,
-          overflowWrap: "anywhere",
-        }}
-      >
-        #{createdOrder?.orderIndex || createdOrder?.id}
-      </Typography>
+
+      <Stack direction="column" spacing={1}>
+        <Typography
+          sx={{
+            fontFamily: "fontFamily.primary",
+            color: "primary.main",
+            fontSize: { xs: "2.5rem", md: "3.5rem" },
+            lineHeight: 1.1,
+            overflowWrap: "anywhere",
+          }}
+        >
+          #{createdOrder?.orderIndex || createdOrder?.id}
+        </Typography>
+
+        <Typography
+          sx={{
+            fontFamily: "fontFamily.secondary",
+            color: "text.primary",
+            fontSize: { xs: "1.5rem", md: "1rem" },
+            lineHeight: 1.1,
+            overflowWrap: "anywhere",
+          }}
+        >
+          ID #{createdOrder?.id || "SIN ID"}
+        </Typography>
+      </Stack>
+
       {printStatus && (
         <Alert
           severity={printStatus.includes("impreso") ? "success" : "info"}
@@ -71,6 +89,7 @@ export const SuccessStep = ({ createdOrder, printStatus, onCreateNext }) => (
           {printStatus}
         </Alert>
       )}
+
       <Button
         fullWidth
         size="large"

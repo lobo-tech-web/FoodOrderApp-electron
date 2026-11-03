@@ -54,15 +54,19 @@ export const getSelectedCustomOptionsForOrder = (product) => {
                 },
             ];
         }
-
-        // Si por error llega una definición completa con items,
-        // no podemos saber qué items eligió el usuario, así que no sumamos nada.
-        // Esto evita duplicar extras o sumar todos los items.
         return [];
     });
 };
 
 // Suma las customOptions del producto para despues asignarlo en el product.price
+export const getProductBasePrice = (product) => {
+    const price = Number(product.price || 0);
+    const discount = Number(product.discount || 0);
+    return discount > 0
+        ? Math.round((price * (1 - discount / 100)) / 100) * 100
+        : Math.round(price);
+};
+
 export const calculateFinalProductPrice = (product) => {
 
     const selectedOptions = getSelectedCustomOptionsForOrder(product);
