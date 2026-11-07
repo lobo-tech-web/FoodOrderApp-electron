@@ -29,7 +29,6 @@ import { useThermalPrinter } from "@/components/PanelComponents/ModalEditOrder/P
 import { CashRegisterGate } from "@/views/ControlPanel/StaffPanel/CashRegisterGate/CashRegisterGate.jsx";
 import { ModalProductCustomization } from "@/components/PanelComponents/ModalProductCustomization/ModalProductCustomization.jsx";
 import { DiscountModal } from "./DiscountModal.jsx";
-import { ModalConfirmCreateOrderPaid } from "@/components/PanelComponents/ModalConfirmCreateOrderPaid/ModalConfirmCreateOrderPaid.jsx";
 import { ModalConfirmOrderPaid } from "@/components/PanelComponents/ModalConfirmOrderPaid/ModalConfirmOrderPaid.jsx";
 // --------------------
 
@@ -102,7 +101,6 @@ export const LocalOrders = () => {
 
   const [selectedCashRegisterId, setSelectedCashRegisterId] = useState(null);
   const [cashSession, setCashSession] = useState(null);
-  const [showCreateConfirmation, setShowCreateConfirmation] = useState(false);
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
 
   const [step, setStep] = useState("type");
@@ -128,8 +126,6 @@ export const LocalOrders = () => {
 
   const resolvedOrderStatus =
     orderType === "ESPERA EN LOCAL" ? "FINALIZADO" : "PENDIENTE A CONFIRMAR";
-
-  const paymentRequiredByStatus = resolvedOrderStatus === "FINALIZADO";
 
   const hasSelectedOpenCash = Boolean(
     selectedCashRegisterId &&
@@ -264,7 +260,6 @@ export const LocalOrders = () => {
     setOrderType("");
     setCartItems([]);
     setSearch("");
-    setSelectedCategories([]);
     setSelectedProduct(null);
     setEditingProductIndex(null);
 
@@ -272,7 +267,6 @@ export const LocalOrders = () => {
       ...INITIAL_CHECKOUT,
     });
     resetDiscount();
-    setShowCreateConfirmation(false);
     setShowPaymentConfirmation(false);
     setShowDiscountModal(false);
     setSubmitError("");
@@ -462,9 +456,7 @@ export const LocalOrders = () => {
   };
 
   const createOrder = async ({
-    markAsPaid = false,
     payments = undefined,
-    creationConfirmed = false,
     paymentConfirmed = false,
   } = {}) => {
     setSubmitError("");
@@ -507,14 +499,10 @@ export const LocalOrders = () => {
       return;
     }
 
-    const shouldCreatePaid = markAsPaid || paymentRequiredByStatus;
+    const shouldCreatePaid = true;
     const isZeroTotal =
       Math.round(Number(discountSummary.totalAmount || 0) * 100) === 0;
 
-    if (!creationConfirmed) {
-      setShowCreateConfirmation(true);
-      return;
-    }
     if (shouldCreatePaid && !canMarkPaid) {
       const message = "No tenés permisos para registrar el pago del pedido";
       setSubmitError(message);
@@ -533,8 +521,11 @@ export const LocalOrders = () => {
       return;
     }
 
-    if (shouldCreatePaid && !paymentConfirmed) {
-      setShowCreateConfirmation(false);
+    if (
+      checkout.paymentMethod === "COMBINADO" &&
+      !isZeroTotal &&
+      !paymentConfirmed
+    ) {
       setShowPaymentConfirmation(true);
       return;
     }
@@ -664,7 +655,6 @@ export const LocalOrders = () => {
       };
 
       setCreatedOrder(finalOrder);
-      setShowCreateConfirmation(false);
       setShowPaymentConfirmation(false);
       setStep("success");
 
@@ -874,32 +864,6 @@ export const LocalOrders = () => {
           onDiscountValueChange={handleDiscountValueChange}
         />
 
-        <ModalConfirmCreateOrderPaid
-          open={showCreateConfirmation}
-          order={{
-            clientName: checkout.clientName,
-            paymentMethod: checkout.paymentMethod,
-            totalAmount: discountSummary.totalAmount,
-            status: resolvedOrderStatus,
-          }}
-          paymentRequired={paymentRequiredByStatus}
-          canMarkPaid={canMarkPaid}
-          loading={loading}
-          onCancel={() => setShowCreateConfirmation(false)}
-          onCreatePending={() =>
-            createOrder({
-              markAsPaid: false,
-              creationConfirmed: true,
-            })
-          }
-          onContinueToPayment={() =>
-            createOrder({
-              markAsPaid: true,
-              creationConfirmed: true,
-            })
-          }
-        />
-
         <ModalConfirmOrderPaid
           open={showPaymentConfirmation}
           order={{
@@ -910,15 +874,10 @@ export const LocalOrders = () => {
           }}
           displayID="NUEVO"
           loading={loading}
-          onClose={() => {
-            setShowPaymentConfirmation(false);
-            setShowCreateConfirmation(true);
-          }}
+          onClose={() => setShowPaymentConfirmation(false)}
           onConfirm={(payments) =>
             createOrder({
-              markAsPaid: true,
               payments,
-              creationConfirmed: true,
               paymentConfirmed: true,
             })
           }

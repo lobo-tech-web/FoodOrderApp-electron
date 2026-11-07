@@ -49,7 +49,6 @@ import { OrderSummary } from "./OrderSummary/OrderSummary.jsx";
 import { ClientSearchModal } from "./ClientSearchModal/ClientSearchModal.jsx";
 import { ClientInfoTab } from "./ClientInfoTab/ClientInfoTab.jsx";
 import { ModalConfirmOrderPaid } from "../ModalConfirmOrderPaid/ModalConfirmOrderPaid.jsx";
-import { ModalConfirmCreateOrderPaid } from "../ModalConfirmCreateOrderPaid/ModalConfirmCreateOrderPaid.jsx";
 import {
   buildCartProductForEditing,
   findCartProduct,
@@ -84,7 +83,10 @@ const getStatusForOrderType = (orderType, fallbackStatus) => {
   if (orderType === "RETIRO EN LOCAL") return "EN PREPARACIÓN";
   if (orderType === "ESPERA EN LOCAL") return "FINALIZADO";
   if (orderType === "DELIVERY") return "EN ENVIO";
-  return fallbackStatus;
+
+  return fallbackStatus === "FINALIZADO"
+    ? "PENDIENTE A CONFIRMAR"
+    : fallbackStatus;
 };
 
 const shouldPrintCustomerTicket = (orderType) =>
@@ -135,7 +137,6 @@ export const ModalCreateOrder = ({
 
     const handleScroll = () => {
       const scrollPosition = container.scrollTop;
-
       const clientTop = clientInfoRef.current.offsetTop;
 
       if (scrollPosition >= clientTop - 120) {
@@ -157,7 +158,6 @@ export const ModalCreateOrder = ({
   const { productState } = useProducts();
   const { printHtml } = useThermalPrinter();
 
-  const [showCreateConfirmation, setShowCreateConfirmation] = useState(false);
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
   const currentUser = useMemo(() => userState?.user || {}, [userState?.user]);
   const canCreateOrder = hasOrderPermission(currentUser, "create");
@@ -270,7 +270,6 @@ export const ModalCreateOrder = ({
   const resolvedOrderStatus = useMemo(() => {
     return getStatusForOrderType(order.orderType, order.status);
   }, [order.orderType, order.status]);
-  const paymentRequiredByStatus = resolvedOrderStatus === "FINALIZADO";
 
   const hasChanges = useMemo(() => {
     if (!orderCopy) return false;
@@ -327,6 +326,7 @@ export const ModalCreateOrder = ({
   const [showProductSelector, setShowProductSelector] = useState(false);
   const [productSelectorFirstStep, setProductSelectorFirstStep] =
     useState(false);
+
   const [editingProductIndex, setEditingProductIndex] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
 
@@ -717,12 +717,7 @@ export const ModalCreateOrder = ({
   );
 
   const handleCreateOrder = useCallback(
-    async ({
-      markAsPaid = false,
-      payments = undefined,
-      creationConfirmed = false,
-      paymentConfirmed = false,
-    } = {}) => {
+    async ({ payments = undefined, paymentConfirmed = false } = {}) => {
       if (loading) return;
 
       if (!canCreateOrder) {
@@ -770,13 +765,8 @@ export const ModalCreateOrder = ({
         return;
       }
 
-      const shouldCreatePaid = markAsPaid || paymentRequiredByStatus;
+      const shouldCreatePaid = order.orderType === "ESPERA EN LOCAL";
       const isZeroTotal = Math.round(Number(finalOrderTotal || 0) * 100) === 0;
-
-      if (!creationConfirmed) {
-        setShowCreateConfirmation(true);
-        return;
-      }
 
       if (shouldCreatePaid && !canMarkPaid) {
         showAlert(
@@ -798,8 +788,12 @@ export const ModalCreateOrder = ({
         return;
       }
 
-      if (shouldCreatePaid && !paymentConfirmed) {
-        setShowCreateConfirmation(false);
+      if (
+        shouldCreatePaid &&
+        order.paymentMethod === "COMBINADO" &&
+        !isZeroTotal &&
+        !paymentConfirmed
+      ) {
         setShowPaymentConfirmation(true);
         return;
       }
@@ -849,6 +843,7 @@ export const ModalCreateOrder = ({
 
         const savedOrder = await addOrder(createData);
         const orderIndex = await getOrderIndexFromToday(savedOrder);
+
         const createdOrder = {
           ...createData,
           ...savedOrder,
@@ -862,7 +857,6 @@ export const ModalCreateOrder = ({
         await printCreatedOrder(createdOrder);
 
         showAlert("Pedido creado correctamente!", "success");
-        setShowCreateConfirmation(false);
         setShowPaymentConfirmation(false);
         await refreshOrders?.();
         onClose();
@@ -878,7 +872,6 @@ export const ModalCreateOrder = ({
     },
     [
       canMarkPaid,
-      paymentRequiredByStatus,
       resolvedOrderStatus,
       loading,
       canCreateOrder,
@@ -1338,31 +1331,6 @@ export const ModalCreateOrder = ({
         />
       )}
 
-      <ModalConfirmCreateOrderPaid
-        open={showCreateConfirmation}
-        order={{
-          ...order,
-          status: resolvedOrderStatus,
-          totalAmount: finalOrderTotal,
-        }}
-        paymentRequired={paymentRequiredByStatus}
-        canMarkPaid={canMarkPaid}
-        loading={loading}
-        onCancel={() => setShowCreateConfirmation(false)}
-        onCreatePending={() =>
-          handleCreateOrder({
-            markAsPaid: false,
-            creationConfirmed: true,
-          })
-        }
-        onContinueToPayment={() =>
-          handleCreateOrder({
-            markAsPaid: true,
-            creationConfirmed: true,
-          })
-        }
-      />
-
       <ModalConfirmOrderPaid
         open={showPaymentConfirmation}
         order={{
@@ -1372,15 +1340,10 @@ export const ModalCreateOrder = ({
         }}
         displayID="NUEVO"
         loading={loading}
-        onClose={() => {
-          setShowPaymentConfirmation(false);
-          setShowCreateConfirmation(true);
-        }}
+        onClose={() => setShowPaymentConfirmation(false)}
         onConfirm={(payments) =>
           handleCreateOrder({
-            markAsPaid: true,
             payments,
-            creationConfirmed: true,
             paymentConfirmed: true,
           })
         }

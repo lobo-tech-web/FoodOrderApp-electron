@@ -3,11 +3,15 @@ import { useId, useMemo, useState } from "react";
 // ---- Material UI ----
 import {
   Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   List,
   ListItem,
   ListItemText,
-  Popover,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -24,7 +28,7 @@ export const RiderCountIndicator = ({
   availableRiders = [],
 }) => {
   const detailsId = useId();
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const ridersStats = useMemo(() => {
     if (!totalOrders?.length || !availableRiders?.length) return [];
@@ -104,7 +108,7 @@ export const RiderCountIndicator = ({
 
           <Typography
             sx={{
-              fontFamily: "fontFamily.secondary",
+              fontFamily: "fontFamily.primary",
               color: "success.main",
               whiteSpace: "nowrap",
             }}
@@ -116,55 +120,90 @@ export const RiderCountIndicator = ({
 
       <Tooltip title="Ver repartidores y pedidos">
         <IconButton
-          aria-label="Ver repartidores y pedidos"
-          aria-expanded={Boolean(anchorEl)}
-          aria-controls={anchorEl ? detailsId : undefined}
-          aria-haspopup="dialog"
           color="primary"
-          onClick={(event) => setAnchorEl(event.currentTarget)}
+          aria-label="Ver repartidores y pedidos"
+          aria-haspopup="dialog"
+          aria-expanded={detailsOpen}
+          aria-controls={detailsOpen ? detailsId : undefined}
+          onClick={() => setDetailsOpen(true)}
         >
           <ExpandMore />
         </IconButton>
       </Tooltip>
 
-      <Popover
-        open={Boolean(anchorEl)}
-        anchorEl={anchorEl}
-        onClose={() => setAnchorEl(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      <Dialog
+        open={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        scroll="paper"
+        aria-labelledby={detailsId}
         PaperProps={{
-          id: detailsId,
-          role: "dialog",
-          "aria-label": "Detalle de repartidores activos",
           sx: {
-            bgcolor: "background.main",
-            minWidth: 240,
-            maxWidth: "calc(100vw - 32px)",
-            maxHeight: 320,
+            borderRadius: 3,
+            bgcolor: "background.paper",
           },
         }}
       >
-        {ridersStats.length > 0 ? (
-          <List dense aria-label="Repartidores con pedidos asignados">
-            {ridersStats.map((rider) => (
-              <ListItem key={rider.riderId} divider>
-                <ListItemText
-                  primary={rider.name}
-                  secondary={`${rider.totalOrders} ${rider.totalOrders === 1 ? "pedido asignado" : "pedidos asignados"} · ${formatCurrency(rider.totalDeliveryAmount)}`}
-                />
-              </ListItem>
-            ))}
-          </List>
-        ) : (
+        <DialogTitle
+          id={detailsId}
+          sx={{
+            bgcolor: "background.main",
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
+          <Moped color="primary" />
           <Typography
-            variant="body2"
-            sx={{ fontFamily: "fontFamily.secondary", p: 2 }}
+            sx={{
+              fontFamily: "fontFamily.primary",
+              fontSize: "1.2rem",
+              color: "primary.main",
+            }}
           >
-            No hay repartidores con pedidos asignados.
+            REPARTIDORES ACTIVOS
           </Typography>
-        )}
-      </Popover>
+        </DialogTitle>
+
+        <DialogContent dividers sx={{ bgcolor: "background.default" }}>
+          {ridersStats.length > 0 ? (
+            <List dense aria-label="Repartidores con pedidos asignados">
+              {ridersStats.map((rider) => (
+                <ListItem key={rider.riderId} divider disableGutters>
+                  <ListItemText
+                    primary={rider.name}
+                    secondary={`${rider.totalOrders} ${
+                      rider.totalOrders === 1
+                        ? "pedido asignado"
+                        : "pedidos asignados"
+                    } · ${formatCurrency(rider.totalDeliveryAmount)}`}
+                    sx={{ fontFamily: "fontFamily.secondary" }}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          ) : (
+            <Typography
+              variant="body2"
+              sx={{ fontFamily: "fontFamily.secondary", color: "primary.main" }}
+            >
+              No hay repartidores con pedidos asignados.
+            </Typography>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ bgcolor: "background.paper" }}>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={() => setDetailsOpen(false)}
+            sx={{ fontFamily: "fontFamily.primary" }}
+          >
+            Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
