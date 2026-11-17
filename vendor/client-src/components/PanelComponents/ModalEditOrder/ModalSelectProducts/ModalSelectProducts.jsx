@@ -41,7 +41,10 @@ import { ModalProductCustomization } from "@/components/PanelComponents/ModalPro
 
 // ---- UTILS ----
 import { getProductOptionsForUI } from "@/utils/migrateCustomOptions.js";
-import { formatCurrency, getProductBasePrice } from "@/utils/orderCalculations.js";
+import {
+  formatCurrency,
+  getProductBasePrice,
+} from "@/utils/orderCalculations.js";
 // ---------------
 
 const getProductDisplayPrice = getProductBasePrice;
@@ -540,10 +543,19 @@ export const ModalSelectProducts = ({
                             ),
                           )}
                           {item.productComment?.trim() && (
-                            <Typography variant="caption" display="block" sx={{
-                              mt: 0.75, pt: 0.75, borderTop: "1px solid", borderColor: "divider",
-                              color: "text.secondary", fontFamily: "fontFamily.secondary", whiteSpace: "pre-wrap",
-                            }}>
+                            <Typography
+                              variant="caption"
+                              display="block"
+                              sx={{
+                                mt: 0.75,
+                                pt: 0.75,
+                                borderTop: "1px solid",
+                                borderColor: "divider",
+                                color: "text.secondary",
+                                fontFamily: "fontFamily.secondary",
+                                whiteSpace: "pre-wrap",
+                              }}
+                            >
                               Comentario: {item.productComment}
                             </Typography>
                           )}
@@ -682,13 +694,14 @@ export const ModalSelectProducts = ({
           }}
         >
           <Button
-            onClick={handleClose}
             variant="contained"
             color="error"
-            sx={{ fontFamily: "fontFamily.terciary" }}
+            onClick={handleClose}
+            sx={{ fontFamily: "fontFamily.primary" }}
           >
             Cancelar
           </Button>
+
           {initialSelectionMode && (
             <Button
               onClick={onContinue}

@@ -6,7 +6,11 @@ import { AccountBalanceWallet as WalletIcon } from "@mui/icons-material";
 
 // ---- SHARED ----
 import { OptionTile } from "../../shared/OptionTile.jsx";
-import { SectionHeading } from "../../shared/SectionHeading.jsx";
+import { FieldLabel } from "../../shared/FieldLabel.jsx";
+// ----------------
+
+// ---- Styles ----
+import { optionGroupStyle } from "../../styles/modalCreateOrder.styles.js";
 // ----------------
 
 export const PaymentSection = ({
@@ -16,17 +20,9 @@ export const PaymentSection = ({
 }) => {
   return (
     <Box>
-      <SectionHeading icon={<WalletIcon />} title="METODO DE PAGO" />
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "repeat(2, minmax(0, 1fr))",
-            md: "repeat(4, minmax(0, 1fr))",
-          },
-          gap: 1.5,
-        }}
-      >
+      <FieldLabel icon={<WalletIcon />}>METODO DE PAGO</FieldLabel>
+
+      <Box sx={optionGroupStyle}>
         {availablePaymentMethods.map((method) => (
           <OptionTile
             key={method.value}

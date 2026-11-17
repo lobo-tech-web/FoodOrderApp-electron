@@ -361,10 +361,8 @@ export const InfoSection = ({
                         }}
                       >
                         <MenuItem value="">
-                          <Typography
-                            sx={{ fontFamily: "fontFamily.terciary" }}
-                          >
-                            Sin asignar
+                          <Typography sx={{ fontFamily: "fontFamily.primary" }}>
+                            SIN ASIGNAR
                           </Typography>
                         </MenuItem>
 
@@ -379,7 +377,7 @@ export const InfoSection = ({
                             >
                               <MopedIcon color="primary" />
                               <Typography
-                                sx={{ fontFamily: "fontFamily.terciary" }}
+                                sx={{ fontFamily: "fontFamily.primary" }}
                               >
                                 {rider?.name?.toUpperCase()}
                                 {rider?.phone ? ` (${rider.phone})` : ""}

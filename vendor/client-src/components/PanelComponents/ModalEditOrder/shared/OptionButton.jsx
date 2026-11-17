@@ -44,7 +44,7 @@ const getOptionButtonStyle = (selected, customColor = "#f5a623") => ({
 });
 
 const optionLabelStyle = (selected, customColor = "#f5a623") => ({
-  fontFamily: "fontFamily.terciary",
+  fontFamily: "fontFamily.primary",
   color: selected ? customColor : "text.primary",
   fontSize: { xs: "0.68rem", sm: "0.7rem", md: "0.72rem" },
   textAlign: "center",

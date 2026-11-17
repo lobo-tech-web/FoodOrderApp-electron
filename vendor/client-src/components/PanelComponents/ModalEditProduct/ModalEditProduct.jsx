@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from "react";
 
 // ---- MATERIAL UI ----
 import {
@@ -14,9 +14,13 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
-} from '@mui/material';
+} from "@mui/material";
 // ICONS
-import CloseIcon from '@mui/icons-material/Close';
+import {
+  AddCircle as AddCircleIcon,
+  Edit as EditIcon,
+  Close as CloseIcon,
+} from "@mui/icons-material";
 // ----------------------
 
 // ---- UTILS ----
@@ -24,37 +28,37 @@ import {
   initialUpdateProductState,
   initialCreateProductState,
   updateField,
-} from '@/utils/productUtils.js';
+} from "@/utils/productUtils.js";
 // ---------------
 
 // ---- COMPONENTS -----
-import { LoadingComponent } from '@/components/LoadingComponent/LoadingComponent.jsx';
-import { ProductInfo } from './ProductInfo/ProductInfo.jsx';
-import { CustomOptions } from './CustomOptions/CustomOptions.jsx';
+import { LoadingComponent } from "@/components/LoadingComponent/LoadingComponent.jsx";
+import { ProductInfo } from "./ProductInfo/ProductInfo.jsx";
+import { CustomOptions } from "./CustomOptions/CustomOptions.jsx";
 // ---------------------
 
 // ---- CONTEXT ------>
-import { useProducts } from '@/context/Products.jsx';
-import { useUser } from '@/context/Users.jsx';
+import { useProducts } from "@/context/Products.jsx";
+import { useUser } from "@/context/Users.jsx";
 // <-------------------
 
 // ---- STYLES ----
 const cancelButtonStyle = {
-  fontFamily: 'fontFamily.primary',
-  bgcolor: 'primary.dark',
-  color: 'text.primary',
+  fontFamily: "fontFamily.primary",
+  bgcolor: "primary.dark",
+  color: "text.primary",
 };
 
 const submitButtonStyle = {
-  fontFamily: 'fontFamily.primary',
-  bgcolor: 'primary.main',
-  color: 'text.terciary',
+  fontFamily: "fontFamily.primary",
+  bgcolor: "primary.main",
+  color: "text.terciary",
 };
 
 const deleteButtonStyle = {
-  fontFamily: 'fontFamily.primary',
-  bgcolor: 'error.main',
-  color: 'text.primary',
+  fontFamily: "fontFamily.primary",
+  bgcolor: "error.main",
+  color: "text.primary",
 };
 // --------------
 
@@ -66,9 +70,9 @@ export const ModalEditProduct = ({
   isEditing,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isXsScreen = useMediaQuery(theme.breakpoints.down('xs'));
-  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isXsScreen = useMediaQuery(theme.breakpoints.down("xs"));
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(0);
@@ -84,24 +88,24 @@ export const ModalEditProduct = ({
 
   const allCategories = useMemo(
     () => productState.categorys || [],
-    [productState.categorys]
+    [productState.categorys],
   );
   const [product, setProduct] = useState(initialUpdateProductState);
   const [customOptions, setCustomOptions] = useState([]);
-  const [imagePreview, setImagePreview] = useState('');
+  const [imagePreview, setImagePreview] = useState("");
 
   const handleDeleteProduct = async (productData) => {
     const isConfirmed = window.confirm(
-      '¿Estás seguro de que quieres eliminar este producto?'
+      "¿Estás seguro de que quieres eliminar este producto?",
     );
     if (!isConfirmed) return;
     setLoading(true);
     try {
       await deleteProduct(productData.id, productData.userId);
-      showAlert('Producto eliminado correctamente', 'success');
+      showAlert("Producto eliminado correctamente", "success");
       handleClose();
     } catch (error) {
-      showAlert('Error al eliminar el producto', 'error');
+      showAlert("Error al eliminar el producto", "error");
     } finally {
       setLoading(false);
     }
@@ -110,7 +114,7 @@ export const ModalEditProduct = ({
   const resetProduct = useCallback(() => {
     if (!isEditing) setProduct(initialCreateProductState);
     setCustomOptions([]);
-    setImagePreview('');
+    setImagePreview("");
     handleClose();
   }, [handleClose]);
 
@@ -119,7 +123,7 @@ export const ModalEditProduct = ({
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        updateField(setProduct, 'image', file);
+        updateField(setProduct, "image", file);
         setImagePreview(reader.result);
       };
       reader.readAsDataURL(file);
@@ -137,34 +141,34 @@ export const ModalEditProduct = ({
   const handleSaveChanges = useCallback(async () => {
     if (!product.name)
       return showAlert(
-        'Por favor completar el campo NOMBRE del producto',
-        'warning'
+        "Por favor completar el campo NOMBRE del producto",
+        "warning",
       );
     if (!product.price)
       return showAlert(
-        'Por favor completar el campo PRECIO del producto',
-        'warning'
+        "Por favor completar el campo PRECIO del producto",
+        "warning",
       );
     if (!product.categoryId)
       return showAlert(
-        'Por favor completar el campo CATEGORIA del producto',
-        'warning'
+        "Por favor completar el campo CATEGORIA del producto",
+        "warning",
       );
     setLoading(true);
 
     try {
       if (isEditing) {
         await updateProduct(buildProductPayload(product));
-        showAlert('Producto Actualizado Correctamente!', 'success');
+        showAlert("Producto Actualizado Correctamente!", "success");
         resetProduct();
       } else {
         await addProduct(buildProductPayload(product));
-        showAlert('Producto Creado Exitosamente!', 'success');
+        showAlert("Producto Creado Exitosamente!", "success");
         resetProduct();
       }
     } catch (error) {
-      const errorMessage = error || 'Error desconocido';
-      showAlert(errorMessage, 'error');
+      const errorMessage = error || "Error desconocido";
+      showAlert(errorMessage, "error");
     } finally {
       setLoading(false);
     }
@@ -195,79 +199,93 @@ export const ModalEditProduct = ({
     }
   }, [show, isEditing, showProduct, userState.user.id, getAllCustomOptions]);
 
-  if (loading) return <LoadingComponent message={'Guardando cambios...'} />;
+  if (loading) return <LoadingComponent message={"Guardando cambios..."} />;
 
   return (
     <Dialog
       open={show}
       onClose={handleClose}
-      maxWidth={isDesktop ? 'md' : 'sm'}
+      maxWidth={isDesktop ? "md" : "sm"}
       fullWidth
       fullScreen={isXsScreen}
       PaperProps={{
         sx: {
           borderRadius: {
-            xs: isXsScreen ? 0 : '12px',
-            sm: '16px',
-            md: '20px',
+            xs: isXsScreen ? 0 : "12px",
+            sm: "16px",
+            md: "20px",
           },
-          overflow: 'hidden',
-          bgcolor: 'background.default',
-          boxShadow: 'primary.main',
-          border: 'primary.main',
-          maxHeight: { xs: '100vh', sm: '90vh', md: '85vh' },
-          width: { xs: '100%', sm: 'auto', md: '600px' },
-          margin: { xs: 0, sm: '32px' },
+          overflow: "hidden",
+          bgcolor: "background.default",
+          boxShadow: "primary.main",
+          border: "primary.main",
+          maxHeight: { xs: "100vh", sm: "90vh", md: "85vh" },
+          width: { xs: "100%", sm: "auto", md: "600px" },
+          margin: { xs: 0, sm: "32px" },
         },
       }}
       TransitionProps={{
         style: {
           transition: isMobile
-            ? 'transform 300ms ease-in-out'
-            : 'opacity 300ms ease-in-out',
+            ? "transform 300ms ease-in-out"
+            : "opacity 300ms ease-in-out",
         },
       }}
     >
       <DialogTitle
         sx={{
-          bgcolor: 'background.paper',
-          color: 'text.primary',
+          bgcolor: "background.paper",
+          color: "text.primary",
           padding: { xs: 2, sm: 3, md: 3 },
-          borderBottom: '2px solid #f5a623',
-          position: { xs: 'sticky', sm: 'static' },
+          borderBottom: "2px solid #f5a623",
+          position: { xs: "sticky", sm: "static" },
           top: 0,
           zIndex: 1,
         }}
       >
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <Typography
-            variant="h6"
-            component="div"
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box
             sx={{
-              fontFamily: 'fontFamily.primary',
-              color: 'primary.main',
-              fontSize: { xs: '18px', sm: '24px', md: '20px' },
-              display: 'flex',
-              alignItems: 'center',
-              gap: { xs: 0.5, sm: 1, md: 1.5 },
-              fontWeight: 'bold',
+              width: 34,
+              height: 34,
+              borderRadius: 2,
+              display: "grid",
+              placeItems: "center",
+              bgcolor: "button.shadow",
+              border: "1px solid",
+              borderColor: "primary.main",
+              color: "primary.main",
+              flexShrink: 0,
             }}
           >
-            {isEditing ? 'EDITAR PRODUCTO' : 'NUEVO PRODUCTO'}
+            {isEditing ? (
+              <EditIcon color="primary" />
+            ) : (
+              <AddCircleIcon color="primary" />
+            )}
+          </Box>
+
+          <Typography
+            sx={{
+              fontFamily: "fontFamily.primary",
+              color: "primary.main",
+              fontSize: { xs: "18px", sm: "24px", md: "20px" },
+              display: "flex",
+              alignItems: "center",
+              gap: { xs: 0.5, sm: 1, md: 1.5 },
+              fontWeight: "bold",
+            }}
+          >
+            {isEditing ? "EDITAR PRODUCTO" : "NUEVO PRODUCTO"}
           </Typography>
         </Box>
+
         <IconButton
           aria-label="Cerrar modal"
           onClick={resetProduct}
           sx={{
-            color: 'primary.main',
-            position: 'absolute',
+            color: "primary.main",
+            position: "absolute",
             right: 8,
             top: 8,
           }}
@@ -283,7 +301,7 @@ export const ModalEditProduct = ({
         variant="fullWidth"
         sx={{
           mt: 2,
-          position: 'sticky',
+          position: "sticky",
           top: 0,
           zIndex: 10,
         }}
@@ -291,24 +309,25 @@ export const ModalEditProduct = ({
         <Tab
           label="Datos generales"
           sx={{
-            fontFamily: 'fontFamily.primary',
-            color: 'text.primary',
+            fontFamily: "fontFamily.primary",
+            color: "text.primary",
             borderRadius: 1,
-            '&.Mui-selected': {
-              color: 'primary.main',
-              bgcolor: 'background.paper',
+            "&.Mui-selected": {
+              color: "primary.main",
+              bgcolor: "background.paper",
             },
           }}
         />
+
         <Tab
           label="Opciones asignadas"
           sx={{
-            fontFamily: 'fontFamily.primary',
-            color: 'text.primary',
+            fontFamily: "fontFamily.primary",
+            color: "text.primary",
             borderRadius: 1,
-            '&.Mui-selected': {
-              color: 'primary.main',
-              bgcolor: 'background.default',
+            "&.Mui-selected": {
+              color: "primary.main",
+              bgcolor: "background.default",
             },
           }}
         />
@@ -317,25 +336,25 @@ export const ModalEditProduct = ({
       <DialogContent
         dividers
         sx={{
-          maxHeight: '60vh',
-          overflowY: 'auto',
+          maxHeight: "60vh",
+          overflowY: "auto",
           paddingX: 3,
           paddingY: 3,
-          borderTop: 'none',
-          borderBottom: 'none',
-          '&::-webkit-scrollbar': {
-            width: '8px',
+          borderTop: "none",
+          borderBottom: "none",
+          "&::-webkit-scrollbar": {
+            width: "8px",
           },
-          '&::-webkit-scrollbar-track': {
-            bgcolor: 'primary.dark',
-            borderRadius: '4px',
+          "&::-webkit-scrollbar-track": {
+            bgcolor: "primary.dark",
+            borderRadius: "4px",
           },
-          '&::-webkit-scrollbar-thumb': {
-            bgcolor: 'primary.main',
-            borderRadius: '4px',
+          "&::-webkit-scrollbar-thumb": {
+            bgcolor: "primary.main",
+            borderRadius: "4px",
           },
-          '&::-webkit-scrollbar-thumb:hover': {
-            bgcolor: 'primary.light',
+          "&::-webkit-scrollbar-thumb:hover": {
+            bgcolor: "primary.light",
           },
         }}
       >
@@ -364,7 +383,7 @@ export const ModalEditProduct = ({
           </Button>
         )}
 
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: "flex", gap: 2 }}>
           <Button
             size="medium"
             onClick={resetProduct}
@@ -373,13 +392,14 @@ export const ModalEditProduct = ({
           >
             Cancelar
           </Button>
+
           <Button
             size="medium"
             onClick={handleSaveChanges}
             variant="contained"
             sx={submitButtonStyle}
           >
-            {isEditing ? 'Guardar Cambios' : 'Crear Producto'}
+            {isEditing ? "Guardar Cambios" : "Crear Producto"}
           </Button>
         </Box>
       </DialogActions>

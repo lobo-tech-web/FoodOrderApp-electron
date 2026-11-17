@@ -1,56 +1,54 @@
-import { Box, TextField, InputAdornment } from '@mui/material';
+// ---- Material UI ----
+import { Box } from "@mui/material";
 // ICONS
 import {
   Storefront as StorefrontIcon,
   Hail as HailIcon,
   Restaurant as RestaurantIcon,
   DeliveryDining as DeliveryDiningIcon,
-  AttachMoney as MoneyIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
+// ---------------------
 
 // ---- SHARED ----
-import { SectionHeading } from '../../shared/SectionHeading.jsx';
-import { OptionTile } from '../../shared/OptionTile.jsx';
-import { FieldLabel } from '../../shared/FieldLabel.jsx';
+import { SectionHeading } from "../../shared/SectionHeading.jsx";
+import { OptionTile } from "../../shared/OptionTile.jsx";
 // ----------------
 
 // ---- STYLES ----
-import { fieldStyles } from '../../styles/modalCreateOrder.styles.js';
+import { optionGroupStyle } from "../../styles/modalCreateOrder.styles.js";
 // ----------------
 
-export const DeliverySection = ({ order, setOrder, handleInputChange }) => {
+export const DeliverySection = ({ order, setOrder }) => {
   // Tipos de pedido
   const orderTypeOptions = [
     {
-      value: 'RETIRO EN LOCAL',
-      icon: <StorefrontIcon sx={{ color: '#ff9800' }} />,
+      value: "RETIRO EN LOCAL",
+      icon: <StorefrontIcon sx={{ color: "#ff9800" }} />,
     },
     {
-      value: 'ESPERA EN LOCAL',
-      icon: <HailIcon sx={{ color: '#2196f3' }} />,
+      value: "ESPERA EN LOCAL",
+      icon: <HailIcon sx={{ color: "#2196f3" }} />,
     },
     {
-      value: 'DELIVERY',
-      icon: <DeliveryDiningIcon sx={{ color: '#9c27b0' }} />,
+      value: "DELIVERY",
+      icon: <DeliveryDiningIcon sx={{ color: "#9c27b0" }} />,
     },
     {
-      value: 'CONSUMIR EN LOCAL',
-      icon: <RestaurantIcon sx={{ color: '#4caf50' }} />,
+      value: "CONSUMIR EN LOCAL",
+      icon: <RestaurantIcon sx={{ color: "#4caf50" }} />,
     },
   ];
+
   return (
-    <Box sx={{ mt: 3 }}>
-      <SectionHeading icon={<DeliveryDiningIcon />} title="TIPO DE ENTREGA" />
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: 'repeat(2, minmax(0, 1fr))',
-            md: 'repeat(4, minmax(0, 1fr))',
-          },
-          gap: 1.5,
-        }}
-      >
+    <Box>
+      <SectionHeading
+        step={2}
+        icon={<DeliveryDiningIcon />}
+        title="ENTREGA"
+        description={"seleccioná el tipo de entrega del pedido"}
+      />
+
+      <Box sx={optionGroupStyle}>
         {orderTypeOptions.map((option) => (
           <OptionTile
             key={option.value}
@@ -61,32 +59,13 @@ export const DeliverySection = ({ order, setOrder, handleInputChange }) => {
               setOrder((prev) => ({
                 ...prev,
                 orderType: option.value,
+                deliverycost:
+                  option.value === "DELIVERY" ? prev.deliverycost : 0,
               }))
             }
           />
         ))}
       </Box>
-
-      {order.orderType === 'DELIVERY' && (
-        <Box sx={{ mt: 2, maxWidth: 220 }}>
-          <FieldLabel icon={<MoneyIcon fontSize="small" />}>
-            COSTO DE DELIVERY
-          </FieldLabel>
-          <TextField
-            type="text"
-            name="deliverycost"
-            value={order.deliverycost}
-            onChange={handleInputChange}
-            sx={fieldStyles}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">$</InputAdornment>
-              ),
-              inputProps: { min: 0, step: 0.01 },
-            }}
-          />
-        </Box>
-      )}
     </Box>
   );
 };

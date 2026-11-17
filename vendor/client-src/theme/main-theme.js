@@ -29,6 +29,9 @@ export const lobotechAppTheme = createTheme({
       paper: "#2c3034",
       light: "#edede9",
     },
+    button: {
+      shadow: 'rgba(245, 166, 35, 0.12)'
+    },
     text: {
       primary: "#FFFF",
       secondary: '#b8b6ba',
@@ -85,6 +88,9 @@ export const lobotechAppThemeLight = createTheme({
       paper: "#ffffff",
       light: "#dee2e6",
     },
+    button: {
+      shadow: 'rgba(245, 166, 35, 0.12)'
+    },
     text: {
       primary: "#212529", // Gris oscuro para texto principal
       secondary: "#6c757d", // Gris medio para texto secundario
@@ -132,6 +138,9 @@ export const lobotechAppThemeDarkBlue = createTheme({
       paper: "#222C38",
       light: "#edede9",
     },
+    button: {
+      shadow: 'rgba(245, 166, 35, 0.12)'
+    },
     text: {
       primary: "#F2F5F8",
       secondary: '#ABB8C8',
@@ -173,6 +182,9 @@ export const mainAppModalTheme = createTheme({
       paper: "#2c3034", // Fondo de papel un poco más claro que el principal
       card: "#343a40", // Fondo para tarjetas, un poco más claro
     },
+    button: {
+      shadow: 'rgba(245, 166, 35, 0.12)'
+    },
     text: {
       primary: "#edede9", // Texto principal blanco
       secondary: "#b8b6ba", // Texto secundario gris claro
@@ -192,37 +204,5 @@ export const mainAppModalTheme = createTheme({
       secondary: 'main-app-text',
       terciary: 'main-app-oswald',
     }
-  },
-})
-
-// LOBOTECH THEME (LIGHT)
-export const lobotechAppFoodDetailTheme = createTheme({
-  palette: {
-    mode: "dark",
-    primary: {
-      main: "#f5a623",
-    },
-    background: {
-      default: "#212529", // Gris muy claro
-      paper: "#edede9", // Blanco para cards/papers
-    },
-    text: {
-      primary: "#edede9", // Gris oscuro para texto principal
-      secondary: "#000", // Gris medio para texto secundario
-      terciary: "#fff", // Negro para texto terciario
-    },
-    error: {
-      main: "#dc3545", // Rojo mantenido
-    },
-    success: {
-      main: "#28a745", // Verde mantenido
-    },
-  },
-  typography: {
-    fontFamily: {
-      primary: "main-app-oswald",
-      secondary: "main-app-oswald",
-      terciary: "main-app-oswald",
-    },
   },
 })

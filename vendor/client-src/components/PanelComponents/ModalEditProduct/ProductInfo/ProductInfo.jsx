@@ -6,15 +6,22 @@ import {
   FormControl,
   Select,
   MenuItem,
-  FormControlLabel,
-  Checkbox,
   Typography,
   Paper,
   Switch,
   Stack,
   Chip,
 } from "@mui/material";
-import { CloudUpload as CloudUploadIcon } from "@mui/icons-material";
+// Icons
+import {
+  Feed as FeedIcon,
+  Paid as PaidIcon,
+  Visibility as VisibilityIcon,
+  Image as ImageIcon,
+  AddTask as AddTaskIcon,
+  Error as ErrorIcon,
+  CloudUpload as CloudUploadIcon,
+} from "@mui/icons-material";
 // ---------------------
 
 // ---- UTILS ----
@@ -24,7 +31,7 @@ import { handleInputChange } from "@/utils/productUtils.js";
 // ---- STYLES ----
 const textFieldStyle = {
   "& .MuiInputBase-root": {
-    fontFamily: "fontFamily.primary",
+    fontFamily: "fontFamily.secondary",
     fontSize: { xs: "14px", sm: "16px", md: "16px" },
     minHeight: { xs: "48px", sm: "56px", md: "56px" },
     color: "text.primary",
@@ -82,7 +89,7 @@ const switchLabelStyle = {
 
 const switchDescriptionStyle = {
   fontFamily: "fontFamily.secondary",
-  color: "text.secondary",
+  color: "primary.main",
   fontSize: { xs: "12px", sm: "13px" },
 };
 
@@ -117,13 +124,11 @@ const BooleanSwitchRow = ({
           {(activeLabel || inactiveLabel) && (
             <Chip
               size="small"
+              icon={isActive ? <AddTaskIcon /> : <ErrorIcon />}
               label={isActive ? activeLabel : inactiveLabel}
-              color={isActive ? "success" : "default"}
+              color={isActive ? "success" : "error"}
               variant={isActive ? "filled" : "outlined"}
-              sx={{
-                mt: 1,
-                fontFamily: "fontFamily.secondary",
-              }}
+              sx={{ fontFamily: "fontFamily.secondary", mt: 1 }}
             />
           )}
         </Box>
@@ -149,13 +154,13 @@ export const ProductInfo = ({
 }) => {
   // ---- OPCIONES PARA TÍTULOS ESPECIALES ----
   const specialTitleExamples = [
-    "LIMITADO",
-    "OFERTA",
-    "OFERTA DEL MES",
-    "ESPECIAL",
-    "NUEVO",
-    "SUGERENCIA",
-    "POPULAR",
+    "Limitado",
+    "Oferta",
+    "Oferta del mes",
+    "Especial",
+    "Nuevo",
+    "Sugerencia",
+    "Popular",
   ];
 
   return (
@@ -168,17 +173,29 @@ export const ProductInfo = ({
           borderRadius: 2,
         }}
       >
-        <Typography
-          variant="subtitle1"
+        <Box
           sx={{
-            fontFamily: "fontFamily.primary",
-            textAlign: "center",
-            color: "primary.main",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            borderBottom: "1px solid",
+            borderColor: "primary.main",
             mb: 2,
+            gap: 1,
           }}
         >
-          INFORMACIÓN GENERAL
-        </Typography>
+          <FeedIcon color="primary" />
+
+          <Typography
+            sx={{
+              fontFamily: "fontFamily.primary",
+              fontSize: "1.1rem",
+              color: "text.primary",
+            }}
+          >
+            INFORMACIÓN GENERAL
+          </Typography>
+        </Box>
 
         {/* NOMBRE DEL PRODUCTO */}
         <Box sx={labelContainerStyle}>
@@ -188,7 +205,7 @@ export const ProductInfo = ({
           fullWidth
           required
           name="name"
-          placeholder="Ej: Empanada de Carne"
+          placeholder="Nombre del producto"
           value={product.name || ""}
           onChange={(e) => handleInputChange(setProduct, e)}
           sx={textFieldStyle}
@@ -204,7 +221,7 @@ export const ProductInfo = ({
             onChange={(e) =>
               setProduct((prev) => ({ ...prev, specialTitle: e.target.value }))
             }
-            sx={{ fontFamily: "fontFamily.terciary", color: "text.primary" }}
+            sx={{ fontFamily: "fontFamily.secondary", color: "text.primary" }}
             displayEmpty
             renderValue={(selected) => {
               if (!selected) {
@@ -225,7 +242,7 @@ export const ProductInfo = ({
             <MenuItem
               value=""
               sx={{
-                fontFamily: "fontFamily.terciary",
+                fontFamily: "fontFamily.primary",
                 color: "primary.main",
               }}
             >
@@ -236,11 +253,11 @@ export const ProductInfo = ({
                 key={title}
                 value={title}
                 sx={{
-                  fontFamily: "fontFamily.terciary",
+                  fontFamily: "fontFamily.secondary",
                   color: "text.primary",
                 }}
               >
-                {title.toUpperCase()}
+                {title}
               </MenuItem>
             ))}
           </Select>
@@ -253,6 +270,7 @@ export const ProductInfo = ({
         <TextField
           fullWidth
           name="description"
+          placeholder="Descripción breve sobre el producto"
           multiline
           rows={3}
           value={product.description || ""}
@@ -299,11 +317,11 @@ export const ProductInfo = ({
                   key={category?.id}
                   value={category?.name}
                   sx={{
-                    fontFamily: "fontFamily.terciary",
+                    fontFamily: "fontFamily.secondary",
                     color: "text.primary",
                   }}
                 >
-                  {category?.name?.toUpperCase()}
+                  {category?.name}
                 </MenuItem>
               ))}
             </Select>
@@ -319,17 +337,29 @@ export const ProductInfo = ({
           borderRadius: 2,
         }}
       >
-        <Typography
-          variant="subtitle1"
+        <Box
           sx={{
-            fontFamily: "fontFamily.primary",
-            textAlign: "center",
-            color: "primary.main",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            borderBottom: "1px solid",
+            borderColor: "primary.main",
             mb: 2,
+            gap: 1,
           }}
         >
-          PRECIO / DESCUENTO / PUNTOS
-        </Typography>
+          <PaidIcon color="primary" />
+
+          <Typography
+            sx={{
+              fontFamily: "fontFamily.primary",
+              fontSize: "1.1rem",
+              color: "text.primary",
+            }}
+          >
+            PRECIO / DESCUENTO / PUNTOS
+          </Typography>
+        </Box>
         {[
           { label: "PRECIO", name: "price", type: "text", required: true },
           {
@@ -365,9 +395,38 @@ export const ProductInfo = ({
             />
           </Box>
         ))}
+      </Paper>
 
-        <Box sx={labelContainerStyle}>
-          <Typography sx={labelStyle}>VISIBILIDAD Y CONFIGURACIÓN</Typography>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 3,
+          backgroundColor: "background.paper",
+          borderRadius: 2,
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            borderBottom: "1px solid",
+            borderColor: "primary.main",
+            mb: 2,
+            gap: 1,
+          }}
+        >
+          <VisibilityIcon color="primary" />
+
+          <Typography
+            sx={{
+              fontFamily: "fontFamily.primary",
+              fontSize: "1.1rem",
+              color: "text.primary",
+            }}
+          >
+            VISIBILIDAD Y CONFIGURACIÓN
+          </Typography>
         </Box>
 
         <Stack spacing={1.5}>
@@ -427,20 +486,30 @@ export const ProductInfo = ({
           transition: "all 0.2s ease",
         }}
       >
-        <Typography
-          variant="h6"
+        <Box
           sx={{
-            fontFamily: "fontFamily.primary",
-            color: "primary.main",
-            mb: 2,
-            fontWeight: "bold",
             display: "flex",
+            justifyContent: "center",
             alignItems: "center",
+            borderBottom: "1px solid",
+            borderColor: "primary.main",
+            mb: 2,
             gap: 1,
           }}
         >
-          IMAGEN DEL PRODUCTO
-        </Typography>
+          <ImageIcon color="primary" />
+
+          <Typography
+            sx={{
+              fontFamily: "fontFamily.primary",
+              fontSize: "1.1rem",
+              color: "text.primary",
+            }}
+          >
+            IMAGEN DEL PRODUCTO
+          </Typography>
+        </Box>
+
         {imagePreview ? (
           <Box
             sx={{

@@ -13,7 +13,7 @@ export const initialUpdateProductState = {
     userId: '',
     isSinTacc: false,
     isVeggie: false,
-    status: false,
+    status: true,
     allowComment: true,
     customOptions: [],
     productCustomOptions: [],
@@ -33,7 +33,7 @@ export const initialCreateProductState = {
     userId: '',
     isSinTacc: false,
     isVeggie: false,
-    status: false,
+    status: true,
     allowComment: true,
     customOptions: [],
     productCustomOptions: [],
@@ -134,4 +134,4 @@ export const handleInputChange = (setState, { target: { name, value, checked, ty
 
     // Para campos no numéricos, usar el valor directamente
     updateField(setState, name, value)
-}
+};

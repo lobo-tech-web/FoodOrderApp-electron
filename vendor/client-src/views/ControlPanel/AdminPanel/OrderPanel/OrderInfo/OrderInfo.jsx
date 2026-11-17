@@ -48,6 +48,8 @@ export const OrderInfo = ({
   handleOpenModal,
   disableSelection = false,
   disableEdit = false,
+  onEditPaymentMethod,
+  disableEditPaymentMethod = false,
   onMarkPaid,
   onCancelPayment,
   canCancelPayment = false,
@@ -321,27 +323,55 @@ export const OrderInfo = ({
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            flexWrap: "wrap",
-            gap: 0.25,
+            flexWrap: "nowrap",
+            gap: 0.5,
           }}
         >
-          <Typography
-            variant="caption"
+          <Box
             sx={{
-              fontFamily: "fontFamily.secondary",
-              fontSize: {
-                xs: "0.60rem",
-                sm: "0.65rem",
-                md: "0.80rem",
-              },
-              color:
-                order.paymentMethod === "SIN ESPECIFICAR"
-                  ? "primary.main"
-                  : "text.primary",
+              display: "flex",
+              alignItems: "center",
+              flexShrink: 0,
+              gap: 0.25,
             }}
           >
-            {order.paymentMethod}
-          </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                whiteSpace: "nowrap",
+                fontFamily: "fontFamily.secondary",
+                fontSize: {
+                  xs: "0.60rem",
+                  sm: "0.65rem",
+                  md: "0.80rem",
+                },
+                color:
+                  order.paymentMethod === "SIN ESPECIFICAR"
+                    ? "primary.main"
+                    : "text.primary",
+              }}
+            >
+              {order.paymentMethod}
+            </Typography>
+
+            {!order.isPaid &&
+              order.status !== "CANCELADO" &&
+              typeof onEditPaymentMethod === "function" && (
+                <Tooltip title="Cambiar método de pago" arrow>
+                  <Box sx={{ display: "inline-flex", alignItems: "center" }}>
+                    <IconButton
+                      size="small"
+                      aria-label={`Cambiar método de pago del pedido ${displayID}`}
+                      disabled={disableEditPaymentMethod || paymentUpdating}
+                      onClick={(event) => onEditPaymentMethod(event, order)}
+                      sx={{ color: "primary.main", p: 0.25 }}
+                    >
+                      <EditIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </Box>
+                </Tooltip>
+              )}
+          </Box>
 
           <Tooltip
             arrow
@@ -363,6 +393,7 @@ export const OrderInfo = ({
               variant={paymentStatus.variant}
               sx={{
                 height: 22,
+                flexShrink: 0,
                 fontFamily: "fontFamily.secondary",
                 fontWeight: 800,
                 fontSize: "0.66rem",

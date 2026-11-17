@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 
 // ---- MATERIAL UI ----
 import {
@@ -7,6 +7,12 @@ import {
   Checkbox,
   LinearProgress,
   Paper,
+  Popover,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -47,7 +53,10 @@ import {
   getOrderPanelQuery,
   getOrderPanelTitle,
 } from "./orderPanelFilters.js";
-import { getConfiguredPaymentMethods } from "@/utils/components/PaymentUtils.jsx";
+import {
+  getAvailablePaymentMethods,
+  getConfiguredPaymentMethods,
+} from "@/utils/components/PaymentUtils.jsx";
 // ---------------
 
 // ---- STYLES ----
@@ -124,6 +133,7 @@ export const OrderPanel = ({
   const loadOrders = useCallback(
     (requested) => {
       const readOnly = { updateState: false };
+
       if (requested.mode === "search") {
         const numeric = /^\d+$/.test(requested.searchTerm);
         return filterOrderByNamePhone(
@@ -133,6 +143,7 @@ export const OrderPanel = ({
           readOnly,
         );
       }
+
       if (requested.period === "all")
         return getAllOrders(null, requested.restaurantId, readOnly);
       const [year, month, day] = requested.date.split("-");
@@ -171,6 +182,79 @@ export const OrderPanel = ({
   });
 
   const fetchOrders = useCallback(() => refresh(), [refresh]);
+
+  const enabledPaymentMethods = useMemo(
+    () => getAvailablePaymentMethods(user),
+    [user],
+  );
+  const [paymentMethodEditor, setPaymentMethodEditor] = useState(null);
+  const [savingPaymentMethod, setSavingPaymentMethod] = useState(false);
+  const paymentMethodSavingRef = useRef(false);
+  const paymentMethodOrder = allOrders.find(
+    (order) => order.id === paymentMethodEditor?.orderId,
+  );
+
+  const handleOpenPaymentMethod = (event, order) => {
+    if (user?.role !== "admin" || order.isPaid || order.status === "CANCELADO")
+      return;
+    setInteractionBlocked("paymentMethod", true);
+    setPaymentMethodEditor({
+      anchorEl: event.currentTarget,
+      orderId: order.id,
+    });
+  };
+
+  const handleClosePaymentMethod = () => {
+    if (paymentMethodSavingRef.current) return;
+    setPaymentMethodEditor(null);
+    setInteractionBlocked("paymentMethod", false);
+  };
+
+  const handleChangePaymentMethod = async (paymentMethod) => {
+    if (paymentMethodSavingRef.current) return;
+
+    if (
+      user?.role !== "admin" ||
+      !paymentMethodOrder ||
+      paymentMethodOrder.isPaid ||
+      paymentMethodOrder.status === "CANCELADO" ||
+      !enabledPaymentMethods.some((method) => method.value === paymentMethod)
+    ) {
+      showAlert(
+        "No se puede cambiar el método de pago de este pedido",
+        "warning",
+      );
+      return;
+    }
+
+    if (paymentMethodOrder.paymentMethod === paymentMethod) {
+      handleClosePaymentMethod();
+      return;
+    }
+
+    paymentMethodSavingRef.current = true;
+    setSavingPaymentMethod(true);
+    try {
+      await updateOrder(paymentMethodOrder.id, {
+        paymentMethod,
+        auditReason: "Cambio de método de pago desde acceso rápido",
+      });
+      showAlert("Método de pago actualizado", "success");
+      setPaymentMethodEditor(null);
+      await fetchOrders();
+      setInteractionBlocked("paymentMethod", false);
+    } catch (error) {
+      showAlert(
+        typeof error === "string"
+          ? error
+          : error?.message || "No se pudo actualizar el método de pago",
+        "error",
+      );
+    } finally {
+      paymentMethodSavingRef.current = false;
+      setSavingPaymentMethod(false);
+    }
+  };
 
   useEffect(() => {
     if (notificationVersion > 0) refresh({ automatic: true });
@@ -760,6 +844,13 @@ export const OrderPanel = ({
                         handleSelectOrders={handleSelectOrders}
                         selectedOrdersCheckbox={selectedOrdersCheckbox}
                         handleOpenModal={handleOpenModal}
+                        onEditPaymentMethod={
+                          enabledPaymentMethods.length > 0 &&
+                          user?.role === "admin"
+                            ? handleOpenPaymentMethod
+                            : undefined
+                        }
+                        disableEditPaymentMethod={isProtected || isRefreshing}
                         onMarkPaid={handleOpenPaymentConfirm}
                         onCancelPayment={handleOpenCancelPaymentConfirm}
                         canCancelPayment={user?.role === "admin"}
@@ -835,6 +926,65 @@ export const OrderPanel = ({
           />
         )}
       </Paper>
+
+      <Popover
+        open={Boolean(paymentMethodEditor)}
+        anchorEl={paymentMethodEditor?.anchorEl}
+        onClose={handleClosePaymentMethod}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        transformOrigin={{ vertical: "top", horizontal: "center" }}
+        PaperProps={{
+          role: "dialog",
+          "aria-label": "Cambiar método de pago",
+          sx: {
+            minWidth: 240,
+            maxWidth: "calc(100vw - 32px)",
+            bgcolor: "background.main",
+          },
+        }}
+      >
+        <Typography
+          sx={{
+            display: "flex",
+            fontFamily: "fontFamily.primary",
+            alignItems: "center",
+            borderBottom: "1px solid",
+            borderColor: "primary.main",
+            gap: 1,
+            px: 2,
+            pt: 1.5,
+          }}
+        >
+          MÉTODO DE PAGO
+          {savingPaymentMethod && <CircularProgress size={15} />}
+        </Typography>
+
+        <List dense sx={{ bgcolor: "background.default" }}>
+          {enabledPaymentMethods.map((method) => (
+            <ListItemButton
+              key={method.value}
+              selected={paymentMethodOrder?.paymentMethod === method.value}
+              disabled={
+                savingPaymentMethod ||
+                !paymentMethodOrder ||
+                paymentMethodOrder.isPaid
+              }
+              onClick={() => handleChangePaymentMethod(method.value)}
+            >
+              <ListItemIcon sx={{ minWidth: 36, color: "primary.main" }}>
+                {method.icon}
+              </ListItemIcon>
+              <ListItemText
+                primary={method.value}
+                primaryTypographyProps={{
+                  fontFamily: "fontFamily.secondary",
+                  fontSize: 13,
+                }}
+              />
+            </ListItemButton>
+          ))}
+        </List>
+      </Popover>
 
       <ModalConfirmOrderPaid
         open={paymentConfirm.open}

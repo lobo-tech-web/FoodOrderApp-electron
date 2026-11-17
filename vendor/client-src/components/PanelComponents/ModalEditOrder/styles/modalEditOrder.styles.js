@@ -21,7 +21,7 @@ export const fieldStyles = {
         },
     },
     '& .MuiInputBase-input': {
-        fontFamily: 'fontFamily.terciary',
+        fontFamily: 'fontFamily.primary',
         py: { xs: 0.8, sm: 0.9 },
         fontSize: { xs: '0.78rem', sm: '0.85rem', md: '0.9rem' },
         fontWeight: 700,
@@ -74,7 +74,7 @@ export const panelSx = {
 export const actionButtonSx = {
     minHeight: 42,
     borderRadius: '12px',
-    fontFamily: 'fontFamily.terciary',
+    fontFamily: 'fontFamily.primary',
     fontWeight: 900,
     letterSpacing: '0.4px',
 };

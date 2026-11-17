@@ -1,10 +1,22 @@
+export const optionGroupStyle = {
+    display: 'grid',
+    gridTemplateColumns: {
+        xs: 'repeat(2, minmax(0, 1fr))',
+        lg: 'repeat(4, minmax(0, 1fr))',
+    },
+    gap: 1,
+};
+
 export const optionButtonStyle = (active) => ({
-    minHeight: { xs: 64, sm: 58 },
+    width: '100%',
+    minWidth: 0,
+    maxWidth: '100%',
+    minHeight: 48,
     borderRadius: '8px',
     borderWidth: '1px',
     borderStyle: 'solid',
-    borderColor: active ? 'primary.main' : 'rgba(184, 182, 186, 0.22)',
-    bgcolor: active ? 'rgba(245, 166, 35, 0.12)' : 'rgba(255, 255, 255, 0.03)',
+    borderColor: active ? 'primary.main' : 'text.primary',
+    bgcolor: active ? 'button.shadow' : 'background.default',
     color: active ? 'primary.main' : 'text.primary',
     display: 'flex',
     flexDirection: 'column',
@@ -13,7 +25,7 @@ export const optionButtonStyle = (active) => ({
     textTransform: 'uppercase',
     fontFamily: 'fontFamily.primary',
     fontSize: { xs: '10px', sm: '11px' },
-    lineHeight: 1.15,
+    lineHeight: 1,
     p: { xs: 0.65, sm: 0.75 },
     transition: 'border-color 160ms ease, background-color 160ms ease',
     '& .MuiSvgIcon-root': {
@@ -28,8 +40,8 @@ export const optionButtonStyle = (active) => ({
 export const fieldStyles = {
     '& .MuiInputBase-root': {
         fontFamily: 'fontFamily.secondary',
-        fontSize: { xs: '13px', sm: '14px', md: '14px' },
-        minHeight: { xs: '44px', sm: '48px', md: '48px' },
+        fontSize: { xs: '13px', sm: '14px' },
+        minHeight: { xs: '44px', sm: '48px' },
         color: 'text.primary',
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderRadius: '8px',
@@ -61,11 +73,30 @@ export const fieldStyles = {
     marginBottom: 0,
 };
 
+export const compactFieldStyles = {
+    ...fieldStyles,
+    '& .MuiInputBase-root': {
+        ...fieldStyles['& .MuiInputBase-root'],
+        minHeight: 34,
+    },
+    '& .MuiOutlinedInput-input': {
+        py: 0.75,
+        px: 1.25,
+    },
+    '& .MuiOutlinedInput-root.MuiInputBase-multiline': {
+        py: 0.75,
+        px: 1.25,
+    },
+    '& textarea.MuiOutlinedInput-input': {
+        p: 0,
+    },
+};
+
 export const labelStyle = {
     fontFamily: 'fontFamily.primary',
     color: 'text.primary',
     fontWeight: 'bold',
-    fontSize: { xs: '11px', sm: '12px', md: '12px' },
+    fontSize: { xs: '11px', sm: '12px', md: '15px' },
     lineHeight: 1,
     letterSpacing: 0,
 };
@@ -80,17 +111,17 @@ export const labelContainerStyle = {
 export const sectionCardStyle = {
     bgcolor: 'background.paper',
     border: '1px solid',
-    borderColor: 'rgba(184, 182, 186, 0.22)',
+    borderColor: 'text.primary',
     borderRadius: '8px',
-    p: { xs: 1.5, md: 2 },
-    mb: { xs: 1, md: 2 },
+    p: 1.5,
+    mb: 1,
     boxShadow: '0 18px 50px rgba(0, 0, 0, 0.24)',
 };
 
 export const innerCardStyle = {
-    bgcolor: 'rgba(33, 37, 41, 0.72)',
+    bgcolor: 'background.default',
     border: '1px solid',
-    borderColor: 'rgba(184, 182, 186, 0.18)',
+    borderColor: 'text.primary',
     borderRadius: '8px',
-    p: { xs: 1.5, md: 2 },
+    p: 1,
 };

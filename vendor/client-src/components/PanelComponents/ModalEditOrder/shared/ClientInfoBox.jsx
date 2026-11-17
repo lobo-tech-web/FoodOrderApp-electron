@@ -22,14 +22,8 @@ export const ClientInfoBox = ({ icon, label, value, onEdit, onDisable }) => {
     >
       <Box
         sx={{
-          width: {
-            xs: 28,
-            sm: 32,
-          },
-          height: {
-            xs: 28,
-            sm: 32,
-          },
+          width: { xs: 28, sm: 32 },
+          height: { xs: 28, sm: 32 },
           display: "grid",
           placeItems: "center",
           borderRadius: "10px",
@@ -45,6 +39,7 @@ export const ClientInfoBox = ({ icon, label, value, onEdit, onDisable }) => {
         sx={{
           color: "text.secondary",
           fontFamily: "fontFamily.primary",
+          textTransform: "uppercase",
           fontSize: {
             xs: "0.75rem",
             sm: "0.82rem",
@@ -58,7 +53,7 @@ export const ClientInfoBox = ({ icon, label, value, onEdit, onDisable }) => {
       <Typography
         sx={{
           color: "text.primary",
-          fontFamily: "fontFamily.terciary",
+          fontFamily: "fontFamily.secondary",
           fontSize: {
             xs: "0.78rem",
             sm: "1rem",
@@ -72,6 +67,7 @@ export const ClientInfoBox = ({ icon, label, value, onEdit, onDisable }) => {
       >
         {value || "-"}
       </Typography>
+
       <Tooltip title={`Editar ${label}`} arrow>
         <IconButton
           size="small"

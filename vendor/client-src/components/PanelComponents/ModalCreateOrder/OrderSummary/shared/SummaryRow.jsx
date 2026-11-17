@@ -13,14 +13,14 @@ export const SummaryRow = ({
       alignItems: "center",
       justifyContent: "space-between",
       gap: 1.5,
-      py: 1.2,
+      py: 0.5,
     }}
   >
     <Typography
       sx={{
         fontFamily: "fontFamily.secondary",
         color: "text.primary",
-        fontSize: strong ? { xs: 13, md: 14 } : { xs: 12, md: 13 },
+        fontSize: strong ? { xs: 13, md: 14 } : { xs: 12, md: 14 },
       }}
     >
       {label}

@@ -52,11 +52,15 @@ export const OrderSummary = ({
       sx={{
         bgcolor: "background.paper",
         border: "1px solid",
-        borderColor: "rgba(184, 182, 186, 0.22)",
+        borderColor: "text.primary",
         borderRadius: 2,
         overflow: "hidden",
-        position: { lg: "sticky" },
-        top: 0,
+        display: "flex",
+        flexDirection: "column",
+        height: { lg: "100%" },
+        minHeight: 0,
+        minWidth: 0,
+        "& > *": { flexShrink: 0 },
         boxShadow: {
           xs: "none",
           lg: "0 18px 50px rgba(0, 0, 0, 0.20)",
@@ -67,7 +71,7 @@ export const OrderSummary = ({
       <Box
         sx={{
           px: { xs: 1.5, sm: 2 },
-          py: 1.5,
+          py: 1,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -133,6 +137,7 @@ export const OrderSummary = ({
             >
               Agregar
             </Typography>
+
             <AddShoppingCartIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -142,7 +147,12 @@ export const OrderSummary = ({
       <Box
         sx={{
           bgcolor: "background.paper",
-          p: { xs: 1.2, sm: 1.5 },
+          p: 1,
+          flex: { lg: "1 1 0%" },
+          minHeight: 0,
+          maxHeight: { xs: 320, lg: "none" },
+          overflowY: "auto",
+          scrollbarWidth: "thin",
         }}
       >
         {order.cartItems.length === 0 ? (
@@ -209,8 +219,6 @@ export const OrderSummary = ({
               display: "flex",
               flexDirection: "column",
               gap: 1,
-              maxHeight: { xs: "none", lg: 300 },
-              overflowY: { xs: "visible", lg: "auto" },
               pr: { xs: 0, lg: 0.5 },
               "&::-webkit-scrollbar": { width: 5 },
               "&::-webkit-scrollbar-thumb": {
@@ -240,14 +248,12 @@ export const OrderSummary = ({
       <Box
         sx={{
           px: { xs: 1.5, sm: 2 },
-          py: 1.5,
+          py: 1,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           gap: 1,
           bgcolor: "background.main",
-          borderBottom: "1px solid",
-          borderColor: "rgba(184, 182, 186, 0.18)",
         }}
       >
         <Box
@@ -258,13 +264,13 @@ export const OrderSummary = ({
             borderColor: "primary.main",
           }}
         >
-          <BarChartIcon sx={{ color: "primary.main", fontSize: 23 }} />
+          <BarChartIcon sx={{ color: "primary.main", fontSize: 26 }} />
 
           <Typography
             sx={{
               fontFamily: "fontFamily.primary",
               color: "text.primary",
-              fontSize: { xs: 15, sm: 17 },
+              fontSize: { xs: 15, sm: 18 },
               mb: 0.5,
             }}
           >
@@ -273,7 +279,7 @@ export const OrderSummary = ({
         </Box>
       </Box>
 
-      <Box sx={{ bgcolor: "background.paper", p: { xs: 1.5, sm: 2 } }}>
+      <Box sx={{ bgcolor: "background.main", p: 1.5 }}>
         <SummaryRow
           label="Subtotal productos"
           value={formatCurrency(calculatedProductTotals.subtotalProducts)}
@@ -287,13 +293,6 @@ export const OrderSummary = ({
           />
         )}
 
-        {order.servicetax > 0 && (
-          <SummaryRow
-            label="Tarifa de servicios"
-            value={formatCurrency(order.servicetax)}
-          />
-        )}
-
         {order.deliverycost > 0 && (
           <SummaryRow
             label="Delivery"
@@ -303,7 +302,7 @@ export const OrderSummary = ({
           />
         )}
 
-        <Divider sx={{ my: 1.5, borderColor: "text.primary" }} />
+        <Divider sx={{ my: 1, borderColor: "text.primary" }} />
 
         <Box
           sx={{
@@ -337,9 +336,7 @@ export const OrderSummary = ({
         {(calculatedProductTotals.totalRewardPoints > 0 ||
           calculatedProductTotals.totalRedeemPoints > 0) && (
           <>
-            <Divider
-              sx={{ my: 1.5, borderColor: "rgba(184, 182, 186, 0.18)" }}
-            />
+            <Divider sx={{ my: 1, borderColor: "rgba(184, 182, 186, 0.18)" }} />
 
             <Box
               sx={{

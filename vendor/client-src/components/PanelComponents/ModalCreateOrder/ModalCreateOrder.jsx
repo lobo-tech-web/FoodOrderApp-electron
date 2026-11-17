@@ -61,7 +61,6 @@ import { OrderDetailsTab } from "./OrderDetailsTab/OrderDetailsTab.jsx";
 // ------------------
 
 // ---- UTILS ----
-import { taxAmount } from "@/utils/lobotechUtils.js"; // TARIFA DE SERVICIO
 import { getDateNowDayjs } from "@/utils/clientWorking.js";
 import { getProductOptionsForUI } from "@/utils/migrateCustomOptions.js";
 import { buildOrderKitchenPrinterHtml } from "@/utils/printTemplates/orderKitchenTemplate.js";
@@ -76,8 +75,6 @@ import {
 import { hasOrderPermission } from "@/utils/orderEditRules.js";
 import { getAvailablePaymentMethods } from "@/utils/components/PaymentUtils.jsx";
 // ---------------
-
-const workflowSteps = ["PEDIDO", "CLIENTE"];
 
 const getStatusForOrderType = (orderType, fallbackStatus) => {
   if (orderType === "RETIRO EN LOCAL") return "EN PREPARACIÓN";
@@ -108,50 +105,7 @@ export const ModalCreateOrder = ({
   const [loading, setLoading] = useState(false);
 
   // REFERENCES
-  const [currentTab, setCurrentTab] = useState(0);
-  const orderDetailsRef = useRef(null);
-  const clientInfoRef = useRef(null);
-  const contentRef = useRef(null);
   const initializedOpenRef = useRef(false);
-
-  const handleTabChange = (index) => {
-    setCurrentTab(index);
-
-    const container = contentRef.current;
-
-    const target =
-      index === 0 ? orderDetailsRef.current : clientInfoRef.current;
-
-    if (!container || !target) return;
-
-    container.scrollTo({
-      top: target.offsetTop - 20,
-      behavior: "smooth",
-    });
-  };
-
-  useEffect(() => {
-    const container = contentRef.current;
-
-    if (!container) return;
-
-    const handleScroll = () => {
-      const scrollPosition = container.scrollTop;
-      const clientTop = clientInfoRef.current.offsetTop;
-
-      if (scrollPosition >= clientTop - 120) {
-        setCurrentTab(1);
-      } else {
-        setCurrentTab(0);
-      }
-    };
-
-    container.addEventListener("scroll", handleScroll);
-
-    return () => {
-      container.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
 
   const { userState } = useUser();
   const { addOrder, filterOrderByDate } = useOrders();
@@ -190,7 +144,6 @@ export const ModalCreateOrder = ({
     return restaurantData?.businessLogoUrl || "";
   }, [restaurantData]);
 
-  const [addServiceTax, setAddServiceTax] = useState(false);
   const [modalState, setModalState] = useState({
     clientsData: false,
   });
@@ -216,7 +169,6 @@ export const ModalCreateOrder = ({
     totalRewardPoints: 0,
     totalRedeemPoints: 0,
     deliverycost: 0,
-    servicetax: 0,
     discount: 0,
     discountamount: 0,
     totalAmount: 0,
@@ -244,7 +196,6 @@ export const ModalCreateOrder = ({
         totalRewardPoints: 0,
         totalRedeemPoints: 0,
         deliverycost: 0,
-        servicetax: 0,
         discount: 0,
         discountamount: 0,
         totalAmount: 0,
@@ -350,7 +301,6 @@ export const ModalCreateOrder = ({
 
     setShowProductSelector(false);
     setProductSelectorFirstStep(false);
-    setCurrentTab(0);
   };
 
   // Estados para el pedido
@@ -413,21 +363,19 @@ export const ModalCreateOrder = ({
     isDiscount,
   ]);
 
-  // ✅ CALCULAR EL TOTAL FINAL DEL PEDIDO (incluyendo delivery y service tax)
+  // Calcular el total con descuento y costo de delivery.
   const finalOrderTotal = useMemo(() => {
-    const service = cleanMoneyValue(order.servicetax).toNumber(); // ✅ Usar servicetax
     const delivery = cleanMoneyValue(order.deliverycost).toNumber(); //✅ Usar deliverycost
 
     return calculateFinalTotal(
       calculatedProductTotals.subtotalProducts,
       calculatedDiscount.discountamount,
-      service,
+      0,
       delivery,
     );
   }, [
     calculatedProductTotals.subtotalProducts,
     calculatedDiscount.discountamount,
-    order.servicetax,
     order.deliverycost,
   ]);
 
@@ -447,13 +395,6 @@ export const ModalCreateOrder = ({
     calculatedDiscount.discountamount,
     calculatedDiscount.discountPercentage,
   ]);
-
-  useEffect(() => {
-    setOrder((prev) => ({
-      ...prev,
-      servicetax: addServiceTax ? taxAmount : 0,
-    }));
-  }, [addServiceTax]);
 
   // Obtener el color del estado actual
   const getStatusColor = (status) => {
@@ -810,7 +751,6 @@ export const ModalCreateOrder = ({
           totalRewardPoints: calculatedProductTotals.totalRewardPoints,
           totalRedeemPoints: calculatedProductTotals.totalRedeemPoints,
           deliverycost: cleanMoneyValue(order.deliverycost).toNumber(),
-          servicetax: cleanMoneyValue(order.servicetax).toNumber(),
           discount: Number(order.discount) || 0.0,
           discountamount: calculatedDiscount.discountamount,
           totalAmount: order.totalAmount,
@@ -925,7 +865,6 @@ export const ModalCreateOrder = ({
       totalRewardPoints: 0,
       totalRedeemPoints: 0,
       deliverycost: 0,
-      servicetax: 0,
       discount: 0,
       discountamount: 0,
       totalAmount: 0,
@@ -938,9 +877,9 @@ export const ModalCreateOrder = ({
       comentary: "",
       status: "PENDIENTE A CONFIRMAR",
     };
+
     setOrder(initialOrder);
     setOrderCopy(_.cloneDeep(initialOrder));
-    setCurrentTab(0);
     setIsDiscount("SIN DESCUENTO");
     setProductSelectorFirstStep(true);
     setShowProductSelector(true);
@@ -961,7 +900,8 @@ export const ModalCreateOrder = ({
           elevation: 0,
           sx: {
             width: "min(1360px, calc(100vw - 28px))",
-            maxHeight: "calc(100vh - 28px)",
+            height: { lg: "calc(100dvh - 28px)" },
+            maxHeight: "calc(100dvh - 28px)",
             borderRadius: "10px",
             overflow: "hidden",
             bgcolor: "background.default",
@@ -980,7 +920,7 @@ export const ModalCreateOrder = ({
             bgcolor: "background.main",
             borderBottom: "1px solid",
             borderColor: "rgba(184, 182, 186, 0.18)",
-            p: { xs: 1.5, md: 2 },
+            p: { xs: 1, md: 1.5 },
           }}
         >
           <Box
@@ -1079,6 +1019,7 @@ export const ModalCreateOrder = ({
                 }}
               />
             </Box>
+
             <IconButton
               onClick={handleClose}
               size="small"
@@ -1089,140 +1030,64 @@ export const ModalCreateOrder = ({
           </Box>
         </DialogTitle>
 
-        <Box
-          sx={{
-            bgcolor: "background.main",
-            borderBottom: "1px solid",
-            borderColor: "rgba(184, 182, 186, 0.18)",
-            px: { xs: 1.5, md: 2 },
-          }}
-        >
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "repeat(2, 1fr)",
-                md: "repeat(4, 1fr)",
-              },
-              maxWidth: 840,
-            }}
-          >
-            {workflowSteps.map((step, index) => {
-              const active = currentTab === index;
-              return (
-                <Button
-                  key={step}
-                  onClick={() => handleTabChange(index)}
-                  disableRipple
-                  sx={{
-                    justifyContent: "flex-start",
-                    gap: 1.2,
-                    py: 1.6,
-                    px: { xs: 0.5, sm: 1.5 },
-                    borderRadius: 0,
-                    color: active ? "text.primary" : "text.secondary",
-                    borderBottom: active
-                      ? "3px solid"
-                      : "3px solid transparent",
-                    borderColor: active ? "primary.main" : "transparent",
-                    "&:hover": { bgcolor: "rgba(245, 166, 35, 0.06)" },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: "50%",
-                      border: "1px solid",
-                      borderColor: active
-                        ? "primary.main"
-                        : "rgba(184, 182, 186, 0.25)",
-                      display: "grid",
-                      placeItems: "center",
-                      color: active ? "primary.main" : "text.secondary",
-                      fontFamily: "fontFamily.terciary",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {index + 1}
-                  </Box>
-                  <Typography
-                    sx={{
-                      fontFamily: "fontFamily.primary",
-                      fontSize: { xs: "12px", sm: "14px" },
-                      lineHeight: 1,
-                    }}
-                  >
-                    {step}
-                  </Typography>
-                </Button>
-              );
-            })}
-          </Box>
-        </Box>
-
         <DialogContent
           sx={{
-            p: { xs: 1.5, md: 2 },
+            p: 1.5,
             bgcolor: "background.default",
-            overflow: "auto",
+            overflow: { xs: "auto", lg: "hidden" },
+            minHeight: 0,
           }}
         >
           <Box
             sx={{
               display: "grid",
               gridTemplateColumns: {
-                xs: "1fr",
-                lg: "minmax(0, 1fr) minmax(360px, 420px)",
+                xs: "minmax(0, 1fr)",
+                lg: "minmax(0, 1.55fr) minmax(0, 1fr)",
               },
+              p: 1,
               gap: 2,
-              alignItems: "start",
+              height: { lg: "100%" },
+              minHeight: 0,
             }}
           >
             <Box
-              ref={contentRef}
               sx={{
                 display: "flex",
                 flexDirection: "column",
-                gap: 2,
-                maxHeight: "70vh",
-                overflowY: "auto",
-                pr: 1,
+                gap: 1.5,
+                minWidth: 0,
+                minHeight: 0,
+                overflowY: { lg: "auto" },
+                pr: { lg: 0.5 },
               }}
             >
-              <Box ref={orderDetailsRef}>
-                <OrderDetailsTab
-                  order={order}
-                  setOrder={setOrder}
-                  handleInputChange={handleInputChange}
-                  isDiscount={isDiscount}
-                  handleDiscountChange={handleDiscountChange}
-                  calculatedDiscount={calculatedDiscount}
-                  addServiceTax={addServiceTax}
-                  setAddServiceTax={setAddServiceTax}
-                  availablePaymentMethods={availablePaymentMethods}
-                />
-              </Box>
+              <ClientInfoTab
+                order={order}
+                handleInputChange={handleInputChange}
+                ignoreEmail={ignoreEmail}
+                handleIgnoreEmail={handleIgnoreEmail}
+                canSearchClients={canSearchClients}
+                onSearchClient={() => {
+                  if (!canSearchClients) {
+                    showAlert(
+                      "No tienes permisos para consultar clientes",
+                      "warning",
+                    );
+                    return;
+                  }
+                  toggleModal("clientsData", true);
+                }}
+              />
 
-              <Box ref={clientInfoRef}>
-                <ClientInfoTab
-                  order={order}
-                  handleInputChange={handleInputChange}
-                  ignoreEmail={ignoreEmail}
-                  handleIgnoreEmail={handleIgnoreEmail}
-                  canSearchClients={canSearchClients}
-                  onSearchClient={() => {
-                    if (!canSearchClients) {
-                      showAlert(
-                        "No tienes permisos para consultar clientes",
-                        "warning",
-                      );
-                      return;
-                    }
-                    toggleModal("clientsData", true);
-                  }}
-                />
-              </Box>
+              <OrderDetailsTab
+                order={order}
+                setOrder={setOrder}
+                handleInputChange={handleInputChange}
+                isDiscount={isDiscount}
+                handleDiscountChange={handleDiscountChange}
+                availablePaymentMethods={availablePaymentMethods}
+              />
             </Box>
 
             <OrderSummary
@@ -1242,7 +1107,7 @@ export const ModalCreateOrder = ({
           sx={{
             justifyContent: "flex-end",
             gap: 1.5,
-            p: { xs: 1.5, md: 2 },
+            p: { xs: 1, md: 1.5 },
             bgcolor: "background.main",
             borderTop: "1px solid",
             borderColor: "rgba(184, 182, 186, 0.18)",
